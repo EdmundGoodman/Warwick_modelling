@@ -5,19 +5,42 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from random import choice, randint, sample, random, seed
-from math import comb
+from itertools import combinations
+
+
 
 
 ###############################
 ### Change these parameters ###
 ###############################
 
-RANDOM_SEED = 0
 NUM_ANTIBIOTICS = 3
 POPULATION_SIZE = 5000
-PROBABILITY_RESISTANCE_CHANGE= 0.05
+PROBABILITY_RESISTANCE_CHANGE= 0.2
 PROPORTION_TREATED_PER_ROUND = 0.2
 PROBABILITY_SPREAD = 0.1
+NUM_TIMESTEPS = 20
+
+###########################
+### Internal parameters ###
+###########################
+
+RANDOM_SEED = 0
+REPORT_PERCENTAGE = 5
+
+#########################
+### Derived constants ###
+#########################
+
+REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
+ANTIBIOTIC_NAMES = [i+1 for i in range(NUM_ANTIBIOTICS)]
+ANTIBIOTIC_COMBINATIONS = []
+for i in reversed(range(len(ANTIBIOTIC_NAMES)+1)):
+    ANTIBIOTIC_COMBINATIONS.extend([",".join(map(str,j))
+                            for j in combinations(ANTIBIOTIC_NAMES,i)])
+ANTIBIOTIC_COMBINATIONS.append("#")
+
+
 
 
 class Person:
@@ -52,19 +75,24 @@ class Model:
         else:
             self.population = population
 
-    def run(self, num_timesteps=200):
+    def run(self):
         """Simulate a number of timesteps within the model"""
 
-        # Store data about percentage resistance throughout the model run
-        self.x_data = range(num_timesteps)
-        self.ys_data = [[] for i in range(NUM_ANTIBIOTICS+1)]
+        # Store data about percentage resistance of each combination of
+        # resistances throughout the model run
+        self.x_data = range(NUM_TIMESTEPS)
+        self.ys_data = [[] for _ in range(2 ** NUM_ANTIBIOTICS + 1)]
 
-        for i in range(num_timesteps):
+        for i in range(NUM_TIMESTEPS):
+
+            if i % REPORT_MOD_NUM == 0:
+                print("{}% complete".format(i / int(NUM_TIMESTEPS / 10) * 10) )
+
+
             # Record the data for the timestep
-            infection_percentages = list(self.get_infection_percentages())
+            infection_percentages = self.get_infection_percentages().values()
             for i,data_point in enumerate(infection_percentages):
                 self.ys_data[i].append(data_point)
-            self.ys_data[-1].append(100-sum(infection_percentages))
 
             # Mutate the infections for every person in the population
             for person in self.population:
@@ -85,18 +113,32 @@ class Model:
                                                             - set([spreader])))
                 spreader.spread_infection(receiver)
 
+        print("Done!")
+
     def get_infection_percentages(self):
         """Get the percentage infected with each type of bacteria"""
-        infections = [0]*NUM_ANTIBIOTICS
+        infections = {name:0 for name in ANTIBIOTIC_COMBINATIONS}
         for person in self.population:
-            infections = [x + y for x, y in zip(infections, person.infections)]
-        return map(lambda x: 100*float(x)/POPULATION_SIZE, infections)
+            infections[self.infection_list_to_names(person)] += 1
+
+        return {infection: (float(number) / POPULATION_SIZE) * 100
+                                    for infection,number in infections.items()}
+
+
+    def infection_list_to_names(self, person):
+        """Turn a persons infection list into the name of those infections"""
+        name = ",".join([str(i+1) for i,v in enumerate(person.infections) if v])
+        if name == "":
+            return "#"
+        return name
 
     def __repr__(self):
         """Return a string encoding the percentage of people infected by
         each anti-biotice resistant bacteria"""
-        return "Infections: {}".format([str(p)+"%" for p in
-                                            self.get_infection_percentages()])
+        infection_strings = ""
+        for k,v in self.get_infection_percentages():
+            infection_strings += "{}% {}".format(v, k)
+        return ",".join(infection_strings)
 
 
 
@@ -117,7 +159,7 @@ if __name__ == "__main__":
 
     # Create a stacked area plot of the infection data
     # https://www.python-graph-gallery.com/stacked-area-plot/
-    plt.stackplot(m.x_data, *m.ys_data, labels=['A','B','C','#'])
+    plt.stackplot(m.x_data, *m.ys_data, labels=ANTIBIOTIC_COMBINATIONS)
     plt.legend(loc='upper right')
     plt.xlabel("Time / timesteps")
     plt.ylabel("Infections / %")
