@@ -35,6 +35,7 @@ for i in reversed(range(len(ANTIBIOTIC_NAMES)+1)):
     ANTIBIOTIC_COMBINATIONS.extend([",".join(map(str,j))
                             for j in combinations(ANTIBIOTIC_NAMES,i)])
 ANTIBIOTIC_COMBINATIONS.append("#")
+ANTIBIOTIC_COMBINATIONS.remove("")
 
 
 
@@ -67,14 +68,14 @@ class Model:
         """Start the model with a population of uninfected people, or a custom
         population provided as a parameter"""
         if population is None:
-            self.population = [Person() for i in range(POPULATION_SIZE)]
+            self.population = [Person() for _ in range(POPULATION_SIZE)]
         else:
             self.population = population
 
         # Store data about percentage resistance of each combination of
         # resistances throughout the model run
         self.x_data = []
-        self.ys_data = [[] for _ in range(2 ** NUM_ANTIBIOTICS + 1)]
+        self.ys_data = [[] for _ in range(2 ** NUM_ANTIBIOTICS)]
 
     def run(self):
         """Simulate a number of timesteps within the model"""
