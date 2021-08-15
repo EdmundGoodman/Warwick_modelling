@@ -21,16 +21,12 @@ PROPORTION_TREATED_PER_ROUND = 0.2
 PROBABILITY_SPREAD = 0.1
 NUM_TIMESTEPS = 20
 
-###########################
-### Internal parameters ###
-###########################
+#################################################
+### Internal parameters and derived constants ###
+#################################################
 
 RANDOM_SEED = 0
 REPORT_PERCENTAGE = 5
-
-#########################
-### Derived constants ###
-#########################
 
 REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 ANTIBIOTIC_NAMES = [i+1 for i in range(NUM_ANTIBIOTICS)]
@@ -75,19 +71,21 @@ class Model:
         else:
             self.population = population
 
+        # Store data about percentage resistance of each combination of
+        # resistances throughout the model run
+        self.x_data = []
+        self.ys_data = [[] for _ in range(2 ** NUM_ANTIBIOTICS + 1)]
+
     def run(self):
         """Simulate a number of timesteps within the model"""
 
-        # Store data about percentage resistance of each combination of
-        # resistances throughout the model run
         self.x_data = range(NUM_TIMESTEPS)
-        self.ys_data = [[] for _ in range(2 ** NUM_ANTIBIOTICS + 1)]
-
         for i in range(NUM_TIMESTEPS):
 
+            # Report how far through the run when a multiple of a set percentage
+            # of steps are completed
             if i % REPORT_MOD_NUM == 0:
                 print("{}% complete".format(i / int(NUM_TIMESTEPS / 10) * 10) )
-
 
             # Record the data for the timestep
             infection_percentages = self.get_infection_percentages().values()
@@ -123,7 +121,6 @@ class Model:
 
         return {infection: (float(number) / POPULATION_SIZE) * 100
                                     for infection,number in infections.items()}
-
 
     def infection_list_to_names(self, person):
         """Turn a persons infection list into the name of those infections"""
