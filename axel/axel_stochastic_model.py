@@ -18,7 +18,7 @@ NUM_ANTIBIOTICS = 3
 POPULATION_SIZE = 5000
 PROBABILITY_RESISTANCE_CHANGE= 0.2
 PROPORTION_TREATED_PER_ROUND = 0.2
-PROBABILITY_SPREAD = 0.1
+PROBABILITY_SPREAD = 0.01
 NUM_TIMESTEPS = 20
 
 #################################################
@@ -97,20 +97,19 @@ class Model:
             for person in self.population:
                 person.mutate_infections()
 
-            # Randomly select some people to treat with random drugs
+            # Randomly select some people to treat with random drugs, and treat
+            # each of these people with a random drug
             to_treat = sample(self.population,
                             int(POPULATION_SIZE*PROPORTION_TREATED_PER_ROUND))
-
-            # Treat each of these people with a random drug
             for person in to_treat:
                 person.treat_infection(randint(0, NUM_ANTIBIOTICS - 1))
 
             # Randomly spread
-            if decision(PROBABILITY_SPREAD):
-                spreader = choice(self.population)
-                receiver = choice(list(set(self.population)
+            for spreader in self.population:
+                if decision(PROBABILITY_SPREAD):
+                    receiver = choice(list(set(self.population)
                                                             - set([spreader])))
-                spreader.spread_infection(receiver)
+                    spreader.spread_infection(receiver)
 
         print("Done!")
 
