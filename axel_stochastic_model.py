@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+
 from random import choice, sample, random, seed
 from itertools import combinations
+from copy import deepcopy
 
 
 ###############################
@@ -18,6 +20,7 @@ PROBABILITY_GENERAL_RECOVERY = 0.01
 PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 5
 
+
 #################################################
 ### Internal parameters and derived constants ###
 #################################################
@@ -30,11 +33,13 @@ RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
 RESISTANCE_COMBINATIONS = []
 for i in reversed(range(len(RESISTANCE_NAMES))):
     RESISTANCE_COMBINATIONS.extend([",".join(map(str,j))
-                            for j in combinations(RESISTANCE_NAMES,i+1)])
+                            for j in combinations(RESISTANCE_NAMES, i+1)])
 RESISTANCE_COMBINATIONS.append("#")
 
 
-
+#######################################
+### Objects and logic for the model ###
+#######################################
 
 class Person:
     def __init__(self):
@@ -127,13 +132,16 @@ class Model:
                     antibiotic = choice(RESISTANCE_NAMES)
                     person.treat_infection(antibiotic)
 
-                # Spread the infection strains throughout the population
-                # TODO: Make this so it only updates at end of run, as this allows
-                #       jumping through infected people in a single timestep
+            # Spread the infection strains throughout the population
+            # We need a deepcopy operation, to prevent someone who has just
+            # been spread to in this timestep spreading that thing they've
+            # just received, so technically don't have yet
+            updated_population = deepcopy(self.population)
+            for person in self.population:
                 if person.infected and decision(PROBABILITY_SPREAD):
-                    receivers = list(set(sample(self.population, NUM_SPREAD_TO)) - set([person]))
-                    for receiver in receivers:
+                    for receiver in sample(updated_population, NUM_SPREAD_TO):
                         person.spread_infection(receiver)
+            self.population = updated_population[:]
 
         print("Done!")
 
@@ -152,7 +160,6 @@ class Model:
         for k,v in self.get_infection_percentages():
             infection_strings += "{}% {}".format(v, k)
         return ",".join(infection_strings)
-
 
 
 def decision(probability):
