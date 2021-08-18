@@ -12,13 +12,15 @@ from copy import deepcopy
 ### Change these parameters ###
 ###############################
 
-NUM_TIMESTEPS = 100
+NUM_TIMESTEPS = 500
 NUM_RESISTANCE_TYPES = 3
 POPULATION_SIZE = 5000
-PROBABILITY_MUTATION = 0.05
+PROBABILITY_MUTATION = 0.02
 PROBABILITY_GENERAL_RECOVERY = 0.01
 PROBABILITY_SPREAD = 1
-NUM_SPREAD_TO = 5
+NUM_SPREAD_TO = 2
+
+TOGGLE_OUR_DESIGN = True
 
 
 #################################################
@@ -36,6 +38,9 @@ for i in reversed(range(len(RESISTANCE_NAMES))):
                             for j in combinations(RESISTANCE_NAMES, i+1)])
 RESISTANCE_COMBINATIONS.append("#")
 
+OUR_DETECTOR, OTHER_RESISTANCES = RESISTANCE_NAMES[0], RESISTANCE_NAMES[1:]
+
+
 
 #######################################
 ### Objects and logic for the model ###
@@ -48,14 +53,14 @@ class Person:
         self.resistances = {resistance: False for resistance in RESISTANCE_NAMES}
 
     def mutate_infections(self):
-        """Make a person resistant to each antibiotic with a very probability"""
+        """Make a person resistant to each antibiotic with a set probability"""
         for resistance in RESISTANCE_NAMES:
             if decision(PROBABILITY_MUTATION):
                 self.infected = True
                 self.resistances[resistance] = True
 
     def recover_from_infection(self):
-        """Recover the person, returning them to their default state: totally
+        """Recover the person, returning them to their default state; totally
         uninfected with no resistances"""
         self.__init__()
 
@@ -129,12 +134,22 @@ class Model:
                 # Treat with a random antibiotic (which are named the same
                 # as the strains which are resistant to them)
                 if person.infected:
-                    antibiotic = choice(RESISTANCE_NAMES)
+                    if TOGGLE_OUR_DESIGN:
+                        # Apply our detection method (identifying a) to improve
+                        # success at treatment stage
+                        if person.resistances[OUR_DETECTOR]:
+                            antibiotic = choice(OTHER_RESISTANCES)
+                        else:
+                            antibiotic = OUR_DETECTOR
+                    else:
+                        # Randomly choose what to treat with
+                        antibiotic = choice(RESISTANCE_NAMES)
+
                     person.treat_infection(antibiotic)
 
             # Spread the infection strains throughout the population
             # We need a deepcopy operation, to prevent someone who has just
-            # been spread to in this timestep spreading that thing they've
+            # been spread to in this timestep spreading the thing they've
             # just received, so technically don't have yet
             updated_population = deepcopy(self.population)
             for person in self.population:
