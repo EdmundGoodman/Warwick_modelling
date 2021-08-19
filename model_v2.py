@@ -3,7 +3,7 @@
 
 import matplotlib.pyplot as plt
 
-from random import seed, random
+from random import seed, random, sample
 from copy import deepcopy
 
 
@@ -14,9 +14,14 @@ from copy import deepcopy
 NUM_TIMESTEPS = 500
 POPULATION_SIZE = 5000
 NUM_RESISTANCE_TYPES = 3
-PROBABILITY_MUTATION = 0.02
 
+PROBABILITY_MUTATION = 0.02
 PROBABILITY_GENERAL_RECOVERY = 0.01
+PROBABILITY_MOVE_UP_TREATMENT = 0.2
+PROBABILITY_TREATMENT_CURES = 0.2
+PROBABILITY_DEATH = 0.01
+PROBABILITY_SPREAD = 1
+NUM_SPREAD_TO = 2
 
 
 #################################################
@@ -92,13 +97,11 @@ class Person:
         irrespective of any resistances it has"""
         self.__init__(immune=True)
 
-    def treat_infection(self, treatment_name):
-        """Treat the infection with an treatment - if the infection is
+    def cure_infection(self):
+        """Cure the infection with an treatment - if the infection is
         resistant to it, do nothing, otherwise, kill the infection and all
         other resistances it included"""
-        self.current_treatment = treatment_name
-        # TODO: Make this not always work
-        if not self.infection.is_resistant(treatment_name):
+        if self.current_treatment is not None and not self.infection.is_resistant(self.current_treatment):
             self.recover_from_infection()
 
     def spread_infection(self, other):
@@ -130,20 +133,91 @@ class Model:
             # Give a member of the population a simple infection with no
             # resistances to any treatments
             if initial_infected:
-                self.population[0].infection = Infection()
+                self.population[i].infection = Infection()
 
         # Store a separate list of dead people to avoid continual checking
         # for if a person is dead before operations
         self.dead = []
 
+
+        self.x_data = range(NUM_TIMESTEPS)
+        self.ys_data = [[0] * NUM_TIMESTEPS for _ in range(NUM_RESISTANCE_TYPES + 4)]
+
+
     def run(self):
         """Simulate a number of timesteps within the model"""
         for i in range(NUM_TIMESTEPS):
+
+            num_uninfected = 0
+            num_immune = 0
+            num_infected_stages = [0] * (NUM_RESISTANCE_TYPES + 1)
+
+            # For each person in the population
+            for person in self.population:
+
+                #Record the data throughout the model
+                if person.immune:
+                    num_immune += 1
+                elif person.infection is None:
+                    num_uninfected += 1
+                else:
+                    num_infected_stages[person.infection.get_tier() + 1] += 1
+
+                # Allow for recovery from their infection
+                if decision(PROBABILITY_GENERAL_RECOVERY):
+                    person.recover_from_infection()
+
+
+                # ```if person.infection is not None``` uneeded since infection
+                # can never be None if current_treatment is not
+
+                 # Treat with the relevant antibiotic strain either continuing
+                 # with the current course of treatment or
+                # "moving up" a level
+                if person.infection is not None:
+                    if person.current_treatment != RESISTANCE_NAMES[-1]:
+                        if decision(PROBABILITY_MOVE_UP_TREATMENT):
+                            person.current_treatment = RESISTANCE_NAMES[int(person.current_treatment)+1]
+                # Cure the patient with this treatment some of the time
+                if decision(PROBABILITY_TREATMENT_CURES):
+                    person.cure_infection()
+
+                # Allow for mutation to a resistant strain
+                if decision(PROBABILITY_MUTATION):
+                    person.mutate_infection()
+
+                # Allow for deaths
+                if person.infection is not None and decision(PROBABILITY_DEATH):
+                    person.die()
+                    person_position = self.population.index(person)
+                    self.dead.append(self.population.pop(person_position))
+
+            # Store the data to the structure to draw a graph of
+            self.ys_data[0][i] = num_immune / POPULATION_SIZE
+            self.ys_data[1][i] = num_uninfected / POPULATION_SIZE
+            self.ys_data[2][i] = len(self.dead) / POPULATION_SIZE
+            for j in range(len(num_infected_stages)):
+                self.ys_data[j+3][i] = num_infected_stages[j]
 
             # Report how far through the run when a multiple of a set percentage
             # of steps are completed
             if i % REPORT_MOD_NUM == 0:
                 print("{}% complete".format(i / int(NUM_TIMESTEPS / 10) * 10))
+                print(num_immune, num_uninfected, num_infected_stages)
+
+
+            # Spread the infection strains throughout the population
+            # We need a deepcopy operation, to prevent someone who has just
+            # been spread to in this timestep spreading the thing they've
+            # just received, so technically don't have yet
+            updated_population = deepcopy(self.population)
+            for person in self.population:
+                if person.infection is not None and decision(PROBABILITY_SPREAD):
+                    for receiver in sample(updated_population, NUM_SPREAD_TO):
+                        person.spread_infection(receiver)
+            self.population = updated_population[:]
+
+        print("Done!")
 
     def __repr__(self):
         """Return a string encoding the percentage of people infected by
@@ -164,3 +238,16 @@ if __name__ == "__main__":
     # Create and run the model
     m = Model()
     m.run()
+
+
+    """# Create a stacked area plot of the infection data
+    # https://www.python-graph-gallery.com/stacked-area-plot/
+    labels = RESISTANCE_NAMES
+    labels.insert(0,"I")
+    labels.insert(0,"-")
+    labels.insert(0,"X")
+    plt.stackplot(m.x_data, *m.ys_data, labels=labels)
+    plt.legend(loc='upper right')
+    plt.xlabel("Time / timesteps")
+    plt.ylabel("Infections / %")
+    plt.show()"""
