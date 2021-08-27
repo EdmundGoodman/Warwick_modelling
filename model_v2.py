@@ -4,24 +4,29 @@
 import matplotlib.pyplot as plt
 
 from random import seed, random
-
+from copy import deepcopy
 
 ###############################
 ### Change these parameters ###
 ###############################
 
+# General parameters
 NUM_TIMESTEPS = 500
 POPULATION_SIZE = 5000
-
 NUM_RESISTANCE_TYPES = 3
 
+# Recovery generally or by treatment (green line in powerpoint)
 PROBABILITY_GENERAL_RECOVERY = 0.01
 PROBABILITY_TREATMENT_RECOVERY = 0.2
-
-
-
+# Mutation to higher resistance due to treatment (blue line in powerpoint)
+PROBABILITY_MUTATION = 0.02
+PROBABILITY_MOVE_UP_TREATMENT = 0.2
+# Death (orange line in powerpoint)
+PROBABILITY_DEATH = 0.01
+# Spreading (grey line in powerpoint)
 PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 2
+
 
 #################################################
 ### Internal parameters and derived constants ###
@@ -107,6 +112,43 @@ class Person:
         self.immune = immune
         self.alive = True
 
+    def recover_from_infection(self):
+        """Recover the person, returning them to their default state; totally
+        uninfected with no resistances, but now immune to the infection -
+        irrespective of any resistances it has"""
+        self.__init__(immune=True)
+
+    def mutate_infection(self):
+        """Make the infection become resistant to the treatment with a given
+        probability of occurring"""
+        if self.infection is not None and self.current_treatment is not None:
+            self.infection.make_resistant(self.current_treatment)
+
+    def cure_infection(self):
+        """Cure the infection with an treatment - if the infection is
+        resistant to it, do nothing, otherwise, kill the infection and all
+        other resistances it included"""
+        if self.current_treatment is not None and not self.infection.is_resistant(self.current_treatment):
+            self.recover_from_infection()
+
+    def spread_infection(self, other):
+        """Give the current infection to another person, as long as they can
+        receive it, don't already have a more resistant infection, and neither
+        are isolated"""
+        susceptible = not other.immune and other.alive
+        directional = self.infection.get_tier() > other.infection.get_tier()
+        contactable = not self.isolated and not other.isolated
+        if susceptible and directional and contactable:
+            other.infection = deepcopy(self.infection)
+
+    def isolate(self):
+        """Put the person in isolation"""
+        self.isolated = True
+
+    def deisolate(self):
+        """Take the person out of isolation"""
+        self.isolated = False
+
     def die(self):
         """Make the person no longer alive"""
         self.alive = False
@@ -146,18 +188,24 @@ class Model:
             # For each person in the population
             for person in self.population:
 
-                # Recovery generally or by treatement
-                # (green line in first slide of powerpoint)
-                
-                # Mutation due to treatment
-                # (blue line in first slide of powerpoint)
+                # Recovery generally or by treatment
+                # (green line in powerpoint)
+
+                # Mutation to higher resistance due to treatment
+                # (blue line in powerpoint)
 
                 # Moving up in treatment class
 
+                # Isolate if in high enough treatment class
+
                 # Deaths due to infection
-                # (orange line in first slide of powerpoint)
+                # (orange line in powerpoint)
 
                 pass
+
+            # Spread within population
+            # (grey line in powerpoint)
+
 
     def __repr__(self):
         return "Model"
