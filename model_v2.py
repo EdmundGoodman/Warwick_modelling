@@ -3,7 +3,7 @@
 
 import matplotlib.pyplot as plt
 
-from random import seed, random
+from random import seed, random, sample
 from copy import deepcopy
 
 ###############################
@@ -21,11 +21,12 @@ PROBABILITY_TREATMENT_RECOVERY = 0.2
 # Mutation to higher resistance due to treatment (blue line in powerpoint)
 PROBABILITY_MUTATION = 0.02
 PROBABILITY_MOVE_UP_TREATMENT = 0.2
+ISOLATION_THRESHOLD = 2
 # Death (orange line in powerpoint)
 PROBABILITY_DEATH = 0.01
 # Spreading (grey line in powerpoint)
-PROBABILITY_SPREAD = 1
-NUM_SPREAD_TO = 2
+PROBABILITY_SPREAD = 0.2
+NUM_SPREAD_TO = 1
 
 
 #################################################
@@ -37,6 +38,7 @@ REPORT_PERCENTAGE = 5
 
 REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
+ISOLATION_THRESHOLD_DRUG = str(ISOLATION_THRESHOLD)
 
 
 #######################################
@@ -87,9 +89,15 @@ class Infection:
 
 
 class Treatment:
-    def __init__(self, drug=None):
+    def __init__(self, drug=RESISTANCE_NAMES[0]):
         """Initialise a treatment within the model"""
         self.drug = drug
+
+    def next_treatment(self):
+        """Move up the treatment to the next strongest drug"""
+        drug_index = RESISTANCE_NAMES.index(self.drug)
+        if drug_index < NUM_RESISTANCE_TYPES - 1:
+            self.drug = RESISTANCE_NAMES[drug_index + 1]
 
     def treats_infection(self, infection):
         """Return whether the treatment works on the infection given any
@@ -121,24 +129,34 @@ class Person:
     def mutate_infection(self):
         """Make the infection become resistant to the treatment with a given
         probability of occurring"""
-        if self.infection is not None and self.current_treatment is not None:
-            self.infection.make_resistant(self.current_treatment)
+        if self.infection is not None and self.treatment is not None:
+            self.infection.make_resistant(self.treatment)
 
-    def cure_infection(self):
-        """Cure the infection with an treatment - if the infection is
-        resistant to it, do nothing, otherwise, kill the infection and all
-        other resistances it included"""
-        if self.current_treatment is not None and not self.infection.is_resistant(self.current_treatment):
-            self.recover_from_infection()
+    def increase_treatment(self):
+        """Move up the treatment by one"""
+        if self.treatment is not None:
+            self.treatment.next_treatment()
+
+    def correct_treatment(self):
+        """Return whether the current treatment is sufficient to overcome
+        any resistances of the infection"""
+        if self.treatment is not None:
+            return self.treatment.treats_infection(self.infection)
+        return False
 
     def spread_infection(self, other):
         """Give the current infection to another person, as long as they can
         receive it, don't already have a more resistant infection, and neither
         are isolated"""
+        # Cannot spread if not already infected
+        if self.infection is None:
+            return None
+
+        directional = (other.infection is None
+                    or self.infection.get_tier() > other.infection.get_tier())
         susceptible = not other.immune and other.alive
-        directional = self.infection.get_tier() > other.infection.get_tier()
         contactable = not self.isolated and not other.isolated
-        if susceptible and directional and contactable:
+        if directional and susceptible and contactable:
             other.infection = deepcopy(self.infection)
 
     def isolate(self):
@@ -171,10 +189,11 @@ class Model:
         else:
             self.population = population
 
-        # We also have some other lists to move people into to speed up
+        """# We also have some other lists to move people into to speed up
         # Store a separate list of dead people to avoid continual checking
         # for if a person is dead before operations
         self.dead = []
+        self.immune = []"""
 
     def run(self):
         """Simulate a number of timesteps within the model"""
@@ -185,26 +204,95 @@ class Model:
             if i % REPORT_MOD_NUM == 0:
                 print("{}% complete".format(i / int(NUM_TIMESTEPS / 10) * 10))
 
+
+
+
+
+            # Make some helper variables
+            num_uninfected = 0
+            num_immune = 0
+            num_infected_stages = [0] * (NUM_RESISTANCE_TYPES + 1)
+
+
+
             # For each person in the population
             for person in self.population:
 
-                # Recovery generally or by treatment
-                # (green line in powerpoint)
 
-                # Mutation to higher resistance due to treatment
-                # (blue line in powerpoint)
 
-                # Moving up in treatment class
 
-                # Isolate if in high enough treatment class
+                #Record the data throughout the model
+                if person.immune:
+                    num_immune += 1
+                elif person.infection is None:
+                    num_uninfected += 1
+                else:
+                    num_infected_stages[person.infection.get_tier() + 1] += 1
 
-                # Deaths due to infection
-                # (orange line in powerpoint)
+                # If the person is infected (we realistically would know this
+                # by whether they are symptomatic)
+                if person.infection is not None:
 
-                pass
+                    # Move up in treatment class if needed
+                    if person.treatment is None:
+                        # If the person is infected but are not being treated
+                        # with **anything**, start them on the lowest tier
+                        # treatment
+                         person.treatment = Treatment()
+                    else:
+                        # Sometimes move the person up to emulate them being
+                        # treated increasingly aggressively if they have not
+                        # recovered
+                        # TODO: Make this dependent on diagnostic tools etc.
+                        if decision(PROBABILITY_MOVE_UP_TREATMENT):
+                            person.increase_treatment()
 
-            # Spread within population
+                        if person.treatment.drug >= ISOLATION_THRESHOLD_DRUG:
+                            # Isolate if in high enough treatment class
+                            person.isolate()
+
+                    # Recovery generally or by treatment if currently infected
+                    # (green line in powerpoint)
+                    general_recovery = decision(PROBABILITY_GENERAL_RECOVERY)
+                    treatment_recovery = (person.correct_treatment() and
+                                    decision(PROBABILITY_TREATMENT_RECOVERY))
+                    if general_recovery or treatment_recovery:
+                        person.recover_from_infection()
+                        """# Move them into the immune list to avoid extra processing
+                        person_position = self.population.index(person)
+                        self.immune.append(self.population.pop(person_position))
+                        continue"""
+
+
+                    # Mutation to higher resistance due to treatment
+                    # (blue line in powerpoint)
+                    if decision(PROBABILITY_MUTATION):
+                        person.mutate_infection()
+
+                    # Deaths due to infection
+                    # (orange line in powerpoint)
+                    if decision(PROBABILITY_DEATH):
+                        person.die()
+                        """# Move them into the dead list to avoid extra processing
+                        person_position = self.population.index(person)
+                        self.dead.append(self.population.pop(person_position))"""
+
+
+            # Spread the infection strains throughout the population
+            # We need a deepcopy operation, to prevent someone who has just
+            # been spread to in this timestep spreading the thing they've
+            # just received, so technically don't have yet
             # (grey line in powerpoint)
+            updated_population = deepcopy(self.population)
+            for person in self.population:
+                if person.infection is not None and decision(PROBABILITY_SPREAD):
+                    for receiver in sample(updated_population, NUM_SPREAD_TO):
+                        person.spread_infection(receiver)
+            self.population = updated_population[:]
+
+            # Print the data
+            if i % REPORT_MOD_NUM == 0:
+                print(num_immune, num_uninfected, num_infected_stages)
 
 
     def __repr__(self):
