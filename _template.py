@@ -11,6 +11,8 @@ from random import seed, random
 ###############################
 
 NUM_TIMESTEPS = 500
+POPULATION_SIZE = 5000
+
 
 #################################################
 ### Internal parameters and derived constants ###
