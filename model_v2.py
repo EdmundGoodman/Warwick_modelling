@@ -13,6 +13,15 @@ from random import seed, random
 NUM_TIMESTEPS = 500
 POPULATION_SIZE = 5000
 
+NUM_RESISTANCE_TYPES = 3
+
+PROBABILITY_GENERAL_RECOVERY = 0.01
+PROBABILITY_TREATMENT_RECOVERY = 0.2
+
+
+
+PROBABILITY_SPREAD = 1
+NUM_SPREAD_TO = 2
 
 #################################################
 ### Internal parameters and derived constants ###
@@ -22,43 +31,95 @@ RANDOM_SEED = 0
 REPORT_PERCENTAGE = 5
 
 REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
+RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
+
 
 #######################################
 ### Objects and logic for the model ###
 #######################################
 
 
+
+
 class Infection:
-    def __init__(self, present=False, resistances=None):
-        self.present = present
+    def __init__(self, resistances=None):
+        """Initialise an infection within the model"""
         if resistances is not None:
             self.resistances = resistances
         else:
-            self.resistances = []
+            self.resistances = {name: False for name in RESISTANCE_NAMES}
+
+    def make_resistant(self, resistance):
+        """Give the infection a specified resistance"""
+        self.resistances[resistance] = True
+
+    def is_resistant(self, resistance):
+        """Return whether the infection has a specified resistance"""
+        return self.resistances[resistance]
+
+    def get_tier(self):
+        """Return how resistant the infection is - higher is more resistant"""
+        for i in reversed(range(NUM_RESISTANCE_TYPES)):
+            # RESISTANCE_NAMES is assumed to be ordered from first to last
+            # resort treatment resistances
+            if self.resistances[RESISTANCE_NAMES[i]] == True:
+                return i
+        return -1
+
+    def get_resistances_string(self):
+        """Get a canonical name for the present resistances"""
+        string = ",".join([k for k, v in self.resistances.items() if v])
+        if string == "":
+            return "#"
+        return string
 
     def __repr__(self):
-        if self.present:
-            return "Infection resistant to: {}".format(",".join(resistances))
-        else:
-            return "No infection"
+        """Provide a string representation for the infection"""
+        resistances_string = self.get_resistances_string()
+        if resistances_string == "#":
+            return "infected"
+        return "infected with resistances: {}".format(resistances_string)
 
 
 class Treatment:
     def __init__(self, drug=None):
+        """Initialise a treatment within the model"""
         self.drug = drug
 
+    def treats_infection(self, infection):
+        """Return whether the treatment works on the infection given any
+        resistances the infection may have"""
+        return not infection.is_resistant(self.drug)
+
     def __repr__(self):
-        return "Treating with drug: {}".format(self.drug)
+        if self.drug is not None:
+            return "treated with drug: {}".format(self.drug)
+        return "untreated"
 
 
 class Person:
-    def __init__(self):
-        self.isolated = False
-        self.infection = Infection()
-        self.treatment = Treatment()
+    def __init__(self, infection=None, treatment=None, isolated=False, immune=False):
+        """Initialise a person as having various properties within the model"""
+        self.infection = infection
+        self.treatment = treatment
+
+        self.isolated = isolated
+        self.immune = immune
+        self.alive = True
+
+    def die(self):
+        """Make the person no longer alive"""
+        self.alive = False
 
     def __repr__(self):
-        return "Person"
+        """Provide a string representation for the person"""
+        if not self.alive:
+            return "Dead person"
+        elif self.immune:
+            return "Immune person"
+        elif self.infection is not None:
+            return "Person {} and {}".format(self.infection, self.treatment)
+        return "Uninfected person"
 
 
 class Model:
@@ -69,7 +130,8 @@ class Model:
             self.population = population
 
         # We also have some other lists to move people into to speed up
-        # processing
+        # Store a separate list of dead people to avoid continual checking
+        # for if a person is dead before operations
         self.dead = []
 
     def run(self):
@@ -86,7 +148,7 @@ class Model:
 
                 # Recovery generally or by treatement
                 # (green line in first slide of powerpoint)
-
+                
                 # Mutation due to treatment
                 # (blue line in first slide of powerpoint)
 
@@ -94,6 +156,8 @@ class Model:
 
                 # Deaths due to infection
                 # (orange line in first slide of powerpoint)
+
+                pass
 
     def __repr__(self):
         return "Model"
@@ -109,6 +173,11 @@ if __name__ == "__main__":
     if RANDOM_SEED is not None:
         seed(RANDOM_SEED)
 
+    # Create a population with some initially infected people
+    population = [Person() for _ in range(POPULATION_SIZE - 10)]
+    for _ in range(10):
+        population.append(Person(infection=Infection()))
+
     # Create and run the model
-    m = Model()
+    m = Model(population=population)
     m.run()
