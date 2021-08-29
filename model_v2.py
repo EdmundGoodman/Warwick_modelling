@@ -36,6 +36,8 @@ NUM_SPREAD_TO = 1
 
 RANDOM_SEED = 0
 REPORT_PERCENTAGE = 5
+ANIMATE_GRAPH = True
+PRINT_DATA = False
 
 REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
@@ -196,24 +198,19 @@ class Model:
         self.dead = []
         self.immune = []"""
 
-    def run(self):
-        """Simulate a number of timesteps within the model"""
-
-
         # Store data throughout the simulation
         # [Uninfected, infected, resistance #1,... , resistance #2, immune]
-        ys_data = [[] for _ in range(3 + NUM_RESISTANCE_TYPES)]
-        time = []
-
-        plt.ion()  # enable interactivity
-        plt.xlabel("Time / timesteps")
-        plt.ylabel("Infections / %")
-        """labels = (
+        self.time = []
+        self.ys_data = [[] for _ in range(3 + NUM_RESISTANCE_TYPES)]
+        self.labels = (
             ["Uninfected", "Infected"]
             + list(map(lambda x: "Resistance " + x, RESISTANCE_NAMES))
             + ["Immune"]
-        )"""
+        )
 
+
+    def run(self):
+        """Simulate a number of timesteps within the model"""
 
         for i in range(NUM_TIMESTEPS):
 
@@ -300,17 +297,24 @@ class Model:
             self.population = updated_population[:]
 
             # Print the data
-            if i % REPORT_MOD_NUM == 0:
+            if PRINT_DATA and i % REPORT_MOD_NUM == 0:
                 print(num_immune, num_uninfected, num_infected_stages)
 
-            # Draw a stacked plot of what's going on
-            ys_data[0].append(num_uninfected)
+            # Add the data to the record of what's happened
+            self.ys_data[0].append(num_uninfected)
             for j,v in enumerate(num_infected_stages):
-                ys_data[j+1].append(v)
-            ys_data[-1].append(num_immune)
-            time.append(i)
-            drawnow( lambda: plt.stackplot(time, ys_data) )
+                self.ys_data[j+1].append(v)
+            self.ys_data[-1].append(num_immune)
+            self.time.append(i)
+            if ANIMATE_GRAPH:
+                # Draw a stacked plot of what's going on
+                drawnow( lambda: plt.stackplot(self.time, *self.ys_data, labels=m.labels) )
 
+        if ANIMATE_GRAPH:
+            # Add a legend and axis labels (cannot be done during animation)
+            plt.legend(loc='upper right')
+            plt.xlabel("Time / timesteps")
+            plt.ylabel("Infections / %")
 
 
     def __repr__(self):
@@ -327,6 +331,9 @@ if __name__ == "__main__":
     if RANDOM_SEED is not None:
         seed(RANDOM_SEED)
 
+    # Enable interactivity in matplotlib figures
+    plt.ion()
+
     # Create a population with some initially infected people
     population = [Person() for _ in range(POPULATION_SIZE - 10)]
     for _ in range(10):
@@ -336,4 +343,14 @@ if __name__ == "__main__":
     m = Model(population=population)
     m.run()
 
+    if not ANIMATE_GRAPH:
+        # Finally show the full simulation graph
+        print(m.ys_data)
+        plt.stackplot(m.time, *m.ys_data, labels=m.labels)
+        plt.legend(loc='upper right')
+        plt.xlabel("Time / timesteps")
+        plt.ylabel("Infections / %")
+        plt.show()
+
+    # Don't immediately close when the simulation is done
     input("Press enter to exit: ")
