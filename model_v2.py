@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+from drawnow import drawnow
 
 from random import seed, random, sample
 from copy import deepcopy
@@ -11,7 +12,7 @@ from copy import deepcopy
 ###############################
 
 # General parameters
-NUM_TIMESTEPS = 500
+NUM_TIMESTEPS = 50
 POPULATION_SIZE = 5000
 NUM_RESISTANCE_TYPES = 3
 
@@ -25,7 +26,7 @@ ISOLATION_THRESHOLD = 2
 # Death (orange line in powerpoint)
 PROBABILITY_DEATH = 0.01
 # Spreading (grey line in powerpoint)
-PROBABILITY_SPREAD = 0.2
+PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 1
 
 
@@ -197,6 +198,23 @@ class Model:
 
     def run(self):
         """Simulate a number of timesteps within the model"""
+
+
+        # Store data throughout the simulation
+        # [Uninfected, infected, resistance #1,... , resistance #2, immune]
+        ys_data = [[] for _ in range(3 + NUM_RESISTANCE_TYPES)]
+        time = []
+
+        plt.ion()  # enable interactivity
+        plt.xlabel("Time / timesteps")
+        plt.ylabel("Infections / %")
+        """labels = (
+            ["Uninfected", "Infected"]
+            + list(map(lambda x: "Resistance " + x, RESISTANCE_NAMES))
+            + ["Immune"]
+        )"""
+
+
         for i in range(NUM_TIMESTEPS):
 
             # Report how far through the run when a multiple of a set percentage
@@ -204,22 +222,13 @@ class Model:
             if i % REPORT_MOD_NUM == 0:
                 print("{}% complete".format(i / int(NUM_TIMESTEPS / 10) * 10))
 
-
-
-
-
             # Make some helper variables
             num_uninfected = 0
             num_immune = 0
             num_infected_stages = [0] * (NUM_RESISTANCE_TYPES + 1)
 
-
-
             # For each person in the population
             for person in self.population:
-
-
-
 
                 #Record the data throughout the model
                 if person.immune:
@@ -294,6 +303,15 @@ class Model:
             if i % REPORT_MOD_NUM == 0:
                 print(num_immune, num_uninfected, num_infected_stages)
 
+            # Draw a stacked plot of what's going on
+            ys_data[0].append(num_uninfected)
+            for j,v in enumerate(num_infected_stages):
+                ys_data[j+1].append(v)
+            ys_data[-1].append(num_immune)
+            time.append(i)
+            drawnow( lambda: plt.stackplot(time, ys_data) )
+
+
 
     def __repr__(self):
         return "Model"
@@ -317,3 +335,5 @@ if __name__ == "__main__":
     # Create and run the model
     m = Model(population=population)
     m.run()
+
+    input("Press enter to exit: ")
