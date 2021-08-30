@@ -256,11 +256,16 @@ class DataHandler:
     def _report_model_state(self):
         """Report the model's state through any mechanism set in parameters"""
         if self.timestep % REPORT_MOD_NUM == 0:
-            if REPORT_PROGRESS:
+            if REPORT_PROGRESS and not PRINT_DATA:
                 print("{}% complete".format(
                     self.timestep / int(NUM_TIMESTEPS / 10) * 10
                 ))
             if PRINT_DATA:
+                if REPORT_PROGRESS:
+                    # Display it on the same line for ease of reading
+                    print("{}% complete".format(
+                        self.timestep / int(NUM_TIMESTEPS / 10) * 10
+                    ), end=" - ")
                 self._print_current_data()
 
         if ANIMATE_GRAPH:
@@ -312,7 +317,7 @@ class Model:
         self.data_handler.__init__()
 
         # Repeat the simulation for a set number of timesteps
-        for i in range(NUM_TIMESTEPS):
+        for _ in range(NUM_TIMESTEPS):
 
             # For each person in the population
             for person in self.population:
@@ -322,7 +327,7 @@ class Model:
 
                 # If the person is infected (we realistically would know this
                 # by whether they are symptomatic)
-                if person.infection is not None:
+                if person.infection is not None and person.alive:
 
                     # Move up in treatment class if needed
                     if person.treatment is None:
