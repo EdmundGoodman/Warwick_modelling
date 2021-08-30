@@ -6,9 +6,6 @@
 ###############################
 
 # General parameters
-from copy import deepcopy
-from random import seed, random, sample
-import matplotlib.pyplot as plt
 NUM_TIMESTEPS = 50
 POPULATION_SIZE = 5000
 NUM_RESISTANCE_TYPES = 3
@@ -49,10 +46,136 @@ OUTPUT_PADDING = len(str(POPULATION_SIZE))
 ### Library imports for the model ###
 #####################################
 
+from copy import deepcopy
+from random import seed, random, sample
+import matplotlib.pyplot as plt
+
+# Only import the niche drawnow library if it is needed, to allow use even if
+# someone cannot install it, just with fewer features
 if ANIMATE_GRAPH:
     from drawnow import drawnow
-else:
-    def drawnow(x): return None
+
+
+##################################
+### Data handler for the model ###
+##################################
+
+class DataHandler:
+    def __init__(self):
+        """Initialise the data handler for the model as storing data
+        in an appropriate structure"""
+
+        self.time = []
+        # [infected, resistance #1,.. , resistance #2, dead, immune, uninfected]
+        self.ys_data = [[] for _ in range(4 + NUM_RESISTANCE_TYPES)]
+        self.labels = (
+            ["Infected"]
+            + list(map(lambda x: "Resistance " + x, RESISTANCE_NAMES))
+            + ["Dead", "Immune", "Uninfected"]
+        )
+
+        self.timestep = -1
+        self._new_timestep_vars()
+
+    def _new_timestep_vars(self):
+        """Make some helper variables"""
+        self.num_infected_stages = [0] * (NUM_RESISTANCE_TYPES + 1)
+        self.num_dead = 0
+        self.num_immune = 0
+        self.num_uninfected = 0
+        self.timestep += 1
+
+    def record_person(self, person):
+        """Record data about a person in the helper variables, so a whole
+        statistic can be formed by running this function on every person in
+        the population"""
+        if person.immune:
+            self.num_immune += 1
+        elif not person.alive:
+            self.num_dead += 1
+        elif person.infection is None:
+            self.num_uninfected += 1
+        else:
+            self.num_infected_stages[person.infection.get_tier() + 1] += 1
+
+    def _draw_graph(self):
+        """Actually draw the graph via matplotlib"""
+        if GRAPH_TYPE == "line":
+            for i in range(len(self.ys_data)):
+                plt.plot(self.time, self.ys_data[i], label=self.labels[i])
+        else:  # stackplot as default
+            plt.stackplot(self.time, *self.ys_data, labels=self.labels)
+
+    def _graph_settings(self):
+        """Add settings for the graph, e.g. axis labels and legend"""
+        plt.title('Resistance simulation')
+        plt.legend(loc='upper right')
+        plt.xlabel("Time / timesteps")
+        plt.ylabel("# People")
+
+    def _animate_current_data(self):
+        """Draw a graph up to the current state of the simulation"""
+        drawnow(self._draw_graph)
+
+    def draw_full_data(self):
+        """Draw a graph of all of the data in the graph"""
+        self._draw_graph()
+        self._graph_settings()
+        plt.show()
+
+    def _print_current_data(self):
+        """Print the values of the current state of the simulation"""
+        print("uninfected: {}, immune: {}, dead: {}, infected: {}".format(
+            str(self.num_uninfected).ljust(OUTPUT_PADDING),
+            str(self.num_immune).ljust(OUTPUT_PADDING),
+            str(self.num_dead).ljust(OUTPUT_PADDING),
+            "[" + ", ".join(map(
+                lambda x: str(x).ljust(OUTPUT_PADDING),
+                self.num_infected_stages
+            )) + "]"
+        ))
+
+    def _report_model_state(self):
+        """Report the model's state through any mechanism set in parameters"""
+        if self.timestep % REPORT_MOD_NUM == 0:
+            if REPORT_PROGRESS and not PRINT_DATA:
+                print("{}% complete".format(int(
+                    self.timestep / int(NUM_TIMESTEPS / 10) * 10
+                )))
+
+            if PRINT_DATA:
+                if REPORT_PROGRESS:
+                    # Display it on the same line for ease of reading
+                    print("{}% complete".format(str(int(
+                        self.timestep / int(NUM_TIMESTEPS / 10) * 10
+                    )).ljust(2)), end=" - ")
+                self._print_current_data()
+
+        if ANIMATE_GRAPH:
+            self._animate_current_data()
+
+    def post_run_functions(self):
+        """Perform any functions which need to be done immediately after a
+        simulation run is complete"""
+        if ANIMATE_GRAPH:
+            # Add a legend and axis labels (cannot be done during animation)
+            self._graph_settings()
+
+    def process_timestep_data(self):
+        """Store the current timestep's data into the appropriate data
+        structures"""
+        for j, v in enumerate(self.num_infected_stages):
+            self.ys_data[j].append(v)
+        self.ys_data[-3].append(self.num_dead)
+        self.ys_data[-2].append(self.num_immune)
+        self.ys_data[-1].append(self.num_uninfected)
+        self.time.append(self.timestep)
+
+        # Report the model's state through any mechanism set in parameters
+        self._report_model_state()
+
+        # Reset the helper variables
+        self._new_timestep_vars()
 
 
 #######################################
@@ -191,124 +314,6 @@ class Person:
         elif self.infection is not None:
             return "Person {} and {}".format(self.infection, self.treatment)
         return "Uninfected person"
-
-
-class DataHandler:
-    def __init__(self):
-        """Initialise the data handler for the model as storing data
-        in an appropriate structure"""
-
-        self.time = []
-        # [Uninfected, infected, resistance #1,.. , resistance #2, immune, dead]
-        self.ys_data = [[] for _ in range(4 + NUM_RESISTANCE_TYPES)]
-        self.labels = (
-            ["Infected"]
-            + list(map(lambda x: "Resistance " + x, RESISTANCE_NAMES))
-            + ["Dead", "Immune", "Uninfected"]
-        )
-
-        self.timestep = -1
-        self._new_timestep_vars()
-
-    def _new_timestep_vars(self):
-        """Make some helper variables"""
-        self.num_infected_stages = [0] * (NUM_RESISTANCE_TYPES + 1)
-        self.num_dead = 0
-        self.num_immune = 0
-        self.num_uninfected = 0
-        self.timestep += 1
-
-    def record_person(self, person):
-        """Record data about a person in the helper variables, so a whole
-        statistic can be formed by running this function on every person in
-        the population"""
-        if person.immune:
-            self.num_immune += 1
-        elif not person.alive:
-            self.num_dead += 1
-        elif person.infection is None:
-            self.num_uninfected += 1
-        else:
-            self.num_infected_stages[person.infection.get_tier() + 1] += 1
-
-    def _draw_graph(self):
-        """Actually draw the graph via matplotlib"""
-        if GRAPH_TYPE == "line":
-            for i in range(len(self.ys_data)):
-                plt.plot(self.time, self.ys_data[i], label=self.labels[i])
-        else:  # stackplot as default
-            plt.stackplot(self.time, *self.ys_data, labels=self.labels)
-
-    def _graph_settings(self):
-        """Add settings for the graph, e.g. axis labels and legend"""
-        plt.title('Resistance simulation')
-        plt.legend(loc='upper right')
-        plt.xlabel("Time / timesteps")
-        plt.ylabel("# People")
-
-    def _animate_current_data(self):
-        """Draw a graph up to the current state of the simulation"""
-        drawnow(self._draw_graph)
-
-    def draw_full_data(self):
-        """Draw a graph of all of the data in the graph"""
-        self._draw_graph()
-        self._graph_settings()
-        plt.show()
-
-    def _print_current_data(self):
-        """Print the values of the current state of the simulation"""
-        print("uninfected: {}, immune: {}, dead: {}, infected: {}".format(
-            str(self.num_uninfected).ljust(OUTPUT_PADDING),
-            str(self.num_immune).ljust(OUTPUT_PADDING),
-            str(self.num_dead).ljust(OUTPUT_PADDING),
-            "[" + ", ".join(map(
-                lambda x: str(x).ljust(OUTPUT_PADDING),
-                self.num_infected_stages
-            )) + "]"
-        ))
-
-    def _report_model_state(self):
-        """Report the model's state through any mechanism set in parameters"""
-        if self.timestep % REPORT_MOD_NUM == 0:
-            if REPORT_PROGRESS and not PRINT_DATA:
-                print("{}% complete".format(int(
-                    self.timestep / int(NUM_TIMESTEPS / 10) * 10
-                )))
-
-            if PRINT_DATA:
-                if REPORT_PROGRESS:
-                    # Display it on the same line for ease of reading
-                    print("{}% complete".format(str(int(
-                        self.timestep / int(NUM_TIMESTEPS / 10) * 10
-                    )).ljust(2)), end=" - ")
-                self._print_current_data()
-
-        if ANIMATE_GRAPH:
-            self._animate_current_data()
-
-    def post_run_functions(self):
-        """Perform any functions which need to be done immediately after a
-        simulation run is complete"""
-        if ANIMATE_GRAPH:
-            # Add a legend and axis labels (cannot be done during animation)
-            self._graph_settings()
-
-    def process_timestep_data(self):
-        """Store the current timestep's data into the appropriate data
-        structures"""
-        for j, v in enumerate(self.num_infected_stages):
-            self.ys_data[j].append(v)
-        self.ys_data[-3].append(self.num_dead)
-        self.ys_data[-2].append(self.num_immune)
-        self.ys_data[-1].append(self.num_uninfected)
-        self.time.append(self.timestep)
-
-        # Report the model's state through any mechanism set in parameters
-        self._report_model_state()
-
-        # Reset the helper variables
-        self._new_timestep_vars()
 
 
 class Model:
