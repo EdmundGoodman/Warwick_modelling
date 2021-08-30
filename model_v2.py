@@ -140,7 +140,7 @@ class Person:
         """Make the infection become resistant to the treatment with a given
         probability of occurring"""
         if self.infection is not None and self.treatment is not None:
-            self.infection.make_resistant(self.treatment)
+            self.infection.make_resistant(self.treatment.drug)
 
     def increase_treatment(self):
         """Move up the treatment by one"""
