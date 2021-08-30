@@ -32,8 +32,8 @@ RANDOM_SEED = 0
 
 REPORT_PROGRESS = True
 REPORT_PERCENTAGE = 5
-PRINT_DATA = False
-ANIMATE_GRAPH = False
+PRINT_DATA = True
+ANIMATE_GRAPH = True
 
 REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
@@ -198,12 +198,12 @@ class DataHandler:
         in an appropriate structure"""
 
         self.time = []
-        # [Uninfected, infected, resistance #1,... , resistance #2, immune]
-        self.ys_data = [[] for _ in range(3 + NUM_RESISTANCE_TYPES)]
+        # [Uninfected, infected, resistance #1,.. , resistance #2, immune, dead]
+        self.ys_data = [[] for _ in range(4 + NUM_RESISTANCE_TYPES)]
         self.labels = (
             ["Uninfected", "Infected"]
             + list(map(lambda x: "Resistance " + x, RESISTANCE_NAMES))
-            + ["Immune"]
+            + ["Immune", "Dead"]
         )
 
         self.timestep = -1
@@ -213,6 +213,7 @@ class DataHandler:
         """Make some helper variables"""
         self.num_uninfected = 0
         self.num_immune = 0
+        self.num_dead = 0
         self.num_infected_stages = [0] * (NUM_RESISTANCE_TYPES + 1)
         self.timestep += 1
 
@@ -222,6 +223,8 @@ class DataHandler:
         the population"""
         if person.immune:
             self.num_immune += 1
+        elif not person.alive:
+            self.num_dead += 1
         elif person.infection is None:
             self.num_uninfected += 1
         else:
@@ -229,7 +232,12 @@ class DataHandler:
 
     def _print_current_data(self):
         """Print the values of the current state of the simulation"""
-        print(self.num_immune, self.num_uninfected, self.num_infected_stages)
+        print("Uninfected: {}, immune: {}, dead: {}, infected: {}".format(
+            self.num_uninfected,
+            self.num_immune,
+            self.num_dead,
+            self.num_infected_stages
+        ))
 
     def _animate_current_data(self):
         """Draw a graph up to the current state of the simulation"""
@@ -273,7 +281,8 @@ class DataHandler:
         self.ys_data[0].append(self.num_uninfected)
         for j,v in enumerate(self.num_infected_stages):
             self.ys_data[j+1].append(v)
-        self.ys_data[-1].append(self.num_immune)
+        self.ys_data[-2].append(self.num_immune)
+        self.ys_data[-1].append(self.num_dead)
         self.time.append(self.timestep)
 
         # Report the model's state through any mechanism set in parameters
@@ -401,6 +410,7 @@ if __name__ == "__main__":
     if not ANIMATE_GRAPH:
         # Finally show the full simulation graph
         m.data_handler.draw_full_data()
-    else:
-        # Don't immediately close when the simulation is done
-        input("Press enter to exit: ")
+
+
+    # Don't immediately close when the simulation is done
+    input("Press enter to exit: ")
