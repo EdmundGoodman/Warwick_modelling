@@ -33,8 +33,8 @@ RANDOM_SEED = 0
 REPORT_PROGRESS = True
 REPORT_PERCENTAGE = 5
 PRINT_DATA = True
-ANIMATE_GRAPH = True
-GRAPH_TYPE = "stackplot"  # line, stackplot (default)
+ANIMATE_GRAPH = False
+GRAPH_TYPE = "line"  # line, stackplot (default)
 
 REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
@@ -101,8 +101,18 @@ class DataHandler:
     def _draw_graph(self):
         """Actually draw the graph via matplotlib"""
         if GRAPH_TYPE == "line":
-            for i in range(len(self.ys_data)):
-                plt.plot(self.time, self.ys_data[i], label=self.labels[i])
+
+            # Add lists up to -3 elementwise
+
+            datas = []
+            for i in range(NUM_RESISTANCE_TYPES + 1):
+                datas.append(
+                    [sum(x) for x in zip(*self.ys_data[i:-3])]
+                )
+            datas.extend(self.ys_data[-3:])
+
+            for i in range(len(datas)):
+                plt.plot(self.time, datas[i], label=self.labels[i])
         else:  # stackplot as default
             plt.stackplot(self.time, *self.ys_data, labels=self.labels)
 
@@ -364,6 +374,10 @@ class Model:
                         if person.treatment.drug >= ISOLATION_THRESHOLD_DRUG:
                             # Isolate if in high enough treatment class
                             person.isolate()
+
+                        ### Add our product here - change to have a probability
+                        ### from treatment to actual resistance for isolation
+
 
                     # Recovery generally or by treatment if currently infected
                     # (green line in powerpoint)
