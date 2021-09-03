@@ -74,6 +74,10 @@ class DataHandler:
             + ["Dead", "Immune", "Uninfected"]
         )
 
+        # Include isolations separately as they are a non-disjoint category
+        self.non_disjoint = [[]]
+        self.non_disjoint_labels = ["Isolated"]
+
         self.timestep = -1
         self._new_timestep_vars()
 
@@ -83,6 +87,7 @@ class DataHandler:
         self.num_dead = 0
         self.num_immune = 0
         self.num_uninfected = 0
+        self.num_isolated = 0
         self.timestep += 1
 
     def record_person(self, person):
@@ -98,21 +103,31 @@ class DataHandler:
         else:
             self.num_infected_stages[person.infection.get_tier() + 1] += 1
 
+        # Non-disjoint categories
+        if person.isolated:
+            self.num_isolated += 1
+
     def _draw_graph(self):
         """Actually draw the graph via matplotlib"""
         if GRAPH_TYPE == "line":
-
-            # Add lists up to -3 elementwise
-
+            # When as a line graph, we can draw lines for categories which
+            # are not disjoint, as they needn't sum to a fixed value as with
+            # the stacked plot. This means we sum up infections to include
+            # all resistances above them (i.e. infection = i + r1 + r2 + r3,
+            # resistance #1 = r1 + r2 + r3, resistance #2 = r2 + r3, etc.)
+            # Furthemore, categories such as isolated which are just totally
+            # disjoint can also be included
             datas = []
             for i in range(NUM_RESISTANCE_TYPES + 1):
                 datas.append(
                     [sum(x) for x in zip(*self.ys_data[i:-3])]
                 )
             datas.extend(self.ys_data[-3:])
+            datas.extend(self.non_disjoint)
+            labels = self.labels + self.non_disjoint_labels
 
             for i in range(len(datas)):
-                plt.plot(self.time, datas[i], label=self.labels[i])
+                plt.plot(self.time, datas[i], label=labels[i])
         else:  # stackplot as default
             plt.stackplot(self.time, *self.ys_data, labels=self.labels)
 
@@ -135,14 +150,16 @@ class DataHandler:
 
     def _print_current_data(self):
         """Print the values of the current state of the simulation"""
-        print("uninfected: {}, immune: {}, dead: {}, infected: {}".format(
+        # TODO: Automate this from the disjoint and non-disjoint labels?
+        print("uninfected: {}, immune: {}, dead: {}, infected: {}, isolated: {}".format(
             str(self.num_uninfected).ljust(OUTPUT_PADDING),
             str(self.num_immune).ljust(OUTPUT_PADDING),
             str(self.num_dead).ljust(OUTPUT_PADDING),
             "[" + ", ".join(map(
                 lambda x: str(x).ljust(OUTPUT_PADDING),
                 self.num_infected_stages
-            )) + "]"
+            )) + "]",
+            str(self.num_isolated)
         ))
 
     def _report_model_state(self):
@@ -179,6 +196,7 @@ class DataHandler:
         self.ys_data[-3].append(self.num_dead)
         self.ys_data[-2].append(self.num_immune)
         self.ys_data[-1].append(self.num_uninfected)
+        self.non_disjoint[0].append(self.num_isolated)
         self.time.append(self.timestep)
 
         # Report the model's state through any mechanism set in parameters
