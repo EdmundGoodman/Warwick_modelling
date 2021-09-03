@@ -23,6 +23,13 @@ PROBABILITY_DEATH = 0.01
 PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 1
 
+# Whether our product is used in the simulation
+# This changes how people are put into isolation. Normally, this is done when
+# they are being treated for a resistance (i.e. expected to have it), but this
+# does it based on whether they have it as an instantaneous test
+PRODUCT_IN_USE = True
+PROBABILIY_PRODUCT_DETECT = 0.5
+
 
 #################################################
 ### Internal parameters and derived constants ###
@@ -38,7 +45,6 @@ GRAPH_TYPE = "line"  # line, stackplot (default)
 
 REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
-ISOLATION_THRESHOLD_DRUG = str(ISOLATION_THRESHOLD)
 OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
 
@@ -389,7 +395,12 @@ class Model:
                         if decision(PROBABILITY_MOVE_UP_TREATMENT):
                             person.increase_treatment()
 
-                        if person.treatment.drug >= ISOLATION_THRESHOLD_DRUG:
+                        if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
+                            # If the product is in use, and the probability is
+                            # ok, immediately isolate this with the resistance
+                            if person.infection.resistances[str(ISOLATION_THRESHOLD)]:
+                                person.isolate()
+                        elif int(person.treatment.drug) >= ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class
                             person.isolate()
 
@@ -401,7 +412,7 @@ class Model:
                     # (green line in powerpoint)
                     general_recovery = decision(PROBABILITY_GENERAL_RECOVERY)
                     treatment_recovery = (person.correct_treatment() and
-                                          decision(PROBABILITY_TREATMENT_RECOVERY))
+                                        decision(PROBABILITY_TREATMENT_RECOVERY))
                     if general_recovery or treatment_recovery:
                         person.recover_from_infection()
 
