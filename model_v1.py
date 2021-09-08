@@ -289,6 +289,9 @@ if __name__ == "__main__":
     if RANDOM_SEED is not None:
         seed(RANDOM_SEED)
 
+    # Enable interactivity in matplotlib figures
+    plt.ion()
+
     # Create and run the model
     m = Model()
     m.run()
