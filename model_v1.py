@@ -16,10 +16,10 @@ import matplotlib.pyplot as plt
 ### Change these parameters ###
 ###############################
 
-NUM_TIMESTEPS = 500
+NUM_TIMESTEPS = 25 # 500
 NUM_RESISTANCE_TYPES = 3
 POPULATION_SIZE = 5000
-PROBABILITY_MUTATION = 0.02
+PROBABILITY_MUTATION = 0.2 # 0.02
 PROBABILITY_GENERAL_RECOVERY = 0.01
 PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 2
@@ -36,9 +36,8 @@ RANDOM_SEED = 0
 REPORT_PROGRESS = True
 REPORT_PERCENTAGE = 5
 PRINT_DATA = True
-ANIMATE_GRAPH = False
-GRAPH_TYPE = "line"  # line, stackplot (default)
-
+ANIMATE_GRAPH = True
+GRAPH_TYPE = "stackplot"  # line, stackplot (default)
 
 # Only import the niche drawnow library if it is needed, to allow use even if
 # someone cannot install it, just with fewer features
@@ -60,6 +59,39 @@ OUR_DETECTOR, OTHER_RESISTANCES = RESISTANCE_NAMES[0], RESISTANCE_NAMES[1:]
 ### Data handler for the model ###
 ##################################
 
+class DataRenderer:
+
+    @staticmethod
+    def _draw_graph(time, ys_data, labels):
+        """Actually draw the graph via matplotlib"""
+        if GRAPH_TYPE == "line":
+            # line graph
+            for i in range(len(ys_data)):
+                plt.plot(time, ys_data[i], label=labels[i])
+        else:
+            # stackplot as default
+            plt.stackplot(time, *ys_data, labels=labels)
+
+    @staticmethod
+    def _graph_settings():
+        """Add settings for the graph, e.g. axis labels and legend"""
+        plt.title('Resistance simulation')
+        plt.legend(loc='upper right')
+        plt.xlabel("Time / timesteps")
+        plt.ylabel("# People")
+
+    @staticmethod
+    def draw_full_graph(time, ys_data, labels):
+        DataRenderer._draw_graph(time, ys_data, labels)
+        DataRenderer._graph_settings()
+        plt.show()
+
+    @staticmethod
+    def animate_current_graph(time, ys_data, labels):
+        """Draw a graph up to the current state of the simulation"""
+        drawnow(lambda: DataRenderer._draw_graph(time, ys_data, labels))
+
+
 class DataHandler:
     def __init__(self):
         """Initialise the data handler for the model as storing data
@@ -70,32 +102,10 @@ class DataHandler:
 
         self.timestep = 0
 
-    def _draw_graph(self):
-        """Actually draw the graph via matplotlib"""
-        if GRAPH_TYPE == "line":
-            # line graph
-            for i in range(len(self.ys_data)):
-                plt.plot(self.time, self.ys_data[i], label=RESISTANCE_COMBINATIONS[i])
-        else:
-            # stackplot as default
-            plt.stackplot(self.time, *self.ys_data, labels=RESISTANCE_COMBINATIONS)
-
-    def _graph_settings(self):
-        """Add settings for the graph, e.g. axis labels and legend"""
-        plt.title('Resistance simulation')
-        plt.legend(loc='upper right')
-        plt.xlabel("Time / timesteps")
-        plt.ylabel("# People")
-
-    def _animate_current_data(self):
-        """Draw a graph up to the current state of the simulation"""
-        drawnow(self._draw_graph)
-
-    def draw_full_data(self):
+    def draw_full_graph(self):
         """Draw a graph of all of the data in the graph"""
-        self._draw_graph()
-        self._graph_settings()
-        plt.show()
+        DataRenderer.draw_full_graph(
+                            self.time, self.ys_data, RESISTANCE_COMBINATIONS)
 
     def _print_current_data(self):
         """Print the values of the current state of the simulation"""
@@ -125,14 +135,9 @@ class DataHandler:
                 self._print_current_data()
 
         if ANIMATE_GRAPH:
-            self._animate_current_data()
+            DataRenderer.animate_current_graph(
+                            self.time, self.ys_data, RESISTANCE_COMBINATIONS)
 
-    def post_run_functions(self):
-        """Perform any functions which need to be done immediately after a
-        simulation run is complete"""
-        if ANIMATE_GRAPH:
-            # Add a legend and axis labels (cannot be done during animation)
-            self._graph_settings()
 
     def process_timestep_data(self, infection_percentages):
         """Store the current timestep's data into the appropriate data
@@ -258,9 +263,6 @@ class Model:
                         person.spread_infection(receiver)
             self.population = updated_population[:]
 
-        # Perform any functions which need to be done immediately after a
-        # simulation run is complete
-        self.data_handler.post_run_functions()
 
     def get_infection_percentages(self):
         """Get the percentage infected with each type of bacteria"""
@@ -296,7 +298,7 @@ if __name__ == "__main__":
 
     if not ANIMATE_GRAPH:
         # Finally show the full simulation graph
-        m.data_handler.draw_full_data()
+        m.data_handler.draw_full_graph()
 
     # Don't immediately close when the simulation is done
     input("Press any key to exit: ")
