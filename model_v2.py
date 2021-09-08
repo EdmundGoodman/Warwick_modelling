@@ -42,10 +42,10 @@ REPORT_PERCENTAGE = 5
 PRINT_DATA = True
 ANIMATE_GRAPH = False
 GRAPH_TYPE = "line"  # line, stackplot (default)
+OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
 REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
-OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
 
 #####################################
