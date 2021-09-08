@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 ### Change these parameters ###
 ###############################
 
-NUM_TIMESTEPS = 25 # 500
+NUM_TIMESTEPS = 100 # 500
 NUM_RESISTANCE_TYPES = 3
 POPULATION_SIZE = 5000
 PROBABILITY_MUTATION = 0.2 # 0.02
@@ -38,6 +38,7 @@ REPORT_PERCENTAGE = 5
 PRINT_DATA = True
 ANIMATE_GRAPH = True
 GRAPH_TYPE = "stackplot"  # line, stackplot (default)
+OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
 # Only import the niche drawnow library if it is needed, to allow use even if
 # someone cannot install it, just with fewer features
@@ -127,7 +128,7 @@ class Model:
             # Record data about the proportions of strains prevalence within
             # the population
             self.data_handler.process_timestep_data(
-                self.get_infection_percentages().values()
+                self.get_infection_statistics().values()
             )
 
             # For each person in the population
@@ -168,19 +169,18 @@ class Model:
             self.population = updated_population[:]
 
 
-    def get_infection_percentages(self):
+    def get_infection_statistics(self):
         """Get the percentage infected with each type of bacteria"""
         infections = {name:0 for name in RESISTANCE_COMBINATIONS}
         for person in self.population:
             infections[person.get_resistances_name()] += 1
-        return {infection: (float(number) / POPULATION_SIZE) * 100
-                                    for infection,number in infections.items()}
+        return infections
 
     def __repr__(self):
         """Return a string encoding the percentage of people infected by
         each anti-biotic resistant bacteria"""
         infection_strings = ""
-        for k,v in self.get_infection_percentages():
+        for k,v in self.get_infection_statistics():
             infection_strings += "{}% {}".format(v, k)
         return ",".join(infection_strings)
 
@@ -215,7 +215,7 @@ class DataHandler:
         for i,label in enumerate(RESISTANCE_COMBINATIONS):
             items.append("{}: {}".format(
                 RESISTANCE_COMBINATIONS[i],
-                str(round(self.ys_data[i][-1], 2)).ljust(5)
+                str(round(self.ys_data[i][-1], 2)).ljust(OUTPUT_PADDING)
             ))
         print(", ".join(items))
 
