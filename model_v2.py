@@ -40,7 +40,7 @@ RANDOM_SEED = 0
 REPORT_PROGRESS = True
 REPORT_PERCENTAGE = 5
 PRINT_DATA = True
-ANIMATE_GRAPH = False
+ANIMATE_GRAPH = True
 GRAPH_TYPE = "line"  # line, stackplot (default)
 OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
@@ -433,6 +433,9 @@ class DataRenderer:
     @staticmethod
     def _draw_graph(time, ys_data, labels):
         """Actually draw the graph via matplotlib"""
+
+        # ys_data = DataRenderer.slopify(ys_data)
+
         if GRAPH_TYPE == "line":
             # line graph
             for i in range(len(ys_data)):
@@ -440,6 +443,16 @@ class DataRenderer:
         else:
             # stackplot as default
             plt.stackplot(time, *ys_data, labels=labels)
+
+    """
+    @staticmethod
+    def slopify(ys_data):
+        # Plot the gradients of the data points
+        import numpy as np
+        if len(ys_data[0]) > 1:
+            return [list(np.gradient(line)) for line in ys_data]
+        return ys_data
+    """
 
     @staticmethod
     def _graph_settings():
