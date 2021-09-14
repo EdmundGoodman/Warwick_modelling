@@ -354,7 +354,7 @@ class DataHandler:
 
     def _new_timestep_vars(self):
         """Make some helper variables"""
-        self.num_infected_stages = [0] * (NUM_RESISTANCE_TYPES + 1)
+        self.num_infected_stages = [0 for _ in range(NUM_RESISTANCE_TYPES + 1)]
         self.num_dead = 0
         self.num_immune = 0
         self.num_uninfected = 0
@@ -403,13 +403,10 @@ class DataHandler:
         """Print the values of the current state of the simulation"""
         # TODO: Automate this from the disjoint and non-disjoint labels?
         print("uninfected: {}, immune: {}, dead: {}, infected: {}, isolated: {}".format(
-            str(self.num_uninfected).ljust(OUTPUT_PADDING),
-            str(self.num_immune).ljust(OUTPUT_PADDING),
-            str(self.num_dead).ljust(OUTPUT_PADDING),
-            "[" + ", ".join(map(
-                lambda x: str(x).ljust(OUTPUT_PADDING),
-                self.num_infected_stages
-            )) + "]",
+            str(self.num_uninfected),
+            str(self.num_immune),
+            str(self.num_dead),
+            "[" + ", ".join([str(x) for x in self.num_infected_stages]) + "]",
             str(self.num_isolated)
         ))
 
@@ -426,7 +423,7 @@ class DataHandler:
                     # Display it on the same line for ease of reading
                     print("{}% complete".format(str(int(
                         self.timestep / int(NUM_TIMESTEPS / 10) * 10
-                    )).ljust(2)), end=" - ")
+                    ))), end=" - ")
                 self._print_current_data()
 
     def process_timestep_data(self):
@@ -434,9 +431,9 @@ class DataHandler:
         structures"""
         for j, v in enumerate(self.num_infected_stages):
             self.ys_data[j].append(v)
-        self.ys_data[-3].append(self.num_dead)
-        self.ys_data[-2].append(self.num_immune)
-        self.ys_data[-1].append(self.num_uninfected)
+        self.ys_data[len(self.ys_data)-3].append(self.num_dead)
+        self.ys_data[len(self.ys_data)-2].append(self.num_immune)
+        self.ys_data[len(self.ys_data)-1].append(self.num_uninfected)
         self.non_disjoint[0].append(self.num_isolated)
         self.time.append(self.timestep)
 

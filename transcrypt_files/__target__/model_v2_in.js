@@ -1,4 +1,4 @@
-// Transcrypt'ed from Python, 2021-09-14 22:17:29
+// Transcrypt'ed from Python, 2021-09-14 22:27:51
 import {AssertionError, AttributeError, BaseException, DeprecationWarning, Exception, IndexError, IterableError, KeyError, NotImplementedError, RuntimeWarning, StopIteration, UserWarning, ValueError, Warning, __JsIterator__, __PyIterator__, __Terminal__, __add__, __and__, __call__, __class__, __envir__, __eq__, __floordiv__, __ge__, __get__, __getcm__, __getitem__, __getslice__, __getsm__, __gt__, __i__, __iadd__, __iand__, __idiv__, __ijsmod__, __ilshift__, __imatmul__, __imod__, __imul__, __in__, __init__, __ior__, __ipow__, __irshift__, __isub__, __ixor__, __jsUsePyNext__, __jsmod__, __k__, __kwargtrans__, __le__, __lshift__, __lt__, __matmul__, __mergefields__, __mergekwargtrans__, __mod__, __mul__, __ne__, __neg__, __nest__, __or__, __pow__, __pragma__, __pyUseJsNext__, __rshift__, __setitem__, __setproperty__, __setslice__, __sort__, __specialattrib__, __sub__, __super__, __t__, __terminal__, __truediv__, __withblock__, __xor__, abs, all, any, assert, bool, bytearray, bytes, callable, chr, copy, deepcopy, delattr, dict, dir, divmod, enumerate, filter, float, getattr, hasattr, input, int, isinstance, issubclass, len, list, map, max, min, object, ord, pow, print, property, py_TypeError, py_iter, py_metatype, py_next, py_reversed, py_typeof, range, repr, round, set, setattr, sorted, str, sum, tuple, zip} from './org.transcrypt.__runtime__.js';
 import {choice, random, seed} from './random.js';
 var __name__ = '__main__';
@@ -314,7 +314,13 @@ export var DataHandler =  __class__ ('DataHandler', [object], {
 		self._new_timestep_vars ();
 	});},
 	get _new_timestep_vars () {return __get__ (this, function (self) {
-		self.num_infected_stages = [0] * (NUM_RESISTANCE_TYPES + 1);
+		self.num_infected_stages = (function () {
+			var __accu0__ = [];
+			for (var _ = 0; _ < NUM_RESISTANCE_TYPES + 1; _++) {
+				__accu0__.append (0);
+			}
+			return __accu0__;
+		}) ();
 		self.num_dead = 0;
 		self.num_immune = 0;
 		self.num_uninfected = 0;
@@ -358,9 +364,13 @@ export var DataHandler =  __class__ ('DataHandler', [object], {
 		return tuple ([self.ys_data, self.labels]);
 	});},
 	get _print_current_data () {return __get__ (this, function (self) {
-		print ('uninfected: {}, immune: {}, dead: {}, infected: {}, isolated: {}'.format (str (self.num_uninfected).ljust (OUTPUT_PADDING), str (self.num_immune).ljust (OUTPUT_PADDING), str (self.num_dead).ljust (OUTPUT_PADDING), ('[' + ', '.join (map ((function __lambda__ (x) {
-			return str (x).ljust (OUTPUT_PADDING);
-		}), self.num_infected_stages))) + ']', str (self.num_isolated)));
+		print ('uninfected: {}, immune: {}, dead: {}, infected: {}, isolated: {}'.format (str (self.num_uninfected), str (self.num_immune), str (self.num_dead), ('[' + ', '.join ((function () {
+			var __accu0__ = [];
+			for (var x of self.num_infected_stages) {
+				__accu0__.append (str (x));
+			}
+			return __accu0__;
+		}) ())) + ']', str (self.num_isolated)));
 	});},
 	get _report_model_state () {return __get__ (this, function (self) {
 		if (__mod__ (self.timestep, REPORT_MOD_NUM) == 0) {
@@ -369,7 +379,7 @@ export var DataHandler =  __class__ ('DataHandler', [object], {
 			}
 			if (PRINT_DATA) {
 				if (REPORT_PROGRESS) {
-					print ('{}% complete'.format (str (int ((self.timestep / int (NUM_TIMESTEPS / 10)) * 10)).ljust (2)), __kwargtrans__ ({end: ' - '}));
+					print ('{}% complete'.format (str (int ((self.timestep / int (NUM_TIMESTEPS / 10)) * 10))), __kwargtrans__ ({end: ' - '}));
 				}
 				self._print_current_data ();
 			}
@@ -379,9 +389,9 @@ export var DataHandler =  __class__ ('DataHandler', [object], {
 		for (var [j, v] of enumerate (self.num_infected_stages)) {
 			self.ys_data [j].append (v);
 		}
-		self.ys_data [-(3)].append (self.num_dead);
-		self.ys_data [-(2)].append (self.num_immune);
-		self.ys_data [-(1)].append (self.num_uninfected);
+		self.ys_data [len (self.ys_data) - 3].append (self.num_dead);
+		self.ys_data [len (self.ys_data) - 2].append (self.num_immune);
+		self.ys_data [len (self.ys_data) - 1].append (self.num_uninfected);
 		self.non_disjoint [0].append (self.num_isolated);
 		self.time.append (self.timestep);
 		self._report_model_state ();
