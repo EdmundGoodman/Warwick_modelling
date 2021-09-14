@@ -1,0 +1,17 @@
+1) `copy.deepcopy` not supported
+    - Make `duplicate` methods for all classes
+    - In cases of `deepcopy` (and other `duplicate` if class variables are
+      themselves classes or dictionaries), use the duplicate method
+
+2) `random.sample` not supported
+    - Use custom implementation of sampling function based on `random.choice`
+
+3) named parameters not supported
+    - Remove all named parameters in class/function definitions
+    - Add back in all default parameters to each function call
+
+3) negative indices not supported
+    - Change all negative indices `[-x]` to `[len(l) - x]`
+
+4) `ljust` not supported
+    - Remove all uses of `ljust`, as it is non-essential
