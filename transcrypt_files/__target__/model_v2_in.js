@@ -1,4 +1,4 @@
-// Transcrypt'ed from Python, 2021-09-14 22:27:51
+// Transcrypt'ed from Python, 2021-09-14 22:46:46
 import {AssertionError, AttributeError, BaseException, DeprecationWarning, Exception, IndexError, IterableError, KeyError, NotImplementedError, RuntimeWarning, StopIteration, UserWarning, ValueError, Warning, __JsIterator__, __PyIterator__, __Terminal__, __add__, __and__, __call__, __class__, __envir__, __eq__, __floordiv__, __ge__, __get__, __getcm__, __getitem__, __getslice__, __getsm__, __gt__, __i__, __iadd__, __iand__, __idiv__, __ijsmod__, __ilshift__, __imatmul__, __imod__, __imul__, __in__, __init__, __ior__, __ipow__, __irshift__, __isub__, __ixor__, __jsUsePyNext__, __jsmod__, __k__, __kwargtrans__, __le__, __lshift__, __lt__, __matmul__, __mergefields__, __mergekwargtrans__, __mod__, __mul__, __ne__, __neg__, __nest__, __or__, __pow__, __pragma__, __pyUseJsNext__, __rshift__, __setitem__, __setproperty__, __setslice__, __sort__, __specialattrib__, __sub__, __super__, __t__, __terminal__, __truediv__, __withblock__, __xor__, abs, all, any, assert, bool, bytearray, bytes, callable, chr, copy, deepcopy, delattr, dict, dir, divmod, enumerate, filter, float, getattr, hasattr, input, int, isinstance, issubclass, len, list, map, max, min, object, ord, pow, print, property, py_TypeError, py_iter, py_metatype, py_next, py_reversed, py_typeof, range, repr, round, set, setattr, sorted, str, sum, tuple, zip} from './org.transcrypt.__runtime__.js';
 import {choice, random, seed} from './random.js';
 var __name__ = '__main__';
@@ -31,9 +31,6 @@ export var RESISTANCE_NAMES = (function () {
 export var Infection =  __class__ ('Infection', [object], {
 	__module__: __name__,
 	get __init__ () {return __get__ (this, function (self, resistances) {
-		if (typeof resistances == 'undefined' || (resistances != null && resistances.hasOwnProperty ("__kwargtrans__"))) {;
-			var resistances = null;
-		};
 		if (resistances !== null) {
 			self.resistances = resistances;
 		}
@@ -77,13 +74,13 @@ export var Infection =  __class__ ('Infection', [object], {
 		return string;
 	});},
 	get duplicate () {return __get__ (this, function (self) {
-		return Infection (__kwargtrans__ ({resistances: (function () {
+		return Infection ((function () {
 			var __accu0__ = [];
 			for (var [k, v] of self.resistances.py_items ()) {
 				__accu0__.append ([k, v]);
 			}
 			return dict (__accu0__);
-		}) ()}));
+		}) ());
 	});},
 	get __repr__ () {return __get__ (this, function (self) {
 		var resistances_string = self.get_resistances_string ();
@@ -96,9 +93,6 @@ export var Infection =  __class__ ('Infection', [object], {
 export var Treatment =  __class__ ('Treatment', [object], {
 	__module__: __name__,
 	get __init__ () {return __get__ (this, function (self, drug) {
-		if (typeof drug == 'undefined' || (drug != null && drug.hasOwnProperty ("__kwargtrans__"))) {;
-			var drug = RESISTANCE_NAMES [0];
-		};
 		self.drug = drug;
 	});},
 	get next_treatment () {return __get__ (this, function (self) {
@@ -111,7 +105,7 @@ export var Treatment =  __class__ ('Treatment', [object], {
 		return !(infection.is_resistant (self.drug));
 	});},
 	get duplicate () {return __get__ (this, function (self) {
-		return Treatment (__kwargtrans__ ({drug: self.drug}));
+		return Treatment (self.drug);
 	});},
 	get __repr__ () {return __get__ (this, function (self) {
 		if (self.drug !== null) {
@@ -123,21 +117,6 @@ export var Treatment =  __class__ ('Treatment', [object], {
 export var Person =  __class__ ('Person', [object], {
 	__module__: __name__,
 	get __init__ () {return __get__ (this, function (self, infection, treatment, isolated, immune, alive) {
-		if (typeof infection == 'undefined' || (infection != null && infection.hasOwnProperty ("__kwargtrans__"))) {;
-			var infection = null;
-		};
-		if (typeof treatment == 'undefined' || (treatment != null && treatment.hasOwnProperty ("__kwargtrans__"))) {;
-			var treatment = null;
-		};
-		if (typeof isolated == 'undefined' || (isolated != null && isolated.hasOwnProperty ("__kwargtrans__"))) {;
-			var isolated = false;
-		};
-		if (typeof immune == 'undefined' || (immune != null && immune.hasOwnProperty ("__kwargtrans__"))) {;
-			var immune = false;
-		};
-		if (typeof alive == 'undefined' || (alive != null && alive.hasOwnProperty ("__kwargtrans__"))) {;
-			var alive = true;
-		};
 		self.infection = infection;
 		self.treatment = treatment;
 		self.isolated = isolated;
@@ -145,7 +124,7 @@ export var Person =  __class__ ('Person', [object], {
 		self.alive = alive;
 	});},
 	get recover_from_infection () {return __get__ (this, function (self) {
-		self.__init__ (__kwargtrans__ ({immune: true}));
+		self.__init__ (null, null, false, true, true);
 	});},
 	get mutate_infection () {return __get__ (this, function (self) {
 		if (self.infection !== null && self.treatment !== null) {
@@ -184,7 +163,7 @@ export var Person =  __class__ ('Person', [object], {
 		self.alive = false;
 	});},
 	get duplicate () {return __get__ (this, function (self) {
-		return Person (__kwargtrans__ ({infection: (self.infection === null ? null : self.infection.duplicate ()), treatment: (self.treatment === null ? null : self.treatment.duplicate ()), isolated: self.isolated, immune: self.immune, alive: self.alive}));
+		return Person ((self.infection === null ? null : self.infection.duplicate ()), (self.treatment === null ? null : self.treatment.duplicate ()), self.isolated, self.immune, self.alive);
 	});},
 	get __repr__ () {return __get__ (this, function (self) {
 		if (!(self.alive)) {
@@ -202,14 +181,11 @@ export var Person =  __class__ ('Person', [object], {
 export var Model =  __class__ ('Model', [object], {
 	__module__: __name__,
 	get __init__ () {return __get__ (this, function (self, population) {
-		if (typeof population == 'undefined' || (population != null && population.hasOwnProperty ("__kwargtrans__"))) {;
-			var population = null;
-		};
 		if (population === null) {
 			self.population = (function () {
 				var __accu0__ = [];
 				for (var _ = 0; _ < POPULATION_SIZE; _++) {
-					__accu0__.append (Person ());
+					__accu0__.append (Person (null, null, false, false, true));
 				}
 				return __accu0__;
 			}) ();
@@ -226,7 +202,7 @@ export var Model =  __class__ ('Model', [object], {
 				self.data_handler.record_person (person);
 				if (person.infection !== null && person.alive) {
 					if (person.treatment === null) {
-						person.treatment = Treatment ();
+						person.treatment = Treatment (RESISTANCE_NAMES [0]);
 					}
 					else {
 						if (decision (PROBABILITY_MOVE_UP_TREATMENT)) {
@@ -405,14 +381,23 @@ if (__name__ == '__main__') {
 	var population = (function () {
 		var __accu0__ = [];
 		for (var _ = 0; _ < POPULATION_SIZE - 10; _++) {
-			__accu0__.append (Person ());
+			__accu0__.append (Person (null, null, false, false, true));
 		}
 		return __accu0__;
 	}) ();
 	for (var _ = 0; _ < 10; _++) {
-		population.append (Person (__kwargtrans__ ({infection: Infection ()})));
+		population.append (Person (Infection (null), null, false, false, true));
 	}
-	var m = Model (__kwargtrans__ ({population: population}));
+	print ((function () {
+		var __accu0__ = [];
+		for (var x of population) {
+			if (x.infection !== null) {
+				__accu0__.append (x);
+			}
+		}
+		return __accu0__;
+	}) ());
+	var m = Model (population);
 	m.run ();
 }
 

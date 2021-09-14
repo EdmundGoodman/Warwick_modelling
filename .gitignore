@@ -1,3 +1,2 @@
 venv/
-
-transcrypt_files/__target__/
+transcrypt_files/__target__/*

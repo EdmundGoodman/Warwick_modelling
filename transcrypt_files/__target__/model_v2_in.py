@@ -57,7 +57,7 @@ from random import seed, random, choice
 #######################################
 
 class Infection:
-    def __init__(self, resistances=None):
+    def __init__(self, resistances):
         """Initialise an infection within the model"""
         if resistances is not None:
             self.resistances = resistances
@@ -90,7 +90,7 @@ class Infection:
 
     def duplicate(self):
         """Return a duplicate object of the current infection"""
-        return Infection(resistances={k:v for k,v in self.resistances.items()})
+        return Infection({k:v for k,v in self.resistances.items()})
 
     def __repr__(self):
         """Provide a string representation for the infection"""
@@ -101,7 +101,7 @@ class Infection:
 
 
 class Treatment:
-    def __init__(self, drug=RESISTANCE_NAMES[0]):
+    def __init__(self, drug):
         """Initialise a treatment within the model"""
         self.drug = drug
 
@@ -118,7 +118,7 @@ class Treatment:
 
     def duplicate(self):
         """Return a duplicate object of the current treatment"""
-        return Treatment(drug=self.drug)
+        return Treatment(self.drug)
 
     def __repr__(self):
         if self.drug is not None:
@@ -127,7 +127,7 @@ class Treatment:
 
 
 class Person:
-    def __init__(self, infection=None, treatment=None, isolated=False, immune=False, alive=True):
+    def __init__(self, infection, treatment, isolated, immune, alive):
         """Initialise a person as having various properties within the model"""
         self.infection = infection
         self.treatment = treatment
@@ -140,7 +140,7 @@ class Person:
         """Recover the person, returning them to their default state; totally
         uninfected with no resistances, but now immune to the infection -
         irrespective of any resistances it has"""
-        self.__init__(immune=True)
+        self.__init__(None, None, False, True, True)
 
     def mutate_infection(self):
         """Make the infection become resistant to the treatment with a given
@@ -191,11 +191,11 @@ class Person:
         """Return a duplicate object of the current person, including
         duplicates of their infections and treatments"""
         return Person(
-            infection = None if self.infection is None else self.infection.duplicate(),
-            treatment = None if self.treatment is None else self.treatment.duplicate(),
-            isolated  = self.isolated,
-            immune    = self.immune,
-            alive     = self.alive
+            None if self.infection is None else self.infection.duplicate(),
+            None if self.treatment is None else self.treatment.duplicate(),
+            self.isolated,
+            self.immune,
+            self.alive
         )
 
     def __repr__(self):
@@ -210,10 +210,10 @@ class Person:
 
 
 class Model:
-    def __init__(self, population=None):
+    def __init__(self, population):
         """Initialise the model as having a population of people"""
         if population is None:
-            self.population = [Person() for _ in range(POPULATION_SIZE)]
+            self.population = [Person(None, None, False, False, True) for _ in range(POPULATION_SIZE)]
         else:
             self.population = population
 
@@ -245,7 +245,7 @@ class Model:
                         # If the person is infected but are not being treated
                         # with **anything**, start them on the lowest tier
                         # treatment
-                        person.treatment = Treatment()
+                        person.treatment = Treatment(RESISTANCE_NAMES[0])
                     else:
                         # Sometimes move the person up to emulate them being
                         # treated increasingly aggressively if they have not
@@ -451,10 +451,12 @@ if __name__ == "__main__":
         seed(RANDOM_SEED)
 
     # Create a population with some initially infected people
-    population = [Person() for _ in range(POPULATION_SIZE - 10)]
+    population = [Person(None, None, False, False, True) for _ in range(POPULATION_SIZE - 10)]
     for _ in range(10):
-        population.append(Person(infection=Infection()))
+        population.append(Person(Infection(None), None, False, False, True))
+
+    print([x for x in population if x.infection is not None])
 
     # Create and run the model
-    m = Model(population=population)
+    m = Model(population)
     m.run()
