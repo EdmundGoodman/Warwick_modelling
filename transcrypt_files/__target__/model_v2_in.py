@@ -51,6 +51,9 @@ RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
 #####################################
 
 from random import seed, random, choice
+if RANDOM_SEED is not None:
+    seed(RANDOM_SEED)
+
 
 #######################################
 ### Objects and logic for the model ###
@@ -378,26 +381,15 @@ class DataHandler:
         if person.isolated:
             self.num_isolated += 1
 
-    def _preprocess_disjoint_labels(self):
-        """Preprocess the data and the labelling for some graph types"""
-        # When as a line graph, we can draw lines for categories which
-        # are not disjoint, as they needn't sum to a fixed value as with
-        # the stacked plot. This means we sum up infections to include
-        # all resistances above them (i.e. infection = i + r1 + r2 + r3,
-        # resistance #1 = r1 + r2 + r3, resistance #2 = r2 + r3, etc.)
-        # Furthemore, categories such as isolated which are just totally
-        # disjoint can also be included
-        if GRAPH_TYPE == "line":
-            datas = []
-            for i in range(NUM_RESISTANCE_TYPES + 1):
-                datas.append(
-                    [sum(x) for x in zip(*self.ys_data[i:-3])]
-                )
-            datas.extend(self.ys_data[-3:])
-            datas.extend(self.non_disjoint)
-            final_labels = self.labels + self.non_disjoint_labels
-            return datas, final_labels
-        return self.ys_data, self.labels
+    def generate_data_sets(self):
+        """Generate the data sets through a helper class for abstraction"""
+        return DataRenderer.generate_data_sets(
+            self.time,
+            self.ys_data,
+            self.non_disjoint,
+            self.labels,
+            self.non_disjoint_labels
+        )
 
     def _print_current_data(self):
         """Print the values of the current state of the simulation"""
@@ -443,20 +435,59 @@ class DataHandler:
         # Reset the helper variables
         self._new_timestep_vars()
 
+class DataRenderer:
+    @staticmethod
+    def generate_data_sets(time, ys_data, non_disjoint, labels, non_disjoint_labels):
+        """Preprocess the data and the labelling for some graph types"""
+        # When as a line graph, we can draw lines for categories which
+        # are not disjoint, as they needn't sum to a fixed value as with
+        # the stacked plot. This means we sum up infections to include
+        # all resistances above them (i.e. infection = i + r1 + r2 + r3,
+        # resistance #1 = r1 + r2 + r3, resistance #2 = r2 + r3, etc.)
+        # Furthemore, categories such as isolated which are just totally
+        # disjoint can also be included
+        datas = []
+        for i in range(NUM_RESISTANCE_TYPES + 1):
+            datas.append(
+                [sum(x) for x in zip(*ys_data[i:-3])]
+            )
+        datas.extend(ys_data[-3:])
+        datas.extend(non_disjoint)
+        final_labels = labels + non_disjoint_labels
+
+        # Package the data up into the correct format for chart.js
+        colours = DataRenderer.generate_colours(len(final_labels))
+        datasets = [{
+            "data": datas[i],
+            "label": final_labels[i],
+            "borderColor": colours[i],
+            "fill": False
+        } for i in range(len(datas))]
+        chart_data = {
+            "labels": time,
+            "datasets": datasets
+        }
+        return chart_data
+
+    @staticmethod
+    def generate_colours(num_colours):
+        """Generate an arbitrary number of visually distinct colours"""
+        if num_colours < 1:
+            num_colours = 1
+        return ["hsl({}%, 40%, 60%)".format(
+                    n * (360 / num_colours) % 360) for n in range(num_colours)]
 
 
-if __name__ == "__main__":
-    # Seed the random number generator
-    if RANDOM_SEED is not None:
-        seed(RANDOM_SEED)
+"""Run the model"""
 
-    # Create a population with some initially infected people
-    population = [Person(None, None, False, False, True) for _ in range(POPULATION_SIZE - 10)]
-    for _ in range(10):
-        population.append(Person(Infection(None), None, False, False, True))
+# Create a population with some initially infected people
+population = [Person(None, None, False, False, True) for _ in range(POPULATION_SIZE - 10)]
+for _ in range(10):
+    population.append(Person(Infection(None), None, False, False, True))
 
-    print([x for x in population if x.infection is not None])
+# Create and run the model
+m = Model(population)
+m.run()
 
-    # Create and run the model
-    m = Model(population)
-    m.run()
+# Generate the datasets to plot via chart.js
+dataset = m.data_handler.generate_data_sets()

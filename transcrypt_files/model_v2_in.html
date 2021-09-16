@@ -1,20 +1,36 @@
-
-
-
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>CREscent modelling</title>
-        <meta name="description" content="CREscent modelling">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
-    <body>
-        <script type="module">
-            import * as model from './__target__/model_v2_in.js';
-            window.model = model;
-        </script>
 
-    </body>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>CREscent modelling</title>
+    <meta name="description" content="CREscent modelling">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <canvas id="line-chart" width="800" height="450"></canvas>
+
+    <!-- Load Chart.js to draw graphs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <!-- Load the python translated to js via transcrypt and draw a graph with the relevant data -->
+    <script type="module">
+        import * as model from './__target__/model_v2_in.js';
+        window.model = model;
+        
+        new Chart(document.getElementById("line-chart"), {
+            type: 'line',
+            data: model.dataset,
+            options: {
+                title: {
+                    display: true,
+                    text: 'Computer model of the disease spread'
+                }
+            }
+        });
+    </script>
+
+</body>
+
 </html>
