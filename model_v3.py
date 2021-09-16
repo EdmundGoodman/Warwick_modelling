@@ -250,13 +250,10 @@ class Model:
                     else:
                         # If the person has been treated for a number of
                         # consecutive days with the, a certain probability is
-                        # exceeded, and they actually require the new drug, move
-                        # them up a treatment tier.
-                        # This encodes a diagnostic method with a long lag time
+                        # exceeded, move them up a treatment tier
                         time_cond = person.treatment.time_treated > TIMESTEPS_MOVE_UP_LAG_TIME
                         rand_cond = decision(PROBABILITY_MOVE_UP_TREATMENT)
-                        diag_cond = int(person.treatment.drug) < person.infection.get_tier()
-                        if time_cond and rand_cond and diag_cond:
+                        if time_cond and rand_cond:
                             person.increase_treatment()
 
                         if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
