@@ -1,29 +1,32 @@
-// Transcrypt'ed from Python, 2021-09-16 23:14:58
+// Transcrypt'ed from Python, 2021-09-16 23:57:32
 import {AssertionError, AttributeError, BaseException, DeprecationWarning, Exception, IndexError, IterableError, KeyError, NotImplementedError, RuntimeWarning, StopIteration, UserWarning, ValueError, Warning, __JsIterator__, __PyIterator__, __Terminal__, __add__, __and__, __call__, __class__, __envir__, __eq__, __floordiv__, __ge__, __get__, __getcm__, __getitem__, __getslice__, __getsm__, __gt__, __i__, __iadd__, __iand__, __idiv__, __ijsmod__, __ilshift__, __imatmul__, __imod__, __imul__, __in__, __init__, __ior__, __ipow__, __irshift__, __isub__, __ixor__, __jsUsePyNext__, __jsmod__, __k__, __kwargtrans__, __le__, __lshift__, __lt__, __matmul__, __mergefields__, __mergekwargtrans__, __mod__, __mul__, __ne__, __neg__, __nest__, __or__, __pow__, __pragma__, __pyUseJsNext__, __rshift__, __setitem__, __setproperty__, __setslice__, __sort__, __specialattrib__, __sub__, __super__, __t__, __terminal__, __truediv__, __withblock__, __xor__, abs, all, any, assert, bool, bytearray, bytes, callable, chr, copy, deepcopy, delattr, dict, dir, divmod, enumerate, filter, float, getattr, hasattr, input, int, isinstance, issubclass, len, list, map, max, min, object, ord, pow, print, property, py_TypeError, py_iter, py_metatype, py_next, py_reversed, py_typeof, range, repr, round, set, setattr, sorted, str, sum, tuple, zip} from './org.transcrypt.__runtime__.js';
 import {choice, random, seed} from './random.js';
 var __name__ = '__main__';
-export var NUM_TIMESTEPS = 20;
-export var POPULATION_SIZE = 5000;
-export var NUM_RESISTANCE_TYPES = 3;
-export var PROBABILITY_GENERAL_RECOVERY = 0.01;
-export var PROBABILITY_TREATMENT_RECOVERY = 0.2;
-export var PROBABILITY_MUTATION = 0.02;
-export var PROBABILITY_MOVE_UP_TREATMENT = 0.2;
-export var ISOLATION_THRESHOLD = 2;
-export var PROBABILITY_DEATH = 0.01;
-export var PROBABILITY_SPREAD = 1;
-export var NUM_SPREAD_TO = 1;
-export var PRODUCT_IN_USE = true;
-export var PROBABILIY_PRODUCT_DETECT = 0.5;
+export var Params =  __class__ ('Params', [object], {
+	__module__: __name__,
+	NUM_TIMESTEPS: 20,
+	POPULATION_SIZE: 5000,
+	NUM_RESISTANCE_TYPES: 3,
+	PROBABILITY_GENERAL_RECOVERY: 0.01,
+	PROBABILITY_TREATMENT_RECOVERY: 0.2,
+	PROBABILITY_MUTATION: 0.02,
+	PROBABILITY_MOVE_UP_TREATMENT: 0.2,
+	ISOLATION_THRESHOLD: 2,
+	PROBABILITY_DEATH: 0.01,
+	PROBABILITY_SPREAD: 1,
+	NUM_SPREAD_TO: 1,
+	PRODUCT_IN_USE: true,
+	PROBABILIY_PRODUCT_DETECT: 0.5
+});
 export var RANDOM_SEED = 0;
 export var REPORT_PROGRESS = true;
 export var REPORT_PERCENTAGE = 5;
 export var PRINT_DATA = true;
-export var OUTPUT_PADDING = len (str (POPULATION_SIZE));
-export var REPORT_MOD_NUM = int (NUM_TIMESTEPS / (100 / REPORT_PERCENTAGE));
+export var OUTPUT_PADDING = len (str (Params.POPULATION_SIZE));
+export var REPORT_MOD_NUM = int (Params.NUM_TIMESTEPS / (100 / REPORT_PERCENTAGE));
 export var RESISTANCE_NAMES = (function () {
 	var __accu0__ = [];
-	for (var i = 0; i < NUM_RESISTANCE_TYPES; i++) {
+	for (var i = 0; i < Params.NUM_RESISTANCE_TYPES; i++) {
 		__accu0__.append (str (i + 1));
 	}
 	return __accu0__;
@@ -54,7 +57,7 @@ export var Infection =  __class__ ('Infection', [object], {
 		return self.resistances [resistance];
 	});},
 	get get_tier () {return __get__ (this, function (self) {
-		for (var i of py_reversed (range (NUM_RESISTANCE_TYPES))) {
+		for (var i of py_reversed (range (Params.NUM_RESISTANCE_TYPES))) {
 			if (self.resistances [RESISTANCE_NAMES [i]] == true) {
 				return i;
 			}
@@ -100,7 +103,7 @@ export var Treatment =  __class__ ('Treatment', [object], {
 	});},
 	get next_treatment () {return __get__ (this, function (self) {
 		var drug_index = RESISTANCE_NAMES.index (self.drug);
-		if (drug_index < NUM_RESISTANCE_TYPES - 1) {
+		if (drug_index < Params.NUM_RESISTANCE_TYPES - 1) {
 			self.drug = RESISTANCE_NAMES [drug_index + 1];
 		}
 	});},
@@ -187,7 +190,7 @@ export var Model =  __class__ ('Model', [object], {
 		if (population === null) {
 			self.population = (function () {
 				var __accu0__ = [];
-				for (var _ = 0; _ < POPULATION_SIZE; _++) {
+				for (var _ = 0; _ < Params.POPULATION_SIZE; _++) {
 					__accu0__.append (Person (null, null, false, false, true));
 				}
 				return __accu0__;
@@ -200,7 +203,7 @@ export var Model =  __class__ ('Model', [object], {
 	});},
 	get run () {return __get__ (this, function (self) {
 		self.data_handler.__init__ ();
-		for (var _ = 0; _ < NUM_TIMESTEPS; _++) {
+		for (var _ = 0; _ < Params.NUM_TIMESTEPS; _++) {
 			for (var person of self.population) {
 				self.data_handler.record_person (person);
 				if (person.infection !== null && person.alive) {
@@ -208,27 +211,27 @@ export var Model =  __class__ ('Model', [object], {
 						person.treatment = Treatment (RESISTANCE_NAMES [0]);
 					}
 					else {
-						if (decision (PROBABILITY_MOVE_UP_TREATMENT)) {
+						if (decision (Params.PROBABILITY_MOVE_UP_TREATMENT)) {
 							person.increase_treatment ();
 						}
-						if (PRODUCT_IN_USE && decision (PROBABILIY_PRODUCT_DETECT)) {
-							if (person.infection.resistances [str (ISOLATION_THRESHOLD)]) {
+						if (Params.PRODUCT_IN_USE && decision (Params.PROBABILIY_PRODUCT_DETECT)) {
+							if (person.infection.resistances [str (Params.ISOLATION_THRESHOLD)]) {
 								person.isolate ();
 							}
 						}
-						else if (int (person.treatment.drug) >= ISOLATION_THRESHOLD) {
+						else if (int (person.treatment.drug) >= Params.ISOLATION_THRESHOLD) {
 							person.isolate ();
 						}
 					}
-					var general_recovery = decision (PROBABILITY_GENERAL_RECOVERY);
-					var treatment_recovery = person.correct_treatment () && decision (PROBABILITY_TREATMENT_RECOVERY);
+					var general_recovery = decision (Params.PROBABILITY_GENERAL_RECOVERY);
+					var treatment_recovery = person.correct_treatment () && decision (Params.PROBABILITY_TREATMENT_RECOVERY);
 					if (general_recovery || treatment_recovery) {
 						person.recover_from_infection ();
 					}
-					if (decision (PROBABILITY_MUTATION)) {
+					if (decision (Params.PROBABILITY_MUTATION)) {
 						person.mutate_infection ();
 					}
-					if (decision (PROBABILITY_DEATH)) {
+					if (decision (Params.PROBABILITY_DEATH)) {
 						person.die ();
 					}
 				}
@@ -241,8 +244,8 @@ export var Model =  __class__ ('Model', [object], {
 				return __accu0__;
 			}) ();
 			for (var person of self.population) {
-				if (person.infection !== null && decision (PROBABILITY_SPREAD)) {
-					for (var receiver of sample (updated_population, NUM_SPREAD_TO)) {
+				if (person.infection !== null && decision (Params.PROBABILITY_SPREAD)) {
+					for (var receiver of sample (updated_population, Params.NUM_SPREAD_TO)) {
 						person.spread_infection (receiver);
 					}
 				}
@@ -279,7 +282,7 @@ export var DataHandler =  __class__ ('DataHandler', [object], {
 		self.time = [];
 		self.ys_data = (function () {
 			var __accu0__ = [];
-			for (var _ = 0; _ < 4 + NUM_RESISTANCE_TYPES; _++) {
+			for (var _ = 0; _ < 4 + Params.NUM_RESISTANCE_TYPES; _++) {
 				__accu0__.append ([]);
 			}
 			return __accu0__;
@@ -293,7 +296,6 @@ export var DataHandler =  __class__ ('DataHandler', [object], {
 			return __accu0__;
 		}) ());
 		self.labels.extend (['Dead', 'Immune', 'Uninfected']);
-		print (self.labels);
 		self.non_disjoint = [[]];
 		self.non_disjoint_labels = ['Isolated'];
 		self.timestep = -(1);
@@ -302,7 +304,7 @@ export var DataHandler =  __class__ ('DataHandler', [object], {
 	get _new_timestep_vars () {return __get__ (this, function (self) {
 		self.num_infected_stages = (function () {
 			var __accu0__ = [];
-			for (var _ = 0; _ < NUM_RESISTANCE_TYPES + 1; _++) {
+			for (var _ = 0; _ < Params.NUM_RESISTANCE_TYPES + 1; _++) {
 				__accu0__.append (0);
 			}
 			return __accu0__;
@@ -345,11 +347,11 @@ export var DataHandler =  __class__ ('DataHandler', [object], {
 	get _report_model_state () {return __get__ (this, function (self) {
 		if (__mod__ (self.timestep, REPORT_MOD_NUM) == 0) {
 			if (REPORT_PROGRESS && !(PRINT_DATA)) {
-				print ('{}% complete'.format (int ((self.timestep / int (NUM_TIMESTEPS / 10)) * 10)));
+				print ('{}% complete'.format (int ((self.timestep / int (Params.NUM_TIMESTEPS / 10)) * 10)));
 			}
 			if (PRINT_DATA) {
 				if (REPORT_PROGRESS) {
-					print ('{}% complete'.format (str (int ((self.timestep / int (NUM_TIMESTEPS / 10)) * 10))), __kwargtrans__ ({end: ' - '}));
+					print ('{}% complete'.format (str (int ((self.timestep / int (Params.NUM_TIMESTEPS / 10)) * 10))), __kwargtrans__ ({end: ' - '}));
 				}
 				self._print_current_data ();
 			}
@@ -372,7 +374,7 @@ export var DataRenderer =  __class__ ('DataRenderer', [object], {
 	__module__: __name__,
 	get generate_data_sets () {return function (time, ys_data, non_disjoint, labels, non_disjoint_labels) {
 		var datas = [];
-		for (var i = 0; i < NUM_RESISTANCE_TYPES + 1; i++) {
+		for (var i = 0; i < Params.NUM_RESISTANCE_TYPES + 1; i++) {
 			datas.append ((function () {
 				var __accu0__ = [];
 				for (var x of zip (...ys_data.__getslice__ (i, -(3), 1))) {
@@ -412,7 +414,7 @@ export var DataRenderer =  __class__ ('DataRenderer', [object], {
 export var run = function () {
 	var population = (function () {
 		var __accu0__ = [];
-		for (var _ = 0; _ < POPULATION_SIZE - 10; _++) {
+		for (var _ = 0; _ < Params.POPULATION_SIZE - 10; _++) {
 			__accu0__.append (Person (null, null, false, false, true));
 		}
 		return __accu0__;

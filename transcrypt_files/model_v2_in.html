@@ -12,7 +12,7 @@
 <body>
     <style>
         body {
-            padding: 10px 50px;
+            padding: 10px 20%;
             text-align: center;
         }
 
@@ -31,35 +31,55 @@
 
     <h1>Computer modelling of the product</h1>
     <canvas id="line-chart" width="800" height="450"></canvas>
+    <button type="button" onclick="run_and_render()">Run the model</button>
 
     <!-- Load Chart.js to draw graphs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
-    <!-- Load the python translated to js via transcrypt and draw a graph with the relevant data -->
-    <script type="module">
-        import * as model from './__target__/model_v2_in.js';
-        window.model = model;
-    </script>
-
+    <!-- Load the python translated to js via transcrypt -->
+    <script type="module">import * as model from './__target__/model_v2_in.js'; window.model = model;</script>
+    <!-- Draw a graph with the relevant data -->
     <script>
-        function run_and_render() {
-            // Run the model
-            var dataset = window.model.run();
-            //Draw chart
-            new Chart(document.getElementById("line-chart"), {
-                type: 'line',
-                data: dataset,
-                options: {
-                    title: {
-                        display: true,
-                        text: 'Spread of an antibiotic infection through a population'
+        // Make a new chart
+        var ctx = document.getElementById("line-chart");
+        new Chart(ctx, {
+            type: 'line',
+            data: [],
+            options: {
+                title: {
+                    display: true,
+                    text: 'Spread of an antibiotic infection through a population'
+                },
+                scales: {
+                    x: {
+                        'autoSkip': true
                     }
                 }
-            });
+            }
+        });
+
+
+        function run_and_render() {
+            // Run the model and update the chart
+            var dataset = window.model.run();
+            new Chart(ctx, {
+            type: 'line',
+            data: dataset,
+            options: {
+                title: {
+                    display: true,
+                    text: 'Spread of an antibiotic infection through a population'
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            autoSkip: true
+                        }
+                    }
+                }
+            }
+        });
         }
     </script>
-
-    <button type="button" onclick="run_and_render()">Run the model</button>
-
 
 
 </body>

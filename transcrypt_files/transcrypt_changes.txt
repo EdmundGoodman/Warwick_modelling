@@ -17,3 +17,10 @@
     - Remove all uses of `ljust`, as it is non-essential
 
 5) Can't add together lists
+
+
+
+
+Things for js easier
+ - move "if dunder..." to run() function
+ - change parameters to member variables of Param class
