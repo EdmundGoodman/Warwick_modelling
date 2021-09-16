@@ -10,6 +10,26 @@
 </head>
 
 <body>
+    <style>
+        body {
+            padding: 10px 50px;
+            text-align: center;
+        }
+
+        canvas {
+            padding: 0;
+            margin: auto;
+            display: block;
+            width: 800px;
+            border-style: solid;
+        }
+
+        button {
+            margin: 10px;
+        }
+    </style>
+
+    <h1>Computer modelling of the product</h1>
     <canvas id="line-chart" width="800" height="450"></canvas>
 
     <!-- Load Chart.js to draw graphs -->
@@ -18,18 +38,29 @@
     <script type="module">
         import * as model from './__target__/model_v2_in.js';
         window.model = model;
-        
-        new Chart(document.getElementById("line-chart"), {
-            type: 'line',
-            data: model.dataset,
-            options: {
-                title: {
-                    display: true,
-                    text: 'Computer model of the disease spread'
-                }
-            }
-        });
     </script>
+
+    <script>
+        function run_and_render() {
+            // Run the model
+            var dataset = window.model.run();
+            //Draw chart
+            new Chart(document.getElementById("line-chart"), {
+                type: 'line',
+                data: dataset,
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Spread of an antibiotic infection through a population'
+                    }
+                }
+            });
+        }
+    </script>
+
+    <button type="button" onclick="run_and_render()">Run the model</button>
+
+
 
 </body>
 

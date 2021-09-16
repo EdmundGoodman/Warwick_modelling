@@ -457,7 +457,6 @@ class DataRenderer:
 
         # Package the data up into the correct format for chart.js
         colours = DataRenderer.generate_colours(len(final_labels))
-        print(colours)
         datasets = [{
             "data": datas[i],
             "label": final_labels[i],
@@ -479,15 +478,16 @@ class DataRenderer:
                     int(n * (360 / num_colours) % 360)) for n in range(num_colours)]
 
 
-"""Run the model"""
-# Create a population with some initially infected people
-population = [Person(None, None, False, False, True) for _ in range(POPULATION_SIZE - 10)]
-for _ in range(10):
-    population.append(Person(Infection(None), None, False, False, True))
+def run():
+    """Run the model"""
+    # Create a population with some initially infected people
+    population = [Person(None, None, False, False, True) for _ in range(POPULATION_SIZE - 10)]
+    for _ in range(10):
+        population.append(Person(Infection(None), None, False, False, True))
 
-# Create and run the model
-m = Model(population)
-m.run()
+    # Create and run the model
+    m = Model(population)
+    m.run()
 
-# Generate the datasets to plot via chart.js
-dataset = m.data_handler.generate_data_sets()
+    # Generate the datasets to plot via chart.js
+    return m.data_handler.generate_data_sets()
