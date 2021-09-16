@@ -6,7 +6,7 @@
 ###############################
 
 # General parameters
-NUM_TIMESTEPS = 50
+NUM_TIMESTEPS = 20
 POPULATION_SIZE = 5000
 NUM_RESISTANCE_TYPES = 3
 
@@ -342,11 +342,10 @@ class DataHandler:
         self.time = []
         # [infected, resistance #1,.. , resistance #2, dead, immune, uninfected]
         self.ys_data = [[] for _ in range(4 + NUM_RESISTANCE_TYPES)]
-        self.labels = (
-            ["Infected"]
-            + list(map(lambda x: "Resistance " + x, RESISTANCE_NAMES))
-            + ["Dead", "Immune", "Uninfected"]
-        )
+        self.labels = ["Infected"]
+        self.labels.extend(["Resistance {}".format(n) for n in RESISTANCE_NAMES])
+        self.labels.extend(["Dead", "Immune", "Uninfected"])
+        print(self.labels)
 
         # Include isolations separately as they are a non-disjoint category
         self.non_disjoint = [[]]
@@ -453,10 +452,14 @@ class DataRenderer:
             )
         datas.extend(ys_data[-3:])
         datas.extend(non_disjoint)
-        final_labels = labels + non_disjoint_labels
+        print(labels)
+        final_labels = labels
+        final_labels.extend(non_disjoint_labels)
+        print(final_labels)
 
         # Package the data up into the correct format for chart.js
         colours = DataRenderer.generate_colours(len(final_labels))
+        print(colours)
         datasets = [{
             "data": datas[i],
             "label": final_labels[i],
@@ -474,12 +477,11 @@ class DataRenderer:
         """Generate an arbitrary number of visually distinct colours"""
         if num_colours < 1:
             num_colours = 1
-        return ["hsl({}%, 40%, 60%)".format(
-                    n * (360 / num_colours) % 360) for n in range(num_colours)]
+        return ["hsl({}, 40%, 60%)".format(
+                    int(n * (360 / num_colours) % 360)) for n in range(num_colours)]
 
 
 """Run the model"""
-
 # Create a population with some initially infected people
 population = [Person(None, None, False, False, True) for _ in range(POPULATION_SIZE - 10)]
 for _ in range(10):

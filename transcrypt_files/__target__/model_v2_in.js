@@ -1,8 +1,8 @@
-// Transcrypt'ed from Python, 2021-09-16 20:15:02
+// Transcrypt'ed from Python, 2021-09-16 22:51:12
 import {AssertionError, AttributeError, BaseException, DeprecationWarning, Exception, IndexError, IterableError, KeyError, NotImplementedError, RuntimeWarning, StopIteration, UserWarning, ValueError, Warning, __JsIterator__, __PyIterator__, __Terminal__, __add__, __and__, __call__, __class__, __envir__, __eq__, __floordiv__, __ge__, __get__, __getcm__, __getitem__, __getslice__, __getsm__, __gt__, __i__, __iadd__, __iand__, __idiv__, __ijsmod__, __ilshift__, __imatmul__, __imod__, __imul__, __in__, __init__, __ior__, __ipow__, __irshift__, __isub__, __ixor__, __jsUsePyNext__, __jsmod__, __k__, __kwargtrans__, __le__, __lshift__, __lt__, __matmul__, __mergefields__, __mergekwargtrans__, __mod__, __mul__, __ne__, __neg__, __nest__, __or__, __pow__, __pragma__, __pyUseJsNext__, __rshift__, __setitem__, __setproperty__, __setslice__, __sort__, __specialattrib__, __sub__, __super__, __t__, __terminal__, __truediv__, __withblock__, __xor__, abs, all, any, assert, bool, bytearray, bytes, callable, chr, copy, deepcopy, delattr, dict, dir, divmod, enumerate, filter, float, getattr, hasattr, input, int, isinstance, issubclass, len, list, map, max, min, object, ord, pow, print, property, py_TypeError, py_iter, py_metatype, py_next, py_reversed, py_typeof, range, repr, round, set, setattr, sorted, str, sum, tuple, zip} from './org.transcrypt.__runtime__.js';
 import {choice, random, seed} from './random.js';
 var __name__ = '__main__';
-export var NUM_TIMESTEPS = 50;
+export var NUM_TIMESTEPS = 20;
 export var POPULATION_SIZE = 5000;
 export var NUM_RESISTANCE_TYPES = 3;
 export var PROBABILITY_GENERAL_RECOVERY = 0.01;
@@ -284,9 +284,16 @@ export var DataHandler =  __class__ ('DataHandler', [object], {
 			}
 			return __accu0__;
 		}) ();
-		self.labels = (['Infected'] + list (map ((function __lambda__ (x) {
-			return 'Resistance ' + x;
-		}), RESISTANCE_NAMES))) + ['Dead', 'Immune', 'Uninfected'];
+		self.labels = ['Infected'];
+		self.labels.extend ((function () {
+			var __accu0__ = [];
+			for (var n of RESISTANCE_NAMES) {
+				__accu0__.append ('Resistance {}'.format (n));
+			}
+			return __accu0__;
+		}) ());
+		self.labels.extend (['Dead', 'Immune', 'Uninfected']);
+		print (self.labels);
 		self.non_disjoint = [[]];
 		self.non_disjoint_labels = ['Isolated'];
 		self.timestep = -(1);
@@ -376,8 +383,12 @@ export var DataRenderer =  __class__ ('DataRenderer', [object], {
 		}
 		datas.extend (ys_data.__getslice__ (-(3), null, 1));
 		datas.extend (non_disjoint);
-		var final_labels = labels + non_disjoint_labels;
+		print (labels);
+		var final_labels = labels;
+		final_labels.extend (non_disjoint_labels);
+		print (final_labels);
 		var colours = DataRenderer.generate_colours (len (final_labels));
+		print (colours);
 		var datasets = (function () {
 			var __accu0__ = [];
 			for (var i = 0; i < len (datas); i++) {
@@ -395,7 +406,7 @@ export var DataRenderer =  __class__ ('DataRenderer', [object], {
 		return (function () {
 			var __accu0__ = [];
 			for (var n = 0; n < num_colours; n++) {
-				__accu0__.append ('hsl({}%, 40%, 60%)'.format (__mod__ (n * (360 / num_colours), 360)));
+				__accu0__.append ('hsl({}, 40%, 60%)'.format (int (__mod__ (n * (360 / num_colours), 360))));
 			}
 			return __accu0__;
 		}) ();

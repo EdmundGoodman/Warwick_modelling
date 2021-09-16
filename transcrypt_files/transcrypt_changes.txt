@@ -15,3 +15,5 @@
 
 4) `ljust` not supported
     - Remove all uses of `ljust`, as it is non-essential
+
+5) Can't add together lists
