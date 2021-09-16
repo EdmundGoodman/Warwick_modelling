@@ -15,7 +15,8 @@ PROBABILITY_GENERAL_RECOVERY = 0.01
 PROBABILITY_TREATMENT_RECOVERY = 0.2
 # Mutation to higher resistance due to treatment (blue line in powerpoint)
 PROBABILITY_MUTATION = 0.02
-PROBABILITY_MOVE_UP_TREATMENT = 0.2
+PROBABILITY_MOVE_UP_TREATMENT = 0.8
+TIMESTEPS_MOVE_UP_LAG_TIME = 5
 ISOLATION_THRESHOLD = 2
 # Death (orange line in powerpoint)
 PROBABILITY_DEATH = 0.01
@@ -107,15 +108,21 @@ class Infection:
 
 
 class Treatment:
-    def __init__(self, drug=RESISTANCE_NAMES[0]):
+    def __init__(self, drug=RESISTANCE_NAMES[0], time_treated=None):
         """Initialise a treatment within the model"""
         self.drug = drug
+        if time_treated is not None:
+            self.time_treated = time_treated
+        else:
+            self.time_treated = 0
 
     def next_treatment(self):
-        """Move up the treatment to the next strongest drug"""
+        """Move up the treatment to the next strongest drug, and reset the
+        amout of time that it has been used to zero"""
         drug_index = RESISTANCE_NAMES.index(self.drug)
         if drug_index < NUM_RESISTANCE_TYPES - 1:
             self.drug = RESISTANCE_NAMES[drug_index + 1]
+            self.time_treated = 0
 
     def treats_infection(self, infection):
         """Return whether the treatment works on the infection given any
@@ -124,7 +131,8 @@ class Treatment:
 
     def __repr__(self):
         if self.drug is not None:
-            return "treated with drug: {}".format(self.drug)
+            return "treated with drug {} for {} timesteps".format(
+                                                self.drug, self.time_treated)
         return "untreated"
 
 
@@ -235,27 +243,38 @@ class Model:
                     if person.treatment is None:
                         # If the person is infected but are not being treated
                         # with **anything**, start them on the lowest tier
-                        # treatment
+                        # treatment (we can know that the person is infected,
+                        # but not which tier they are on, without diagnostic
+                        # tools, as we can see they are sick)
                         person.treatment = Treatment()
                     else:
-                        # Sometimes move the person up to emulate them being
-                        # treated increasingly aggressively if they have not
-                        # recovered
-                        # TODO: Make this dependent on diagnostic tools etc.
-                        if decision(PROBABILITY_MOVE_UP_TREATMENT):
+                        # If the person has been treated for a number of
+                        # consecutive days with the, a certain probability is
+                        # exceeded, and they actually require the new drug, move
+                        # them up a treatment tier.
+                        # This encodes a diagnostic method with a long lag time
+                        time_cond = person.treatment.time_treated > TIMESTEPS_MOVE_UP_LAG_TIME
+                        rand_cond = decision(PROBABILITY_MOVE_UP_TREATMENT)
+                        diag_cond = int(person.treatment.drug) < person.infection.get_tier()
+                        if time_cond and rand_cond and diag_cond:
                             person.increase_treatment()
 
                         if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
-                            # If the product is in use, and the probability is
-                            # ok, immediately isolate this with the resistance
+                            # If the product is in use, and it detects the
+                            # infection (which occurs a certain probability of
+                            # the time) immediately isolate this with the
+                            # resistance
                             if person.infection.resistances[str(ISOLATION_THRESHOLD)]:
                                 person.isolate()
                         elif int(person.treatment.drug) >= ISOLATION_THRESHOLD:
-                            # Isolate if in high enough treatment class
+                            # Isolate if in high enough treatment class (which
+                            # is not the same as infection class - this will
+                            # likely lag behind)
                             person.isolate()
 
-                        ### Add our product here - change to have a probability
-                        ### from treatment to actual resistance for isolation
+                        # Increment the number of times a person has been
+                        # treated with the drug
+                        person.treatment.time_treated += 1
 
 
                     # Recovery generally or by treatment if currently infected
@@ -433,6 +452,7 @@ class DataRenderer:
     @staticmethod
     def _draw_graph(time, ys_data, labels):
         """Actually draw the graph via matplotlib"""
+
         if GRAPH_TYPE == "line":
             # line graph
             for i in range(len(ys_data)):
