@@ -461,7 +461,7 @@ class DataRenderer:
             "fill": False
         } for i in range(len(datas))]
         chart_data = {
-            "labels": time,
+            "labels": [x+1 for x in time],
             "datasets": datasets
         }
         return chart_data

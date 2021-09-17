@@ -17,7 +17,7 @@
         }
 
         canvas {
-            padding: 0;
+            padding: 5px;
             margin: auto;
             display: block;
             width: 800px;
@@ -50,9 +50,22 @@
                     text: 'Spread of an antibiotic infection through a population'
                 },
                 scales: {
-                    x: {
-                        'autoSkip': true
-                    }
+                    xAxes: [{
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 20
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time / timesteps'
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: '# people'
+                        }
+                    }]
                 }
             }
         });
@@ -62,22 +75,33 @@
             // Run the model and update the chart
             var dataset = window.model.run();
             new Chart(ctx, {
-            type: 'line',
-            data: dataset,
-            options: {
-                title: {
-                    display: true,
-                    text: 'Spread of an antibiotic infection through a population'
-                },
-                scales: {
-                    x: {
-                        ticks: {
-                            autoSkip: true
-                        }
+                type: 'line',
+                data: dataset,
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Spread of an antibiotic infection through a population'
+                    },
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 20
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Time / timesteps'
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: '# people'
+                            }
+                        }]
                     }
                 }
-            }
-        });
+            });
         }
     </script>
 
