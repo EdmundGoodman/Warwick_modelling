@@ -8,7 +8,7 @@
 # General parameters
 NUM_TIMESTEPS = 50
 POPULATION_SIZE = 5000
-NUM_RESISTANCE_TYPES = 2
+NUM_RESISTANCE_TYPES = 3
 
 # Recovery generally or by treatment (green line in powerpoint)
 PROBABILITY_GENERAL_RECOVERY = 0.01
@@ -41,9 +41,8 @@ RANDOM_SEED = 0
 REPORT_PROGRESS = True
 REPORT_PERCENTAGE = 5
 PRINT_DATA = True
-ANIMATE_GRAPH = False
-GRAPH_TYPE = "stackplot"  # line, stackplot (default)
-OUTPUT_PADDING = len(str(POPULATION_SIZE))
+ANIMATE_GRAPH = True
+GRAPH_TYPE = "line"  # line, stackplot (default)
 
 REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
@@ -54,7 +53,7 @@ RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
 #####################################
 
 from copy import deepcopy
-from random import seed, random, sample
+from random import seed, random, choice
 import matplotlib.pyplot as plt
 
 # Only import the niche drawnow library if it is needed, to allow use even if
@@ -68,7 +67,7 @@ if ANIMATE_GRAPH:
 #######################################
 
 class Infection:
-    def __init__(self, resistances=None):
+    def __init__(self, resistances):
         """Initialise an infection within the model"""
         if resistances is not None:
             self.resistances = resistances
@@ -99,6 +98,10 @@ class Infection:
             return "#"
         return string
 
+    def duplicate(self):
+        """Return a duplicate object of the current infection"""
+        return Infection({k:v for k,v in self.resistances.items()})
+
     def __repr__(self):
         """Provide a string representation for the infection"""
         resistances_string = self.get_resistances_string()
@@ -108,13 +111,10 @@ class Infection:
 
 
 class Treatment:
-    def __init__(self, drug=RESISTANCE_NAMES[0], time_treated=None):
+    def __init__(self, drug, time_treated):
         """Initialise a treatment within the model"""
         self.drug = drug
-        if time_treated is not None:
-            self.time_treated = time_treated
-        else:
-            self.time_treated = 0
+        self.time_treated = time_treated
 
     def next_treatment(self):
         """Move up the treatment to the next strongest drug, and reset the
@@ -129,6 +129,10 @@ class Treatment:
         resistances the infection may have"""
         return not infection.is_resistant(self.drug)
 
+    def duplicate(self):
+        """Return a duplicate object of the current treatment"""
+        return Treatment(self.drug, self.time_treated)
+
     def __repr__(self):
         if self.drug is not None:
             return "treated with drug {} for {} timesteps".format(
@@ -137,20 +141,20 @@ class Treatment:
 
 
 class Person:
-    def __init__(self, infection=None, treatment=None, isolated=False, immune=False):
+    def __init__(self, infection, treatment, isolated, immune, alive):
         """Initialise a person as having various properties within the model"""
         self.infection = infection
         self.treatment = treatment
 
         self.isolated = isolated
         self.immune = immune
-        self.alive = True
+        self.alive = alive
 
     def recover_from_infection(self):
         """Recover the person, returning them to their default state; totally
         uninfected with no resistances, but now immune to the infection -
         irrespective of any resistances it has"""
-        self.__init__(immune=True)
+        self.__init__(None, None, False, True, True)
 
     def mutate_infection(self):
         """Make the infection become resistant to the treatment with a given
@@ -183,7 +187,7 @@ class Person:
         susceptible = not other.immune and other.alive
         contactable = not self.isolated and not other.isolated
         if directional and susceptible and contactable:
-            other.infection = deepcopy(self.infection)
+            other.infection = self.infection.duplicate()
 
     def isolate(self):
         """Put the person in isolation"""
@@ -197,6 +201,17 @@ class Person:
         """Make the person no longer alive"""
         self.alive = False
 
+    def duplicate(self):
+        """Return a duplicate object of the current person, including
+        duplicates of their infections and treatments"""
+        return Person(
+            None if self.infection is None else self.infection.duplicate(),
+            None if self.treatment is None else self.treatment.duplicate(),
+            self.isolated,
+            self.immune,
+            self.alive
+        )
+
     def __repr__(self):
         """Provide a string representation for the person"""
         if not self.alive:
@@ -209,12 +224,9 @@ class Person:
 
 
 class Model:
-    def __init__(self, population=None):
+    def __init__(self, population):
         """Initialise the model as having a population of people"""
-        if population is None:
-            self.population = [Person() for _ in range(POPULATION_SIZE)]
-        else:
-            self.population = population
+        self.population = population
 
         # Abstract away all the data handling into another class to avoid
         # cluttering up the model logic
@@ -246,7 +258,7 @@ class Model:
                         # treatment (we can know that the person is infected,
                         # but not which tier they are on, without diagnostic
                         # tools, as we can see they are sick)
-                        person.treatment = Treatment()
+                        person.treatment = Treatment(RESISTANCE_NAMES[0], 0)
                     else:
                         # If the person has been treated for a number of
                         # consecutive days with the, a certain probability is
@@ -297,7 +309,7 @@ class Model:
             # been spread to in this timestep spreading the thing they've
             # just received, so technically don't have yet
             # (grey line in powerpoint)
-            updated_population = deepcopy(self.population)
+            updated_population = [p.duplicate() for p in self.population]
             for person in self.population:
                 if person.infection is not None and decision(PROBABILITY_SPREAD):
                     for receiver in sample(updated_population, NUM_SPREAD_TO):
@@ -311,6 +323,20 @@ class Model:
     def __repr__(self):
         return "Model"
 
+def sample(population, k):
+    """Return a random sample of k elements from a population - little bit
+    hack-y not the standard implementation for simplicity and due to
+    constrictions on supported random methods"""
+    if not 0 <= k <= len(population):
+        raise ValueError("Sample larger than population or is negative")
+
+    indices = list(range(len(population)))
+    sample = []
+    for _ in range(k):
+        index = choice(indices)
+        indices.remove(index)
+        sample.append(population[index])
+    return sample
 
 def decision(probability):
     """Get a boolean value with a given probability"""
@@ -328,11 +354,9 @@ class DataHandler:
         self.time = []
         # [infected, resistance #1,.. , resistance #2, dead, immune, uninfected]
         self.ys_data = [[] for _ in range(4 + NUM_RESISTANCE_TYPES)]
-        self.labels = (
-            ["Infected"]
-            + list(map(lambda x: "Resistance " + x, RESISTANCE_NAMES))
-            + ["Dead", "Immune", "Uninfected"]
-        )
+        self.labels = ["Infected"]
+        self.labels.extend(["Resistance {}".format(n) for n in RESISTANCE_NAMES])
+        self.labels.extend(["Dead", "Immune", "Uninfected"])
 
         # Include isolations separately as they are a non-disjoint category
         self.non_disjoint = [[]]
@@ -382,7 +406,7 @@ class DataHandler:
                 datas.append(
                     [sum(x) for x in zip(*self.ys_data[i:-3])]
                 )
-            datas.extend(self.ys_data[-3:])
+            datas.extend(self.ys_data[len(self.ys_data)-3:])
             datas.extend(self.non_disjoint)
             final_labels = self.labels + self.non_disjoint_labels
             return datas, final_labels
@@ -397,13 +421,10 @@ class DataHandler:
         """Print the values of the current state of the simulation"""
         # TODO: Automate this from the disjoint and non-disjoint labels?
         print("uninfected: {}, immune: {}, dead: {}, infected: {}, isolated: {}".format(
-            str(self.num_uninfected).ljust(OUTPUT_PADDING),
-            str(self.num_immune).ljust(OUTPUT_PADDING),
-            str(self.num_dead).ljust(OUTPUT_PADDING),
-            "[" + ", ".join(map(
-                lambda x: str(x).ljust(OUTPUT_PADDING),
-                self.num_infected_stages
-            )) + "]",
+            str(self.num_uninfected),
+            str(self.num_immune),
+            str(self.num_dead),
+            "[" + ", ".join([str(x) for x in self.num_infected_stages]) + "]",
             str(self.num_isolated)
         ))
 
@@ -420,7 +441,7 @@ class DataHandler:
                     # Display it on the same line for ease of reading
                     print("{}% complete".format(str(int(
                         self.timestep / int(NUM_TIMESTEPS / 10) * 10
-                    )).ljust(2)), end=" - ")
+                    ))), end=" - ")
                 self._print_current_data()
 
         if ANIMATE_GRAPH:
@@ -432,9 +453,9 @@ class DataHandler:
         structures"""
         for j, v in enumerate(self.num_infected_stages):
             self.ys_data[j].append(v)
-        self.ys_data[-3].append(self.num_dead)
-        self.ys_data[-2].append(self.num_immune)
-        self.ys_data[-1].append(self.num_uninfected)
+        self.ys_data[len(self.ys_data)-3].append(self.num_dead)
+        self.ys_data[len(self.ys_data)-2].append(self.num_immune)
+        self.ys_data[len(self.ys_data)-1].append(self.num_uninfected)
         self.non_disjoint[0].append(self.num_isolated)
         self.time.append(self.timestep)
 
@@ -488,9 +509,10 @@ if __name__ == "__main__":
     plt.ion()
 
     # Create a population with some initially infected people
-    population = [Person() for _ in range(POPULATION_SIZE - 10)]
+    population = [Person(None, None, False, False, True) for _ in range(POPULATION_SIZE - 10)]
     for _ in range(10):
-        population.append(Person(infection=Infection()))
+        population.append(Person(Infection(None), None, False, False, True))
+
 
     # Create and run the model
     m = Model(population=population)
