@@ -105,6 +105,8 @@
         });
 
         function run_and_render() {
+            // Show the loading spinner
+
             // Run the model and update the chart
             var dataset = window.model.run();
             // We need to destroy the chart, as we can't update the data fully
@@ -115,6 +117,8 @@
                 data: dataset,
                 options: options
             });
+
+            // Hide the loading spinner
         }
     </script>
 
