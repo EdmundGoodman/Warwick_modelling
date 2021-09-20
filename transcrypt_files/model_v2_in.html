@@ -37,13 +37,29 @@
     <canvas id="line-chart" width="800" height="450"></canvas>
     <button type="button" onclick="run_and_render()">Run the model</button>
 
-    <div class="wrapper">
+    <div>
         <button onclick="model.Params.NUM_TIMESTEPS = parseInt(document.getElementById('num_timesteps_text').value)">
             Set num timesteps:</button>
         <input class="sliderInput" id="num_timesteps_slider" type="range" min="0" max="200"
             oninput="num_timesteps_text.value=num_timesteps_slider.value" />
         <input class="textInput" id="num_timesteps_text" type="number" value="100" min="0" max="200"
             oninput="num_timesteps_slider.value=num_timesteps_text.value" />
+    </div>
+    <div>
+        <button onclick="model.Params.POPULATION_SIZE = parseInt(document.getElementById('population_size_text').value)">
+            Set num timesteps:</button>
+        <input class="sliderInput" id="population_size_slider" type="range" min="0" max="200"
+            oninput="population_size_text.value=population_size_slider.value" />
+        <input class="textInput" id="population_size_text" type="number" value="100" min="0" max="200"
+            oninput="population_size_slider.value=population_size_text.value" />
+    </div>
+    <div>
+        <button onclick="model.Params.NUM_RESISTANCE_TYPES = parseInt(document.getElementById('num_resistance_types_text').value)">
+            Set num timesteps:</button>
+        <input class="sliderInput" id="num_resistance_types_slider" type="range" min="0" max="200"
+            oninput="num_resistance_types_text.value=num_resistance_types_slider.value" />
+        <input class="textInput" id="num_resistance_types_text" type="number" value="100" min="0" max="200"
+            oninput="num_resistance_types_slider.value=num_resistance_types_text.value" />
     </div>
 
 
@@ -82,7 +98,7 @@
         };
 
         // Make a new empty chart on page load
-        new Chart(ctx, {
+        var chart = new Chart(ctx, {
             type: 'line',
             data: [],
             options: options
@@ -91,20 +107,15 @@
         function run_and_render() {
             // Run the model and update the chart
             var dataset = window.model.run();
-            new Chart(ctx, {
+            // We need to destroy the chart, as we can't update the data fully
+            // within it
+            chart.destroy()
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: dataset,
                 options: options
             });
         }
-
-        function submitMe(id) {
-            if (id != null) {
-                var value = document.getElementById(id).value;
-                alert(value);
-            }
-        }
-
     </script>
 
 
