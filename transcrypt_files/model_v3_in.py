@@ -5,52 +5,50 @@
 ### Change these parameters ###
 ###############################
 
-# General parameters
-NUM_TIMESTEPS = 50
-POPULATION_SIZE = 5000
-NUM_RESISTANCE_TYPES = 3
-
-# Recovery generally or by treatment (green line in powerpoint)
-PROBABILITY_GENERAL_RECOVERY = 0.01
-PROBABILITY_TREATMENT_RECOVERY = 0.2
-# Mutation to higher resistance due to treatment (blue line in powerpoint)
-PROBABILITY_MUTATION = 0.02
-PROBABILITY_MOVE_UP_TREATMENT = 0.8
-TIMESTEPS_MOVE_UP_LAG_TIME = 5
-ISOLATION_THRESHOLD = 2
-# Death (orange line in powerpoint)
-PROBABILITY_DEATH = 0.01
-# Spreading (grey line in powerpoint)
-PROBABILITY_SPREAD = 1
-NUM_SPREAD_TO = 1
-
-# Whether our product is used in the simulation
-# This changes how people are put into isolation. Normally, this is done when
-# they are being treated for a resistance (i.e. expected to have it), but this
-# does it based on whether they have it as an instantaneous test
-PRODUCT_IN_USE = True
-PROBABILIY_PRODUCT_DETECT = 0.5
+class Params:
+    # General parameters
+    NUM_TIMESTEPS = 50
+    POPULATION_SIZE = 5000
+    NUM_RESISTANCE_TYPES = 3
+    # Recovery generally or by treatment (green line in powerpoint)
+    PROBABILITY_GENERAL_RECOVERY = 0.01
+    PROBABILITY_TREATMENT_RECOVERY = 0.2
+    # Mutation to higher resistance due to treatment (blue line in powerpoint)
+    PROBABILITY_MUTATION = 0.02
+    PROBABILITY_MOVE_UP_TREATMENT = 0.8
+    TIMESTEPS_MOVE_UP_LAG_TIME = 5
+    ISOLATION_THRESHOLD = 2
+    # Death (orange line in powerpoint)
+    PROBABILITY_DEATH = 0.01
+    # Spreading (grey line in powerpoint)
+    PROBABILITY_SPREAD = 1
+    NUM_SPREAD_TO = 1
+    # Whether our product is used in the simulation
+    # This changes how people are put into isolation. Normally, this is done when
+    # they are being treated for a resistance (i.e. expected to have it), but this
+    # does it based on whether they have it as an instantaneous test
+    PRODUCT_IN_USE = True
+    PROBABILIY_PRODUCT_DETECT = 0.5
 
 
 #################################################
 ### Internal parameters and derived constants ###
 #################################################
 
-RANDOM_SEED = 0
-
 REPORT_PROGRESS = True
 REPORT_PERCENTAGE = 5
 PRINT_DATA = True
 
-REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
-RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
+REPORT_MOD_NUM = int(Params.NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
+RESISTANCE_NAMES = [str(i+1) for i in range(Params.NUM_RESISTANCE_TYPES)]
 
 
 #####################################
 ### Library imports for the model ###
 #####################################
 
-from random import random, choice
+from random import random, choice #, seed
+# seed(0)
 
 #######################################
 ### Objects and logic for the model ###
@@ -74,7 +72,7 @@ class Infection:
 
     def get_tier(self):
         """Return how resistant the infection is - higher is more resistant"""
-        for i in reversed(range(NUM_RESISTANCE_TYPES)):
+        for i in reversed(range(Params.NUM_RESISTANCE_TYPES)):
             # RESISTANCE_NAMES is assumed to be ordered from first to last
             # resort treatment resistances
             if self.resistances[RESISTANCE_NAMES[i]] == True:
@@ -110,7 +108,7 @@ class Treatment:
         """Move up the treatment to the next strongest drug, and reset the
         amout of time that it has been used to zero"""
         drug_index = RESISTANCE_NAMES.index(self.drug)
-        if drug_index < NUM_RESISTANCE_TYPES - 1:
+        if drug_index < Params.NUM_RESISTANCE_TYPES - 1:
             self.drug = RESISTANCE_NAMES[drug_index + 1]
             self.time_treated = 0
 
@@ -229,7 +227,7 @@ class Model:
         self.data_handler.__init__()
 
         # Repeat the simulation for a set number of timesteps
-        for _ in range(NUM_TIMESTEPS):
+        for _ in range(Params.NUM_TIMESTEPS):
 
             # For each person in the population
             for person in self.population:
@@ -253,19 +251,19 @@ class Model:
                         # If the person has been treated for a number of
                         # consecutive days with the, a certain probability is
                         # exceeded, move them up a treatment tier
-                        time_cond = person.treatment.time_treated > TIMESTEPS_MOVE_UP_LAG_TIME
-                        rand_cond = decision(PROBABILITY_MOVE_UP_TREATMENT)
+                        time_cond = person.treatment.time_treated > Params.TIMESTEPS_MOVE_UP_LAG_TIME
+                        rand_cond = decision(Params.PROBABILITY_MOVE_UP_TREATMENT)
                         if time_cond and rand_cond:
                             person.increase_treatment()
 
-                        if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
+                        if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
                             # If the product is in use, and it detects the
                             # infection (which occurs a certain probability of
                             # the time) immediately isolate this with the
                             # resistance
-                            if person.infection.resistances[str(ISOLATION_THRESHOLD)]:
+                            if person.infection.resistances[str(Params.ISOLATION_THRESHOLD)]:
                                 person.isolate()
-                        elif int(person.treatment.drug) >= ISOLATION_THRESHOLD:
+                        elif int(person.treatment.drug) >= Params.ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class (which
                             # is not the same as infection class - this will
                             # likely lag behind)
@@ -278,20 +276,20 @@ class Model:
 
                     # Recovery generally or by treatment if currently infected
                     # (green line in powerpoint)
-                    general_recovery = decision(PROBABILITY_GENERAL_RECOVERY)
+                    general_recovery = decision(Params.PROBABILITY_GENERAL_RECOVERY)
                     treatment_recovery = (person.correct_treatment() and
-                                        decision(PROBABILITY_TREATMENT_RECOVERY))
+                                        decision(Params.PROBABILITY_TREATMENT_RECOVERY))
                     if general_recovery or treatment_recovery:
                         person.recover_from_infection()
 
                     # Mutation to higher resistance due to treatment
                     # (blue line in powerpoint)
-                    if decision(PROBABILITY_MUTATION):
+                    if decision(Params.PROBABILITY_MUTATION):
                         person.mutate_infection()
 
                     # Deaths due to infection
                     # (orange line in powerpoint)
-                    if decision(PROBABILITY_DEATH):
+                    if decision(Params.PROBABILITY_DEATH):
                         person.die()
 
             # Spread the infection strains throughout the population
@@ -301,8 +299,8 @@ class Model:
             # (grey line in powerpoint)
             updated_population = [p.duplicate() for p in self.population]
             for person in self.population:
-                if person.infection is not None and decision(PROBABILITY_SPREAD):
-                    for receiver in sample(updated_population, NUM_SPREAD_TO):
+                if person.infection is not None and decision(Params.PROBABILITY_SPREAD):
+                    for receiver in sample(updated_population, Params.NUM_SPREAD_TO):
                         person.spread_infection(receiver)
             self.population = updated_population[:]
 
@@ -343,7 +341,7 @@ class DataHandler:
         in an appropriate structure"""
         self.time = []
         # [infected, resistance #1,.. , resistance #2, dead, immune, uninfected]
-        self.ys_data = [[] for _ in range(4 + NUM_RESISTANCE_TYPES)]
+        self.ys_data = [[] for _ in range(4 + Params.NUM_RESISTANCE_TYPES)]
         self.labels = ["Infected"]
         self.labels.extend(["Resistance {}".format(n) for n in RESISTANCE_NAMES])
         self.labels.extend(["Dead", "Immune", "Uninfected"])
@@ -357,7 +355,7 @@ class DataHandler:
 
     def _new_timestep_vars(self):
         """Make some helper variables"""
-        self.num_infected_stages = [0 for _ in range(NUM_RESISTANCE_TYPES + 1)]
+        self.num_infected_stages = [0 for _ in range(Params.NUM_RESISTANCE_TYPES + 1)]
         self.num_dead = 0
         self.num_immune = 0
         self.num_uninfected = 0
@@ -407,14 +405,14 @@ class DataHandler:
         if self.timestep % REPORT_MOD_NUM == 0:
             if REPORT_PROGRESS and not PRINT_DATA:
                 print("{}% complete".format(int(
-                    self.timestep / int(NUM_TIMESTEPS / 10) * 10
+                    self.timestep / int(Params.NUM_TIMESTEPS / 10) * 10
                 )))
 
             if PRINT_DATA:
                 if REPORT_PROGRESS:
                     # Display it on the same line for ease of reading
                     print("{}% complete".format(str(int(
-                        self.timestep / int(NUM_TIMESTEPS / 10) * 10
+                        self.timestep / int(Params.NUM_TIMESTEPS / 10) * 10
                     ))), end=" - ")
                 self._print_current_data()
 
@@ -448,7 +446,7 @@ class DataRenderer:
         # Furthemore, categories such as isolated which are just totally
         # disjoint can also be included
         datas = []
-        for i in range(NUM_RESISTANCE_TYPES + 1):
+        for i in range(Params.NUM_RESISTANCE_TYPES + 1):
             datas.append(
                 [sum(x) for x in zip(*ys_data[i:-3])]
             )
@@ -483,7 +481,7 @@ class DataRenderer:
 def run():
     """Run the model"""
     # Create a population with some initially infected people
-    population = [Person(None, None, False, False, True) for _ in range(POPULATION_SIZE - 10)]
+    population = [Person(None, None, False, False, True) for _ in range(Params.POPULATION_SIZE - 10)]
     for _ in range(10):
         population.append(Person(Infection(None), None, False, False, True))
 
