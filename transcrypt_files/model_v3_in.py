@@ -35,9 +35,9 @@ class Params:
 ### Internal parameters and derived constants ###
 #################################################
 
-REPORT_PROGRESS = True
+REPORT_PROGRESS = False
 REPORT_PERCENTAGE = 5
-PRINT_DATA = True
+PRINT_DATA = False
 
 REPORT_MOD_NUM = int(Params.NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(Params.NUM_RESISTANCE_TYPES)]
@@ -428,7 +428,8 @@ class DataHandler:
         self.time.append(self.timestep)
 
         # Report the model's state through any mechanism set in parameters
-        self._report_model_state()
+        if not REPORT_PROGRESS and not PRINT_DATA:
+            self._report_model_state()
 
         # Reset the helper variables
         self._new_timestep_vars()

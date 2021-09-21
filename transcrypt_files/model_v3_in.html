@@ -53,9 +53,16 @@
 
     <h1>Computer modelling of the product</h1>
     <canvas id="line-chart" width="800" height="450"></canvas>
+
+
     <button type="button" onclick="run_and_render()">
         <h2>Run the model</h2>
     </button>
+    <p id="loading_text" style="display: none;">Model running - this may take a couple of seconds, and possibly cause
+        the page to hang. It runs locally on your machine, so older computers may struggle with long simulation runs or
+        high populations</p>
+    <p id="error_text" style="display: none; color: red;">An error occurred running the model</p>
+
 
     <table id="parameter-inputs">
         <tr>
@@ -253,21 +260,32 @@
             options: options
         });
 
-        function run_and_render() {
+        async function run_and_render() {
             // Show the loading spinner
+            document.getElementById('loading_text').style.display = "block";
+            await new Promise(r => setTimeout(r, 100));
 
-            // Run the model and update the chart
-            var dataset = window.model.run();
-            // We need to destroy the chart, as we can't update the data fully
-            // within it
-            chart.destroy()
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: dataset,
-                options: options
-            });
+            try {
+                // Run the model and update the chart
+                var dataset = window.model.run();
+                // We need to destroy the chart, as we can't update the data fully
+                // within it
+                chart.destroy()
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: dataset,
+                    options: options
+                });
+                // Hide any previous error messages
+                document.getElementById('error_text').style.display = "none";
+            } catch (err) {
+                // Report an error occurred
+                document.getElementById('error_text').style.display = "block";
+            }
 
             // Hide the loading spinner
+            document.getElementById('loading_text').style.display = "none";
+
         }
     </script>
 
