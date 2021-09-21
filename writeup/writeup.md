@@ -7,6 +7,14 @@ The purpose of the model is two-fold:
 - Demonstrating that our product is beneficial
 - Understanding the use cases where it is most and least applicable
 
+### Assets
+
+The whole project repository is available on GitHub at: [https://github.com/Warwick-iGEM-2021/modelling](https://github.com/Warwick-iGEM-2021/modelling)
+
+The newest model version is also available: [Model V3](https://github.com/Warwick-iGEM-2021/modelling/blob/main/model_v3.py)
+
+A interactive toy simulator currently under development for the model is [hosted here](https://www.dcs.warwick.ac.uk/~u2006527/iGEM/model_v3_in.html), but is not fully tested, and may be subject to location change
+
 ### Overview
 
 Our model is a discrete time, stochastic, compartmental model:
@@ -67,7 +75,7 @@ Our model is a discrete time, stochastic, compartmental model:
 
 The model essentially is a modification of the standard SIR model for epidemic disease, adding more "compartments" for additional states people can take, when they are infected with increasingly antibiotic resistant pathogens.
 
-![SIR_graph](C:\Users\egood\Desktop\modelling\writeup\SIR_graph.png)
+![SIR Graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\SIR_graph.png)
 
 A diagram of the SIR model. Image source: https://peerj.com/articles/pchem-14/ "The SIR dynamic model of infectious disease transmission and its analogy with chemical kinetics" - Cory M. Simon
 
@@ -94,13 +102,13 @@ In the limit of time to infinity, all individuals will be either uninfected, imm
 
 Below shows the state transition diagram of every state a person within the population can take (for reasons discussed later in the treatment section, pathogenic resistances to antibiotics will occur in a set order):
 
-![Slide1](C:\Users\egood\Desktop\modelling\writeup\DiagramsExport\Slide1.PNG)
+![General state transition diagram](C:\Users\egood\Desktop\modelling\writeup\diagrams\general.PNG)
 
 
 
 Below shows a state transition diagram of a person centred around the state of being infected with a pathogen resistant to antibiotic $$n$$ in the precedence of antibiotics:
 
-![Diagrams](C:\Users\egood\Desktop\modelling\writeup\DiagramsExport\Diagrams.png)
+![Specific state transition diagram](C:\Users\egood\Desktop\modelling\writeup\diagrams\specific_none.png)
 
 #### 2. Treatment and mutation
 
@@ -116,7 +124,7 @@ if decision(PROBABILITY_MUTATION):
 
 Below shows the same specified diagram used above, with additional information about the mutation step to elucidate it:
 
-![Presentation1](C:\Users\egood\Desktop\modelling\writeup\Presentation1.png)
+![Specific state transition diagram with mutation explanation](C:\Users\egood\Desktop\modelling\writeup\diagrams\specific_mutation.png)
 
 The pathogen is modelled as being immediately symptomatic, meaning doctors can immediately identify a patient is infected with it, but they cannot quickly identify whether or not they have a resistant strain if our product is not in use.
 
@@ -212,7 +220,7 @@ person.treatment.time_treated += 1
 
 Below shows the same specified diagram used above, with additional information about the isolation step to elucidate it:
 
-![Presentation](C:\Users\egood\Desktop\modelling\writeup\Presentation.png)
+![Specific state transition diagram with isolation explanation](C:\Users\egood\Desktop\modelling\writeup\diagrams\specific_isolation.png)
 
 #### 5. Recovery and death
 
