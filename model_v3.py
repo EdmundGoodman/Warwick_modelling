@@ -261,9 +261,12 @@ class Model:
                             # infection (which occurs a certain probability of
                             # the time) immediately isolate this with the
                             # resistance
-                            if person.infection.resistances[str(ISOLATION_THRESHOLD)]:
-                                person.isolate()
-                        elif int(person.treatment.drug) >= ISOLATION_THRESHOLD:
+                            for v in range(ISOLATION_THRESHOLD, NUM_RESISTANCE_TYPES):
+                                if person.infection.resistances[str(v)]:
+                                    person.isolate()
+                                    break
+
+                        if int(person.treatment.drug) >= ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class (which
                             # is not the same as infection class - this will
                             # likely lag behind)
