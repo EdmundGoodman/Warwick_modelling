@@ -30,6 +30,7 @@ NUM_SPREAD_TO = 1
 # does it based on whether they have it as an instantaneous test
 PRODUCT_IN_USE = True
 PROBABILIY_PRODUCT_DETECT = 0.5
+PRODUCT_DETECTION_LEVEL = ISOLATION_THRESHOLD
 
 
 #################################################
@@ -41,7 +42,7 @@ RANDOM_SEED = 0
 REPORT_PROGRESS = True
 REPORT_PERCENTAGE = 5
 PRINT_DATA = True
-ANIMATE_GRAPH = True
+ANIMATE_GRAPH = False
 GRAPH_TYPE = "line"  # line, stackplot (default)
 OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
@@ -261,10 +262,22 @@ class Model:
                             # infection (which occurs a certain probability of
                             # the time) immediately isolate this with the
                             # resistance
-                            for v in range(ISOLATION_THRESHOLD, NUM_RESISTANCE_TYPES):
+
+                            # Either the product detects resistance and all those
+                            # above it (based on assumptions "marker" of resistance)
+                            # is maintained across mutations, and mutations are
+                            # always in order
+                            for v in range(PRODUCT_DETECTION_LEVEL, NUM_RESISTANCE_TYPES):
                                 if person.infection.resistances[str(v)]:
                                     person.isolate()
                                     break
+
+                            # The product detects exclusively when at one level
+                            # of resistance and no higher
+                            """
+                            if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
+                                person.isolate()
+                            """
 
                         if int(person.treatment.drug) >= ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class (which
