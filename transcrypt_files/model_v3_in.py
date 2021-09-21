@@ -24,7 +24,7 @@ class Params:
     PROBABILITY_SPREAD = 1
     NUM_SPREAD_TO = 1
     # Whether our product is used in the simulation
-    # This changes how people are put into isolation. Normally, this is done when
+    # This changes how people are put into isolation. Normally, this is when
     # they are being treated for a resistance (i.e. expected to have it), but this
     # does it based on whether they have it as an instantaneous test
     PRODUCT_IN_USE = True

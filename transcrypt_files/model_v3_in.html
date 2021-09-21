@@ -12,7 +12,7 @@
 <body>
     <style>
         body {
-            padding: 10px 20%;
+            padding: 10px 10%;
             text-align: center;
         }
 
@@ -26,41 +26,190 @@
 
         button {
             margin: 10px;
+            padding: 0 10px
         }
 
         .wrapper {
             text-align: center;
         }
+
+        #parameter-inputs {
+            margin-left: auto;
+            margin-right: auto;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            padding: 0 10px;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #f2f2f2;
+        }
     </style>
 
     <h1>Computer modelling of the product</h1>
     <canvas id="line-chart" width="800" height="450"></canvas>
-    <button type="button" onclick="run_and_render()">Run the model</button>
+    <button type="button" onclick="run_and_render()">
+        <h2>Run the model</h2>
+    </button>
 
-    <div>
-        <button onclick="model.Params.NUM_TIMESTEPS = parseInt(document.getElementById('num_timesteps_text').value)">
-            Set num timesteps:</button>
-        <input class="sliderInput" id="num_timesteps_slider" type="range" min="0" max="200"
-            oninput="num_timesteps_text.value=num_timesteps_slider.value" />
-        <input class="textInput" id="num_timesteps_text" type="number" value="100" min="0" max="200"
-            oninput="num_timesteps_slider.value=num_timesteps_text.value" />
-    </div>
-    <div>
-        <button onclick="model.Params.POPULATION_SIZE = parseInt(document.getElementById('population_size_text').value)">
-            Set num timesteps:</button>
-        <input class="sliderInput" id="population_size_slider" type="range" min="0" max="200"
-            oninput="population_size_text.value=population_size_slider.value" />
-        <input class="textInput" id="population_size_text" type="number" value="100" min="0" max="200"
-            oninput="population_size_slider.value=population_size_text.value" />
-    </div>
-    <div>
-        <button onclick="model.Params.NUM_RESISTANCE_TYPES = parseInt(document.getElementById('num_resistance_types_text').value)">
-            Set num timesteps:</button>
-        <input class="sliderInput" id="num_resistance_types_slider" type="range" min="0" max="200"
-            oninput="num_resistance_types_text.value=num_resistance_types_slider.value" />
-        <input class="textInput" id="num_resistance_types_text" type="number" value="100" min="0" max="200"
-            oninput="num_resistance_types_slider.value=num_resistance_types_text.value" />
-    </div>
+    <table id="parameter-inputs">
+        <tr>
+            <th>Constants</th>
+            <th>Probabilities</th>
+        </tr>
+        <tr>
+            <td>
+                <!-- Taking js data from the slider constrains the type to integers-->
+                <input class="sliderInput" id="num_timesteps_slider" type="range" min="5" max="200" value="50"
+                    oninput="num_timesteps_text.value=num_timesteps_slider.value" />
+                <input class="textInput" id="num_timesteps_text" type="number" value="50" min="5" max="200"
+                    oninput="num_timesteps_slider.value=num_timesteps_text.value" />
+                <br><button
+                    onclick="model.Params.NUM_TIMESTEPS = parseInt(document.getElementById('num_timesteps_slider').value)">
+                    Set the number of timesteps</button>
+            </td>
+            <td>
+                <!-- Taking js data from the text field allows higher precision than slider -->
+                <input class="sliderInput" id="probability_general_recovery_slider" type="range" min="0" max="1"
+                    step="0.01" value="0.01"
+                    oninput="probability_general_recovery_text.value=probability_general_recovery_slider.value" />
+                <input class="textInput" id="probability_general_recovery_text" type="number" value="0.01" min="0"
+                    max="1" step="0.01"
+                    oninput="probability_general_recovery_slider.value=probability_general_recovery_text.value" />
+                <br><button
+                    onclick="model.Params.PROBABILITY_GENERAL_RECOVERY = parseFloat(document.getElementById('probability_general_recovery_text').value)">
+                    Set the probability of general recovery</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input class="sliderInput" id="population_size_slider" type="range" min="50" max="10000" step="50"
+                    value="5000" oninput="population_size_text.value=population_size_slider.value" />
+                <input class="textInput" id="population_size_text" type="number" value="5000" min="50" max="10000"
+                    oninput="population_size_slider.value=population_size_text.value" />
+                <br><button
+                    onclick="model.Params.POPULATION_SIZE = parseInt(document.getElementById('population_size_slider').value)">
+                    Set the population size</button>
+            </td>
+            <td>
+                <input class="sliderInput" id="probability_treatment_recovery_slider" type="range" min="0" max="1"
+                    value="0.2" step="0.01"
+                    oninput="probability_treatment_recovery_text.value=probability_treatment_recovery_slider.value" />
+                <input class="textInput" id="probability_treatment_recovery_text" type="number" value="0.2" min="0"
+                    max="1" step="0.01"
+                    oninput="probability_treatment_recovery_slider.value=probability_treatment_recovery_text.value" />
+                <br><button
+                    onclick="model.Params.PROBABILITY_TREATMENT_RECOVERY = parseFloat(document.getElementById('probability_treatment_recovery_text').value)">
+                    Set the probability of treatment recovery</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input class="sliderInput" id="num_resistance_types_slider" type="range" min="1" max="5" value="3"
+                    oninput="num_resistance_types_text.value=num_resistance_types_slider.value" />
+                <input class="textInput" id="num_resistance_types_text" type="number" value="3" min="1" max="5"
+                    oninput="num_resistance_types_slider.value=num_resistance_types_text.value" />
+                <br><button
+                    onclick="model.Params.NUM_RESISTANCE_TYPES = parseInt(document.getElementById('num_resistance_types_slider').value)">
+                    Set the number of resistance types</button>
+            </td>
+            <td>
+                <input class="sliderInput" id="probability_mutation_slider" type="range" min="0" max="1" value="0.02"
+                    step="0.01" oninput="probability_mutation_text.value=probability_mutation_slider.value" />
+                <input class="textInput" id="probability_mutation_text" type="number" value="0.02" min="0" max="1"
+                    step="0.01" oninput="probability_mutation_slider.value=probability_mutation_text.value" />
+                <br><button
+                    onclick="model.Params.PROBABILITY_MUTATION = parseFloat(document.getElementById('probability_mutation_text').value)">
+                    Set the probability of mutation</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input class="sliderInput" id="timesteps_move_up_lag_time_slider" type="range" min="0" max="25"
+                    value="5" oninput="timesteps_move_up_lag_time_text.value=timesteps_move_up_lag_time_slider.value" />
+                <input class="textInput" id="timesteps_move_up_lag_time_text" type="number" value="5" min="0" max="25"
+                    oninput="timesteps_move_up_lag_time_slider.value=timesteps_move_up_lag_time_text.value" />
+                <br><button
+                    onclick="model.Params.TIMESTEPS_MOVE_UP_LAG_TIME = parseInt(document.getElementById('timesteps_move_up_lag_time_slider').value)">
+                    Set the time lag before increasing treatment</button>
+            </td>
+            <td>
+                <input class="sliderInput" id="probability_move_up_treatment_slider" type="range" min="0" max="1"
+                    value="0.8" step="0.01"
+                    oninput="probability_move_up_treatment_text.value=probability_move_up_treatment_slider.value" />
+                <input class="textInput" id="probability_move_up_treatment_text" type="number" value="0.8" min="0"
+                    max="1" step="0.01"
+                    oninput="probability_move_up_treatment_slider.value=probability_move_up_treatment_text.value" />
+                <br><button
+                    onclick="model.Params.PROBABILITY_MOVE_UP_TREATMENT = parseFloat(document.getElementById('probability_move_up_treatment_text').value)">
+                    Set the probability of moving up treatment</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input class="sliderInput" id="isolation_threshold_slider" type="range" min="0" max="5" value="2"
+                    oninput="isolation_threshold_text.value=isolation_threshold_slider.value" />
+                <input class="textInput" id="isolation_threshold_text" type="number" value="2" min="0" max="5"
+                    oninput="isolation_threshold_slider.value=isolation_threshold_text.value" />
+                <br><button
+                    onclick="model.Params.ISOLATION_THRESHOLD = parseInt(document.getElementById('isolation_threshold_slider').value)">
+                    Set the resistance level to start isolating</button>
+            </td>
+            <td>
+                <input class="sliderInput" id="probability_death_slider" type="range" min="0" max="1" value="0.01"
+                    step="0.01" oninput="probability_death_text.value=probability_death_slider.value" />
+                <input class="textInput" id="probability_death_text" type="number" value="0.01" min="0" max="1"
+                    step="0.01" oninput="probability_death_slider.value=probability_death_text.value" />
+                <br><button
+                    onclick="model.Params.PROBABILITY_DEATH = parseFloat(document.getElementById('probability_death_text').value)">
+                    Set the probability of death</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input class="sliderInput" id="num_spread_to_slider" type="range" min="0" max="15" value="2"
+                    oninput="num_spread_to_text.value=num_spread_to_slider.value" />
+                <input class="textInput" id="num_spread_to_text" type="number" value="2" min="0" max="15"
+                    oninput="num_spread_to_slider.value=num_spread_to_text.value" />
+                <br><button
+                    onclick="model.Params.NUM_SPREAD_TO = parseInt(document.getElementById('num_spread_to_slider').value)">
+                    Set the number of people spread to</button>
+            </td>
+            <td>
+                <input class="sliderInput" id="probability_spread_slider" type="range" min="0" max="1" value="1"
+                    step="0.01" oninput="probability_spread_text.value=probability_spread_slider.value" />
+                <input class="textInput" id="probability_spread_text" type="number" value="1" min="0" max="1"
+                    step="0.01" oninput="probability_spread_slider.value=probability_spread_text.value" />
+                <br><button
+                    onclick="model.Params.PROBABILITY_SPREAD = parseFloat(document.getElementById('probability_spread_text').value)">
+                    Set the probability of spreading</button>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input class="checkboxInput" id="product_in_use_checkbox" type="checkbox">
+                <br><button
+                    onclick="model.Params.PRODUCT_IN_USE = document.getElementById('product_in_use_checkbox').checked">
+                    Set whether the product is in use</button>
+            </td>
+            <td>
+                <input class="sliderInput" id="probability_product_detect_slider" type="range" min="0" max="1"
+                    value="0.5" step="0.01"
+                    oninput="probability_product_detect_text.value=probability_product_detect_slider.value" />
+                <input class="textInput" id="probability_product_detect_text" type="number" value="0.5" min="0" max="1"
+                    step="0.01"
+                    oninput="probability_product_detect_slider.value=probability_product_detect_text.value" />
+                <br><button
+                    onclick="model.Params.PROBABILIY_PRODUCT_DETECT = parseFloat(document.getElementById('probability_product_detect_text').value)">
+                    Set the probability the product works</button>
+            </td>
+        </tr>
+    </table>
 
 
     <!-- Load Chart.js to draw graphs -->
