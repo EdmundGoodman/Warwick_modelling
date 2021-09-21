@@ -190,10 +190,6 @@ class Person:
         """Put the person in isolation"""
         self.isolated = True
 
-    def deisolate(self):
-        """Take the person out of isolation"""
-        self.isolated = False
-
     def die(self):
         """Make the person no longer alive"""
         self.alive = False
@@ -263,20 +259,25 @@ class Model:
                             # the time) immediately isolate this with the
                             # resistance
 
-                            # Either the product detects resistance and all those
-                            # above it (based on assumptions "marker" of resistance)
-                            # is maintained across mutations, and mutations are
-                            # always in order
+                            # The product detects exclusively when at one level
+                            # of resistance and no higher, but since the disease
+                            # will develop resistance incrementally due to the
+                            # tiered antibiotics, this should acheive all above
+                            if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
+                                person.isolate()
+
+                            # If the person is known to have a resistance that
+                            # is higher than their treatment, increase their
+                            # treatment
+                            if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
+                                person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
+
+                            # More verbose/slightly different implementation
+                            """
                             for v in range(PRODUCT_DETECTION_LEVEL, NUM_RESISTANCE_TYPES):
                                 if person.infection.resistances[str(v)]:
                                     person.isolate()
                                     break
-
-                            # The product detects exclusively when at one level
-                            # of resistance and no higher
-                            """
-                            if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
-                                person.isolate()
                             """
 
                         if int(person.treatment.drug) >= ISOLATION_THRESHOLD:

@@ -150,7 +150,18 @@ else:
     if time_cond and rand_cond:
         person.increase_treatment()
 
-    # TODO: Also increase treatment, not just isolate!
+    if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
+        # If the product is in use, and it detects the
+        # infection (which occurs a certain probability of
+        # the time) immediately isolate this with the
+        # resistance
+
+
+        # If the person is known to have a resistance that
+        # is higher than their treatment, increase their
+        # treatment
+        if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
+            person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
 ```
 
 #### 3. Spread
