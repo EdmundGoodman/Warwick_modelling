@@ -263,6 +263,13 @@ class Model:
                             # resistance
                             if person.infection.resistances[str(Params.ISOLATION_THRESHOLD)]:
                                 person.isolate()
+
+                            # If the person is known to have a resistance that
+                            # is higher than their treatment, increase their
+                            # treatment
+                            if person.treatment.drug < str(Params.PRODUCT_DETECTION_LEVEL):
+                                person.treatment.drug = str(Params.PRODUCT_DETECTION_LEVEL)
+
                         elif int(person.treatment.drug) >= Params.ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class (which
                             # is not the same as infection class - this will
