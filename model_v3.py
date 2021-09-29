@@ -20,6 +20,7 @@ TIMESTEPS_MOVE_UP_LAG_TIME = 5
 ISOLATION_THRESHOLD = 2
 # Death (orange line in powerpoint)
 PROBABILITY_DEATH = 0.01
+DEATH_FUNCTION = lambda p, t: round(min(0.005*t + p, 1), 4)
 # Spreading (grey line in powerpoint)
 PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 1
@@ -138,13 +139,14 @@ class Treatment:
 
 
 class Person:
-    def __init__(self, infection=None, treatment=None, isolated=False, immune=False):
+    def __init__(self, infection=None, treatment=None, isolated=False, immune=False, total_time_infected=0):
         """Initialise a person as having various properties within the model"""
         self.infection = infection
         self.treatment = treatment
 
         self.isolated = isolated
         self.immune = immune
+        self.total_time_infected = total_time_infected
         self.alive = True
 
     def recover_from_infection(self):
@@ -286,9 +288,12 @@ class Model:
                             # likely lag behind)
                             person.isolate()
 
-                        # Increment the number of times a person has been
+                        # Increment the number of timesteps a person has been
                         # treated with the drug
                         person.treatment.time_treated += 1
+
+                    # Increment the of timesteps a person has had the infection
+                    person.total_time_infected += 1
 
 
                     # Recovery generally or by treatment if currently infected
@@ -306,7 +311,8 @@ class Model:
 
                     # Deaths due to infection
                     # (orange line in powerpoint)
-                    if decision(PROBABILITY_DEATH):
+                    p = DEATH_FUNCTION(PROBABILITY_DEATH, person.total_time_infected)
+                    if decision(p):
                         person.die()
 
             # Spread the infection strains throughout the population
