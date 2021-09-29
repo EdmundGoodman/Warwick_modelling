@@ -1,13 +1,24 @@
 ## Modelling the spread of antibiotic resistance
 
-### Motivation
+To show that our proposed product would positively benefit the environment where it is proposed to be used, we wrote a computer model of the environment, with and without the product in use, and showed that when it is in use, the model scenario result improved.
+
+In our case, this involved modelling the spread of an antibiotic resistant bacteria in a hospital, with and without our diagnostic tool for quickly identifying it, and showing that the rates of infection, recovery and death improve.
+
+### Table of contents
+
+[TOC]
+
+### Introduction
+
+#### Motivation
 
 The purpose of the model is two-fold:
 
 - Demonstrating that our product is beneficial
+
 - Understanding the use cases where it is most and least applicable
 
-### Assets
+#### Assets
 
 The whole project repository is available on GitHub at: [https://github.com/Warwick-iGEM-2021/modelling](https://github.com/Warwick-iGEM-2021/modelling)
 
@@ -15,9 +26,9 @@ The newest model version is also available: [Model V3](https://github.com/Warwic
 
 A interactive toy simulator currently under development for the model is [hosted here](https://www.dcs.warwick.ac.uk/~u2006527/iGEM/model_v3_in.html), but is not fully tested, and may be subject to location change
 
-### Overview
+#### Model type
 
-Our model is a discrete time, stochastic, compartmental model:
+Our model is discrete time, stochastic, and compartmental:
 
 - Compartmental means that the model is expressed in terms of the transitions between a set of states. The logic for these transitions forms a fundamental part of the model
 
@@ -77,7 +88,7 @@ The model essentially is a modification of the standard SIR model for epidemic d
 
 ![SIR Graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\SIR_graph.png)
 
-A diagram of the SIR model. Image source: https://peerj.com/articles/pchem-14/ "The SIR dynamic model of infectious disease transmission and its analogy with chemical kinetics" - Cory M. Simon
+A diagram of the SIR model. Image source: [1]
 
 ### Implementation
 
@@ -245,11 +256,15 @@ The goal is to create a situation where in the limit of time, the number of unin
 
 ### Context
 
+Due to the flexibility of the model, its parameters can be adjusted to simulate the spread of many real-world diseases. Adding such context to the model helps us better understand better how our product could improve the situation in such scenarios. Here we have chosen to use Neo-natal Bacterial Meningitis as an example. The disease can easily be spread within hospitals by medical staff and often has a deadly outcome [2], all of which can be simulated in the model. Furthermore, since the last line of treatment of meropenem, a carbapenem, it is relevant to the use of our product.
 
+The parameters of the model have hence been adjusted because:
 
+1. NBM has two lines of treatment (amoxicillin + cefotaxime/ceftriaxone, then meropenem) [3], the model has two levels of treatment and corresponding resistance levels.
 
+2. There is a 100% mortality rate of untreated NBM [4], there is no chance of recovery if the pathogen is resistant against the current antibiotic in use.
 
-
+3. There is 40% overall mortality [4] , parameters have been adjusted to end up with a 40% mortality rate
 
 ### Discussion of the model
 
@@ -281,3 +296,12 @@ Some common questions about the model are answered below:
 
   A. Since the model is a very generic abstraction of the real world, by adjusting it's parameters, a vast amount of different scenarios can be modelled. The key issue in adapting it to different scenarios is if they fit the inherent logic and states hard-coded into it. Since COVID is a viral infection, as opposed to a bacterial infection, antibiotics cannot be used to treat it, so the tiered system of antibiotic uses fits less cleanly to it, however, they could instead be considered as increasingly aggressive treatment options, to which it also grows resistant. However, the logic around our product would not apply, as viral infections are not affected by carbapenem, which is the antibiotic we focus on.
 
+### References
+
+[1] Simon, Cory M., 2020. *_The SIR dynamic model of infectious disease transmission and its analogy with chemical kinetics_*. Available at [https://peerj.com/articles/pchem-14/](https://peerj.com/articles/pchem-14/) [Accessed 27 September 2021]. DOI: 10.7717/peerj-pchem.14
+
+[2] Şah İpek, M., 2019. *_Neonatal Bacterial Meningitis_*. [online] IntechOpen. Available at: [https://www.intechopen.com/chapters/68042](https://www.intechopen.com/chapters/68042). DOI: 10.5772/intechopen.87118
+
+[3] Meningitis Research Foundation, 2017. *_Management of Bacterial Meningitis in infants <3 months_*. Available at: [https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017](https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017) [pdf]
+
+[4] Tesini, B., 2020. *_Neonatal Bacterial Meningitis_*. [online] MSD Manual Professional Edition. Available at: [https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis](https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis) [Accessed 23 September 2021].
