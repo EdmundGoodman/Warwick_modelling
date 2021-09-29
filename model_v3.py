@@ -7,7 +7,7 @@
 
 # General parameters
 NUM_TIMESTEPS = 100
-POPULATION_SIZE = 250
+POPULATION_SIZE = 5000
 NUM_RESISTANCE_TYPES = 4
 
 # Recovery generally or by treatment (green line in powerpoint)
@@ -166,7 +166,7 @@ class Treatment:
 
 
 class Person:
-    def __init__(self, infection=None, treatment=None, isolated=False, immune=False, total_time_infected=0):
+    def __init__(self, infection=None, treatment=None, isolated=False, immune=False, alive=True, total_time_infected=0):
         """Initialise a person as having various properties within the model"""
         self.infection = infection
         self.treatment = treatment
@@ -174,13 +174,13 @@ class Person:
         self.isolated = isolated
         self.immune = immune
         self.total_time_infected = total_time_infected
-        self.alive = True
+        self.alive = alive
 
     def recover_from_infection(self):
         """Recover the person, returning them to their default state; totally
         uninfected with no resistances, but now immune to the infection -
         irrespective of any resistances it has"""
-        self.__init__(immune=True)
+        self.__init__(immune=True, isolated=False)
 
     def mutate_infection(self):
         """Make the infection become resistant to the treatment with a given
@@ -221,7 +221,7 @@ class Person:
 
     def die(self):
         """Make the person no longer alive"""
-        self.alive = False
+        self.__init__(alive=False)
 
     def __repr__(self):
         """Provide a string representation for the person"""
