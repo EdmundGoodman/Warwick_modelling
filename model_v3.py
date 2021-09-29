@@ -6,9 +6,9 @@
 ###############################
 
 # General parameters
-NUM_TIMESTEPS = 50
-POPULATION_SIZE = 5000
-NUM_RESISTANCE_TYPES = 3
+NUM_TIMESTEPS = 100
+POPULATION_SIZE = 250
+NUM_RESISTANCE_TYPES = 4
 
 # Recovery generally or by treatment (green line in powerpoint)
 PROBABILITY_GENERAL_RECOVERY = 0.01
@@ -17,7 +17,7 @@ PROBABILITY_TREATMENT_RECOVERY = 0.2
 PROBABILITY_MUTATION = 0.02
 PROBABILITY_MOVE_UP_TREATMENT = 0.8
 TIMESTEPS_MOVE_UP_LAG_TIME = 5
-ISOLATION_THRESHOLD = 2
+ISOLATION_THRESHOLD = 3
 # Death (orange line in powerpoint)
 PROBABILITY_DEATH = 0.01
 DEATH_FUNCTION = lambda p, t: round(min(0.005*t + p, 1), 4)
@@ -30,8 +30,35 @@ NUM_SPREAD_TO = 1
 # they are being treated for a resistance (i.e. expected to have it), but this
 # does it based on whether they have it as an instantaneous test
 PRODUCT_IN_USE = True
-PROBABILIY_PRODUCT_DETECT = 0.5
+PROBABILIY_PRODUCT_DETECT = 1
 PRODUCT_DETECTION_LEVEL = ISOLATION_THRESHOLD
+
+
+"""
+Discussion of parameter choices:
+
+These parameters model a large hospital, which may have a number of wards of
+people susceptible to a certain antibiotic resistant pathogen. It generalised
+that wards can be easily spread between, but in future it could be changed
+such that spatial differences between wards limits spread of the pathogen. This
+decides our choice of a population size of 250.
+
+The number of resistance types is chosen based on the way tiered treatment using
+antibiotics occurs in hospitals. In this case, four are used, e.g. penicillin,
+amoxycillin, carbopenomase, (wonder drug)
+
+Hence, our detector is for the penultimate resistant case, so if we identify
+someone is infected, we can immediately move them up to the last resort
+treatment.
+
+All other probabilities are picked as reasonable values.
+
+Assumed our model works 100% of the time for greater differentiation in model
+analysis.
+
+Assumed resistance to higher tier makes resistant to all lower tier.
+
+"""
 
 
 #################################################
