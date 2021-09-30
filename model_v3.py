@@ -7,29 +7,29 @@
 
 # General parameters
 NUM_TIMESTEPS = 100
-POPULATION_SIZE = 250
-NUM_RESISTANCE_TYPES = 4
+POPULATION_SIZE = 1000 # 250
+NUM_RESISTANCE_TYPES = 3
 
 # Recovery generally or by treatment (green line in powerpoint)
-PROBABILITY_GENERAL_RECOVERY = 0.01
-PROBABILITY_TREATMENT_RECOVERY = 0.2
+PROBABILITY_GENERAL_RECOVERY = 0.001
+PROBABILITY_TREATMENT_RECOVERY = 0.02
 # Mutation to higher resistance due to treatment (blue line in powerpoint)
 PROBABILITY_MUTATION = 0.02
 PROBABILITY_MOVE_UP_TREATMENT = 0.8
 TIMESTEPS_MOVE_UP_LAG_TIME = 5
-ISOLATION_THRESHOLD = 3
+ISOLATION_THRESHOLD = 2
 # Death (orange line in powerpoint)
-PROBABILITY_DEATH = 0.01
-DEATH_FUNCTION = lambda p, t: round(min(0.005*t + p, 1), 4)
+PROBABILITY_DEATH = 0.001
+DEATH_FUNCTION = lambda p, t: round(min(0.0005*t + p, 1), 4)
 # Spreading (grey line in powerpoint)
-PROBABILITY_SPREAD = 1
+PROBABILITY_SPREAD = 0.2
 NUM_SPREAD_TO = 1
 
 # Whether our product is used in the simulation
 # This changes how people are put into isolation. Normally, this is done when
 # they are being treated for a resistance (i.e. expected to have it), but this
 # does it based on whether they have it as an instantaneous test
-PRODUCT_IN_USE = True
+PRODUCT_IN_USE = False
 PROBABILIY_PRODUCT_DETECT = 1
 PRODUCT_DETECTION_LEVEL = ISOLATION_THRESHOLD
 
@@ -298,19 +298,18 @@ class Model:
                             if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
                                 person.isolate()
 
+                                if PRODUCT_DETECTION_LEVEL < NUM_RESISTANCE_TYPES:
+                                    new_drug = str(PRODUCT_DETECTION_LEVEL+1)
+                                    if person.treatment.drug < new_drug:
+                                        print("Hit")
+                                        person.treatment.drug = new_drug
+
                             # If the person is known to have a resistance that
                             # is higher than their treatment, increase their
                             # treatment
-                            if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
-                                person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
+                            #if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
+                            #    person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
 
-                            # More verbose/slightly different implementation
-                            """
-                            for v in range(PRODUCT_DETECTION_LEVEL, NUM_RESISTANCE_TYPES):
-                                if person.infection.resistances[str(v)]:
-                                    person.isolate()
-                                    break
-                            """
 
                         if int(person.treatment.drug) >= ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class (which
