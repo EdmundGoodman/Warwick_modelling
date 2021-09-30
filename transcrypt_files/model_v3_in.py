@@ -7,9 +7,9 @@
 
 class Params:
     # General parameters
-    NUM_TIMESTEPS = 50
-    POPULATION_SIZE = 5000
-    NUM_RESISTANCE_TYPES = 3
+    NUM_TIMESTEPS = 100
+    POPULATION_SIZE = 250
+    NUM_RESISTANCE_TYPES = 4
     # Recovery generally or by treatment (green line in powerpoint)
     PROBABILITY_GENERAL_RECOVERY = 0.01
     PROBABILITY_TREATMENT_RECOVERY = 0.2
@@ -17,9 +17,10 @@ class Params:
     PROBABILITY_MUTATION = 0.02
     PROBABILITY_MOVE_UP_TREATMENT = 0.8
     TIMESTEPS_MOVE_UP_LAG_TIME = 5
-    ISOLATION_THRESHOLD = 2
+    ISOLATION_THRESHOLD = 3
     # Death (orange line in powerpoint)
     PROBABILITY_DEATH = 0.01
+    DEATH_FUNCTION = lambda p, t: round(min(0.005*t + p, 1), 4)
     # Spreading (grey line in powerpoint)
     PROBABILITY_SPREAD = 1
     NUM_SPREAD_TO = 1
@@ -27,17 +28,18 @@ class Params:
     # This changes how people are put into isolation. Normally, this is when
     # they are being treated for a resistance (i.e. expected to have it), but this
     # does it based on whether they have it as an instantaneous test
-    PRODUCT_IN_USE = True
-    PROBABILIY_PRODUCT_DETECT = 0.5
+    PRODUCT_IN_USE = False
+    PROBABILIY_PRODUCT_DETECT = 1
+    PRODUCT_DETECTION_LEVEL = 3
 
 
 #################################################
 ### Internal parameters and derived constants ###
 #################################################
 
-REPORT_PROGRESS = False
+REPORT_PROGRESS = True
 REPORT_PERCENTAGE = 5
-PRINT_DATA = False
+PRINT_DATA = True
 
 REPORT_MOD_NUM = int(Params.NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(Params.NUM_RESISTANCE_TYPES)]
@@ -129,7 +131,7 @@ class Treatment:
 
 
 class Person:
-    def __init__(self, infection, treatment, isolated, immune, alive):
+    def __init__(self, infection, treatment, isolated, immune, alive, total_time_infected):
         """Initialise a person as having various properties within the model"""
         self.infection = infection
         self.treatment = treatment
@@ -137,12 +139,13 @@ class Person:
         self.isolated = isolated
         self.immune = immune
         self.alive = alive
+        self.total_time_infected = total_time_infected
 
     def recover_from_infection(self):
         """Recover the person, returning them to their default state; totally
         uninfected with no resistances, but now immune to the infection -
         irrespective of any resistances it has"""
-        self.__init__(None, None, False, True, True)
+        self.__init__(None, None, False, True, True, 0)
 
     def mutate_infection(self):
         """Make the infection become resistant to the treatment with a given
@@ -187,7 +190,7 @@ class Person:
 
     def die(self):
         """Make the person no longer alive"""
-        self.alive = False
+        self.__init__(None, None, False, True, False, 0)
 
     def duplicate(self):
         """Return a duplicate object of the current person, including
@@ -197,7 +200,8 @@ class Person:
             None if self.treatment is None else self.treatment.duplicate(),
             self.isolated,
             self.immune,
-            self.alive
+            self.alive,
+            self.total_time_infected
         )
 
     def __repr__(self):
@@ -280,6 +284,8 @@ class Model:
                         # treated with the drug
                         person.treatment.time_treated += 1
 
+                    # Increment the of timesteps a person has had the infection
+                    person.total_time_infected += 1
 
                     # Recovery generally or by treatment if currently infected
                     # (green line in powerpoint)
@@ -296,7 +302,8 @@ class Model:
 
                     # Deaths due to infection
                     # (orange line in powerpoint)
-                    if decision(Params.PROBABILITY_DEATH):
+                    p = Params.DEATH_FUNCTION(Params.PROBABILITY_DEATH, person.total_time_infected)
+                    if decision(p):
                         person.die()
 
             # Spread the infection strains throughout the population
@@ -435,7 +442,7 @@ class DataHandler:
         self.time.append(self.timestep)
 
         # Report the model's state through any mechanism set in parameters
-        if not REPORT_PROGRESS and not PRINT_DATA:
+        if REPORT_PROGRESS and PRINT_DATA:
             self._report_model_state()
 
         # Reset the helper variables
@@ -489,9 +496,9 @@ class DataRenderer:
 def run():
     """Run the model"""
     # Create a population with some initially infected people
-    population = [Person(None, None, False, False, True) for _ in range(Params.POPULATION_SIZE - 10)]
+    population = [Person(None, None, False, False, True, 0) for _ in range(Params.POPULATION_SIZE - 10)]
     for _ in range(10):
-        population.append(Person(Infection(None), None, False, False, True))
+        population.append(Person(Infection(None), None, False, False, True, 0))
 
     # Create and run the model
     m = Model(population)
@@ -499,3 +506,6 @@ def run():
 
     # Generate the datasets to plot via chart.js
     return m.data_handler.generate_data_sets()
+
+
+run()

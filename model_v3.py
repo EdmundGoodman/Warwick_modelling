@@ -7,7 +7,7 @@
 
 # General parameters
 NUM_TIMESTEPS = 100
-POPULATION_SIZE = 5000
+POPULATION_SIZE = 250
 NUM_RESISTANCE_TYPES = 4
 
 # Recovery generally or by treatment (green line in powerpoint)
@@ -43,9 +43,12 @@ that wards can be easily spread between, but in future it could be changed
 such that spatial differences between wards limits spread of the pathogen. This
 decides our choice of a population size of 250.
 
+Isolation refers to moving into a isolated section of wards such that the
+pathogen cannot be spread between people.
+
 The number of resistance types is chosen based on the way tiered treatment using
 antibiotics occurs in hospitals. In this case, four are used, e.g. penicillin,
-amoxycillin, carbopenomase, (wonder drug)
+amoxycillin, carbopenemase, (wonder drug)
 
 Hence, our detector is for the penultimate resistant case, so if we identify
 someone is infected, we can immediately move them up to the last resort
@@ -180,7 +183,7 @@ class Person:
         """Recover the person, returning them to their default state; totally
         uninfected with no resistances, but now immune to the infection -
         irrespective of any resistances it has"""
-        self.__init__(immune=True, isolated=False)
+        self.__init__(immune=True)
 
     def mutate_infection(self):
         """Make the infection become resistant to the treatment with a given
