@@ -285,32 +285,6 @@ class Model:
                         if time_cond and rand_cond:
                             person.increase_treatment()
 
-                        if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
-                            # If the product is in use, and it detects the
-                            # infection (which occurs a certain probability of
-                            # the time) immediately isolate this with the
-                            # resistance
-
-                            # The product detects exclusively when at one level
-                            # of resistance and no higher, but since the disease
-                            # will develop resistance incrementally due to the
-                            # tiered antibiotics, this should acheive all above
-                            if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
-                                person.isolate()
-
-                                if PRODUCT_DETECTION_LEVEL < NUM_RESISTANCE_TYPES:
-                                    new_drug = str(PRODUCT_DETECTION_LEVEL+1)
-                                    if person.treatment.drug < new_drug:
-                                        print("Hit")
-                                        person.treatment.drug = new_drug
-
-                            # If the person is known to have a resistance that
-                            # is higher than their treatment, increase their
-                            # treatment
-                            #if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
-                            #    person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
-
-
                         if int(person.treatment.drug) >= ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class (which
                             # is not the same as infection class - this will
@@ -320,6 +294,37 @@ class Model:
                         # Increment the number of timesteps a person has been
                         # treated with the drug
                         person.treatment.time_treated += 1
+
+
+                    
+                    if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
+                        if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
+
+                        # If the product is in use, and it detects the
+                        # infection (which occurs a certain probability of
+                        # the time) immediately isolate this with the
+                        # resistance
+
+                        # The product detects exclusively when at one level
+                        # of resistance and no higher, but since the disease
+                        # will develop resistance incrementally due to the
+                        # tiered antibiotics, this should acheive all above
+                        if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
+                            person.isolate()
+
+                            if PRODUCT_DETECTION_LEVEL < NUM_RESISTANCE_TYPES:
+                                new_drug = str(PRODUCT_DETECTION_LEVEL+1)
+                                if person.treatment.drug < new_drug:
+                                    print("Hit")
+                                    person.treatment.drug = new_drug
+
+                        # If the person is known to have a resistance that
+                        # is higher than their treatment, increase their
+                        # treatment
+                        #if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
+                        #    person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
+
+
 
                     # Increment the of timesteps a person has had the infection
                     person.total_time_infected += 1

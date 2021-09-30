@@ -14,40 +14,50 @@ import matplotlib.pyplot as plt
 ###############################
 
 # General parameters
-NUM_TIMESTEPS = 100
+NUM_TIMESTEPS = 200
 POPULATION_SIZE = 2000
+
+
+pgr = 0.001
+ptr = 0.02
+pm = 0.04
+pmut = 0.8
+tmult = 5
+it = 2
+pd = 0.001
+df = lambda p, t: round(min(0.0005*t + p, 1), 4)
+ps = 0.5
+nst = 1
+
+
 
 # Ordered list of drugs used, their properties, and the properties of their
 # resistant pathogens
-DRUG_NAMES = ["Penicillin", "Amoxycillin",
-                    "Carbopenamase", "Wonder drug"]
+DRUG_NAMES = ["Penicillin", "Carbopenamase", "Colistin"]
 
 # Lookup table of drug properties by their names
 DRUG_PROPERTIES = {}
 DRUG_PROPERTIES["Penicillin"] = (
-    0.01,                    # Drug treatment recovery probability
+    ptr,                    # Drug treatment recovery probability
 )
-DRUG_PROPERTIES["Amoxycillin"] = (0.01,)
-DRUG_PROPERTIES["Carbopenamase"] = (0.01,)
-DRUG_PROPERTIES["Wonder drug"] = (0.1,)
+DRUG_PROPERTIES["Carbopenamase"] = (ptr,)
+DRUG_PROPERTIES["Colistin"] = (ptr,)
 
 # Lookup table of resistance properties by their names
 NUM_RESISTANCES = len(DRUG_NAMES)
-death_function = lambda p, t: round(min(0.0005*t + p, 1), 4)
 RESISTANCE_PROPERTIES = {}
 RESISTANCE_PROPERTIES["None"] = (
-    0.001,                  # General recovery probability
-    0.05,                   # Mutation probability
+    pgr,                    # General recovery probability
+    pm,                     # Mutation probability
     # TODO: Make this more robust
-    0.5,                    # Spread probability
-    1,                      # Number of people spread to
-    0.005,                  # Death probability
-    death_function,         # Death function
+    ps,                     # Spread probability
+    nst,                    # Number of people spread to
+    pd,                     # Death probability
+    df,                     # Death function
 )
-RESISTANCE_PROPERTIES["Penicillin"] = (0.001, 0.05, 0.5, 1, 0.005, death_function)
-RESISTANCE_PROPERTIES["Amoxycillin"] = (0.001, 0.05, 0.5, 1, 0.005, death_function)
-RESISTANCE_PROPERTIES["Carbopenamase"] = (0.001, 0.05, 0.5, 1, 0.005, death_function)
-RESISTANCE_PROPERTIES["Wonder drug"] = (0.001, 0.05, 0.5, 1, 0.005, death_function)
+RESISTANCE_PROPERTIES["Penicillin"] = (pgr, pm, ps, nst, pd, df)
+RESISTANCE_PROPERTIES["Carbopenamase"] = (pgr, pm, ps, nst, pd, df)
+RESISTANCE_PROPERTIES["Colistin"] = (pgr, pm, ps, nst, pd, df)
 
 
 PROBABILITY_MOVE_UP_TREATMENT = 0.8
@@ -279,21 +289,21 @@ class Model:
 
                     """Handle use of the product"""
                     if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
-                        if person.infection.get_tier() == PRODUCT_DETECTION_LEVEL:
+                        if person.infection.get_tier() >= PRODUCT_DETECTION_LEVEL:
                             # Put people into isolation if we know they are beyond
                             # the isolation threshold
-                            if PRODUCT_DETECTION_LEVEL >= ISOLATION_THRESHOLD:
-                                person.isolate()
-                                #print("Hit 1")
+                            person.isolate()
+                            """if PRODUCT_DETECTION_LEVEL >= ISOLATION_THRESHOLD:
+                                pass
+                                print("Hit 1")"""
 
                             # If a person has the detected infection, put them on
                             # a treatment course for it, (i.e. only ever change
                             # it up to one above)
                             if DRUG_NAMES.index(person.treatment.drug) <= PRODUCT_DETECTION_LEVEL:
+                                print(DRUG_NAMES[PRODUCT_DETECTION_LEVEL+1])
                                 person.treatment = Treatment(DRUG_NAMES[PRODUCT_DETECTION_LEVEL+1])
-                                #print("Hit 2")
-
-
+                                #print("Hit 2")"""
 
 
 
@@ -368,7 +378,7 @@ class DataHandler:
         self.ys_data = [[] for _ in range(4 + NUM_RESISTANCES)]
         self.labels = (
             ["Infected"]
-            + list(map(lambda x: "Resistance to" + x, DRUG_NAMES))
+            + list(map(lambda x: "Resistance to " + x, DRUG_NAMES))
             + ["Dead", "Immune", "Uninfected"]
         )
 
