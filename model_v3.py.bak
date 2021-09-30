@@ -7,22 +7,22 @@
 
 # General parameters
 NUM_TIMESTEPS = 100
-POPULATION_SIZE = 5000
-NUM_RESISTANCE_TYPES = 4
+POPULATION_SIZE = 1000 # 250
+NUM_RESISTANCE_TYPES = 3
 
 # Recovery generally or by treatment (green line in powerpoint)
-PROBABILITY_GENERAL_RECOVERY = 0.01
-PROBABILITY_TREATMENT_RECOVERY = 0.2
+PROBABILITY_GENERAL_RECOVERY = 0.001
+PROBABILITY_TREATMENT_RECOVERY = 0.02
 # Mutation to higher resistance due to treatment (blue line in powerpoint)
 PROBABILITY_MUTATION = 0.02
 PROBABILITY_MOVE_UP_TREATMENT = 0.8
 TIMESTEPS_MOVE_UP_LAG_TIME = 5
-ISOLATION_THRESHOLD = 3
+ISOLATION_THRESHOLD = 2
 # Death (orange line in powerpoint)
-PROBABILITY_DEATH = 0.01
-DEATH_FUNCTION = lambda p, t: round(min(0.005*t + p, 1), 4)
+PROBABILITY_DEATH = 0.001
+DEATH_FUNCTION = lambda p, t: round(min(0.0005*t + p, 1), 4)
 # Spreading (grey line in powerpoint)
-PROBABILITY_SPREAD = 1
+PROBABILITY_SPREAD = 0.2
 NUM_SPREAD_TO = 1
 
 # Whether our product is used in the simulation
@@ -43,9 +43,12 @@ that wards can be easily spread between, but in future it could be changed
 such that spatial differences between wards limits spread of the pathogen. This
 decides our choice of a population size of 250.
 
+Isolation refers to moving into a isolated section of wards such that the
+pathogen cannot be spread between people.
+
 The number of resistance types is chosen based on the way tiered treatment using
 antibiotics occurs in hospitals. In this case, four are used, e.g. penicillin,
-amoxycillin, carbopenomase, (wonder drug)
+amoxycillin, carbopenemase, (wonder drug)
 
 Hence, our detector is for the penultimate resistant case, so if we identify
 someone is infected, we can immediately move them up to the last resort
@@ -180,7 +183,7 @@ class Person:
         """Recover the person, returning them to their default state; totally
         uninfected with no resistances, but now immune to the infection -
         irrespective of any resistances it has"""
-        self.__init__(immune=True, isolated=False)
+        self.__init__(immune=True)
 
     def mutate_infection(self):
         """Make the infection become resistant to the treatment with a given
@@ -282,33 +285,6 @@ class Model:
                         if time_cond and rand_cond:
                             person.increase_treatment()
 
-                        if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
-                            # If the product is in use, and it detects the
-                            # infection (which occurs a certain probability of
-                            # the time) immediately isolate this with the
-                            # resistance
-
-                            # The product detects exclusively when at one level
-                            # of resistance and no higher, but since the disease
-                            # will develop resistance incrementally due to the
-                            # tiered antibiotics, this should acheive all above
-                            if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
-                                person.isolate()
-
-                            # If the person is known to have a resistance that
-                            # is higher than their treatment, increase their
-                            # treatment
-                            if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
-                                person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
-
-                            # More verbose/slightly different implementation
-                            """
-                            for v in range(PRODUCT_DETECTION_LEVEL, NUM_RESISTANCE_TYPES):
-                                if person.infection.resistances[str(v)]:
-                                    person.isolate()
-                                    break
-                            """
-
                         if int(person.treatment.drug) >= ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class (which
                             # is not the same as infection class - this will
@@ -318,6 +294,37 @@ class Model:
                         # Increment the number of timesteps a person has been
                         # treated with the drug
                         person.treatment.time_treated += 1
+
+
+                    
+                    if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
+                        if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
+
+                        # If the product is in use, and it detects the
+                        # infection (which occurs a certain probability of
+                        # the time) immediately isolate this with the
+                        # resistance
+
+                        # The product detects exclusively when at one level
+                        # of resistance and no higher, but since the disease
+                        # will develop resistance incrementally due to the
+                        # tiered antibiotics, this should acheive all above
+                        if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
+                            person.isolate()
+
+                            if PRODUCT_DETECTION_LEVEL < NUM_RESISTANCE_TYPES:
+                                new_drug = str(PRODUCT_DETECTION_LEVEL+1)
+                                if person.treatment.drug < new_drug:
+                                    print("Hit")
+                                    person.treatment.drug = new_drug
+
+                        # If the person is known to have a resistance that
+                        # is higher than their treatment, increase their
+                        # treatment
+                        #if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
+                        #    person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
+
+
 
                     # Increment the of timesteps a person has had the infection
                     person.total_time_infected += 1
