@@ -6,9 +6,9 @@
 ###############################
 
 # General parameters
-NUM_TIMESTEPS = 100
+NUM_TIMESTEPS = 50
 POPULATION_SIZE = 5000
-NUM_RESISTANCE_TYPES = 4
+NUM_RESISTANCE_TYPES = 3
 
 # Recovery generally or by treatment (green line in powerpoint)
 PROBABILITY_GENERAL_RECOVERY = 0.01
@@ -17,10 +17,9 @@ PROBABILITY_TREATMENT_RECOVERY = 0.2
 PROBABILITY_MUTATION = 0.02
 PROBABILITY_MOVE_UP_TREATMENT = 0.8
 TIMESTEPS_MOVE_UP_LAG_TIME = 5
-ISOLATION_THRESHOLD = 3
+ISOLATION_THRESHOLD = 2
 # Death (orange line in powerpoint)
 PROBABILITY_DEATH = 0.01
-DEATH_FUNCTION = lambda p, t: round(min(0.005*t + p, 1), 4)
 # Spreading (grey line in powerpoint)
 PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 1
@@ -30,35 +29,8 @@ NUM_SPREAD_TO = 1
 # they are being treated for a resistance (i.e. expected to have it), but this
 # does it based on whether they have it as an instantaneous test
 PRODUCT_IN_USE = True
-PROBABILIY_PRODUCT_DETECT = 1
+PROBABILIY_PRODUCT_DETECT = 0.5
 PRODUCT_DETECTION_LEVEL = ISOLATION_THRESHOLD
-
-
-"""
-Discussion of parameter choices:
-
-These parameters model a large hospital, which may have a number of wards of
-people susceptible to a certain antibiotic resistant pathogen. It generalised
-that wards can be easily spread between, but in future it could be changed
-such that spatial differences between wards limits spread of the pathogen. This
-decides our choice of a population size of 250.
-
-The number of resistance types is chosen based on the way tiered treatment using
-antibiotics occurs in hospitals. In this case, four are used, e.g. penicillin,
-amoxycillin, carbopenomase, (wonder drug)
-
-Hence, our detector is for the penultimate resistant case, so if we identify
-someone is infected, we can immediately move them up to the last resort
-treatment.
-
-All other probabilities are picked as reasonable values.
-
-Assumed our model works 100% of the time for greater differentiation in model
-analysis.
-
-Assumed resistance to higher tier makes resistant to all lower tier.
-
-"""
 
 
 #################################################
@@ -166,21 +138,20 @@ class Treatment:
 
 
 class Person:
-    def __init__(self, infection=None, treatment=None, isolated=False, immune=False, alive=True, total_time_infected=0):
+    def __init__(self, infection=None, treatment=None, isolated=False, immune=False):
         """Initialise a person as having various properties within the model"""
         self.infection = infection
         self.treatment = treatment
 
         self.isolated = isolated
         self.immune = immune
-        self.total_time_infected = total_time_infected
-        self.alive = alive
+        self.alive = True
 
     def recover_from_infection(self):
         """Recover the person, returning them to their default state; totally
         uninfected with no resistances, but now immune to the infection -
         irrespective of any resistances it has"""
-        self.__init__(immune=True, isolated=False)
+        self.__init__(immune=True)
 
     def mutate_infection(self):
         """Make the infection become resistant to the treatment with a given
@@ -221,7 +192,7 @@ class Person:
 
     def die(self):
         """Make the person no longer alive"""
-        self.__init__(alive=False)
+        self.alive = False
 
     def __repr__(self):
         """Provide a string representation for the person"""
@@ -315,12 +286,9 @@ class Model:
                             # likely lag behind)
                             person.isolate()
 
-                        # Increment the number of timesteps a person has been
+                        # Increment the number of times a person has been
                         # treated with the drug
                         person.treatment.time_treated += 1
-
-                    # Increment the of timesteps a person has had the infection
-                    person.total_time_infected += 1
 
 
                     # Recovery generally or by treatment if currently infected
@@ -338,8 +306,7 @@ class Model:
 
                     # Deaths due to infection
                     # (orange line in powerpoint)
-                    p = DEATH_FUNCTION(PROBABILITY_DEATH, person.total_time_infected)
-                    if decision(p):
+                    if decision(PROBABILITY_DEATH):
                         person.die()
 
             # Spread the infection strains throughout the population
