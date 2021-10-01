@@ -18,6 +18,7 @@ NUM_TIMESTEPS = 200
 POPULATION_SIZE = 2000
 
 
+"""Use these if you want to set all drugs to the same thing"""
 pgr = 0.001
 ptr = 0.02
 pm = 0.04
@@ -28,6 +29,17 @@ pd = 0.001
 df = lambda p, t: round(min(0.0005*t + p, 1), 4)
 ps = 0.5
 nst = 1
+
+
+
+"""
+This differs from the previous model in that it gives more granular control
+over what each drug does, and gives them names for better visual grepping.
+
+The logic might differe slightly, so see what you think it does and if you can
+get a set of parameters you like, then we can move forward with it, but if not,
+we can stick with the old stable version and it's not a problem
+"""
 
 
 
@@ -294,8 +306,7 @@ class Model:
                             # the isolation threshold
                             person.isolate()
                             """if PRODUCT_DETECTION_LEVEL >= ISOLATION_THRESHOLD:
-                                pass
-                                print("Hit 1")"""
+                                pass"""
 
                             # If a person has the detected infection, put them on
                             # a treatment course for it, (i.e. only ever change
@@ -303,7 +314,6 @@ class Model:
                             if DRUG_NAMES.index(person.treatment.drug) <= PRODUCT_DETECTION_LEVEL:
                                 print(DRUG_NAMES[PRODUCT_DETECTION_LEVEL+1])
                                 person.treatment = Treatment(DRUG_NAMES[PRODUCT_DETECTION_LEVEL+1])
-                                #print("Hit 2")"""
 
 
 
