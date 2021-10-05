@@ -14,20 +14,18 @@ import matplotlib.pyplot as plt
 ###############################
 
 # General parameters
-NUM_TIMESTEPS = 200
+NUM_TIMESTEPS = 100
 POPULATION_SIZE = 2000
 
 
 """Use these if you want to set all drugs to the same thing"""
-pgr = 0.001
+pgr = 0.01
 ptr = 0.02
-pm = 0.04
-pmut = 0.8
-tmult = 5
+pm = 0.1
 it = 2
-pd = 0.001
-df = lambda p, t: round(min(0.0005*t + p, 1), 4)
-ps = 0.5
+pd = 0.01
+df = lambda p, t: round(min(0.000*t + p, 1), 4)
+ps = 1
 nst = 1
 
 
@@ -72,9 +70,9 @@ RESISTANCE_PROPERTIES["Carbopenamase"] = (pgr, pm, ps, nst, pd, df)
 RESISTANCE_PROPERTIES["Colistin"] = (pgr, pm, ps, nst, pd, df)
 
 
-PROBABILITY_MOVE_UP_TREATMENT = 0.8
-TIMESTEPS_MOVE_UP_LAG_TIME = 5
-ISOLATION_THRESHOLD = DRUG_NAMES.index("Carbopenamase")
+PROBABILITY_MOVE_UP_TREATMENT = 0.1
+TIMESTEPS_MOVE_UP_LAG_TIME = 10
+ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
 
 global PRODUCT_IN_USE
 PRODUCT_IN_USE = True
@@ -86,10 +84,8 @@ PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbopenamase")
 #################################################
 
 RANDOM_SEED = 0
-REPORT_PERCENTAGE = 5
-
 REPORT_PROGRESS = True
-REPORT_PERCENTAGE = None
+REPORT_PERCENTAGE = 5
 PRINT_DATA = True
 GRAPH_TYPE = "line"  # line, stackplot (default)
 OUTPUT_PADDING = len(str(POPULATION_SIZE))
@@ -311,12 +307,12 @@ class Model:
                             """if PRODUCT_DETECTION_LEVEL >= ISOLATION_THRESHOLD:
                                 pass"""
 
-                            # If a person has the detected infection, put them on
+                            """# If a person has the detected infection, put them on
                             # a treatment course for it, (i.e. only ever change
                             # it up to one above)
                             if DRUG_NAMES.index(person.treatment.drug) <= PRODUCT_DETECTION_LEVEL:
                                 print(DRUG_NAMES[PRODUCT_DETECTION_LEVEL+1])
-                                person.treatment = Treatment(DRUG_NAMES[PRODUCT_DETECTION_LEVEL+1])
+                                person.treatment = Treatment(DRUG_NAMES[PRODUCT_DETECTION_LEVEL+1])"""
 
 
 
