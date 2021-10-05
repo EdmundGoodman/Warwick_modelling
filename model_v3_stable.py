@@ -7,19 +7,19 @@
 
 # General parameters
 NUM_TIMESTEPS = 50
-POPULATION_SIZE = 5000
+POPULATION_SIZE = 500
 NUM_RESISTANCE_TYPES = 3
 
 # Recovery generally or by treatment (green line in powerpoint)
 PROBABILITY_GENERAL_RECOVERY = 0.01
-PROBABILITY_TREATMENT_RECOVERY = 0.2
+PROBABILITY_TREATMENT_RECOVERY = 0.02
 # Mutation to higher resistance due to treatment (blue line in powerpoint)
-PROBABILITY_MUTATION = 0.02
-PROBABILITY_MOVE_UP_TREATMENT = 0.8
+PROBABILITY_MUTATION = 0.1
+PROBABILITY_MOVE_UP_TREATMENT = 0.1
 TIMESTEPS_MOVE_UP_LAG_TIME = 5
-ISOLATION_THRESHOLD = 2
+ISOLATION_THRESHOLD = 3
 # Death (orange line in powerpoint)
-PROBABILITY_DEATH = 0.01
+PROBABILITY_DEATH = 0.03
 # Spreading (grey line in powerpoint)
 PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 1
@@ -29,7 +29,7 @@ NUM_SPREAD_TO = 1
 # they are being treated for a resistance (i.e. expected to have it), but this
 # does it based on whether they have it as an instantaneous test
 PRODUCT_IN_USE = True
-PROBABILIY_PRODUCT_DETECT = 0.5
+PROBABILIY_PRODUCT_DETECT = 1
 PRODUCT_DETECTION_LEVEL = ISOLATION_THRESHOLD
 
 
@@ -271,16 +271,8 @@ class Model:
                             # If the person is known to have a resistance that
                             # is higher than their treatment, increase their
                             # treatment
-                            if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
-                                person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
-
-                            # More verbose/slightly different implementation
-                            """
-                            for v in range(PRODUCT_DETECTION_LEVEL, NUM_RESISTANCE_TYPES):
-                                if person.infection.resistances[str(v)]:
-                                    person.isolate()
-                                    break
-                            """
+                            #if person.treatment.drug <= str(PRODUCT_DETECTION_LEVEL):
+                            #    person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
 
                         if int(person.treatment.drug) >= ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class (which
