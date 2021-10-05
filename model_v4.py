@@ -89,14 +89,17 @@ RANDOM_SEED = 0
 REPORT_PERCENTAGE = 5
 
 REPORT_PROGRESS = True
-REPORT_PERCENTAGE = 5
+REPORT_PERCENTAGE = None
 PRINT_DATA = True
 GRAPH_TYPE = "line"  # line, stackplot (default)
 OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
-REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
-if REPORT_MOD_NUM < 1:
-    REPORT_MOD_NUM = 1  # Don't try to report more than once per timestep
+REPORT_MOD_NUM = None
+if REPORT_PERCENTAGE is not None:
+    REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
+    # Don't try to report more than once per timestep
+    if REPORT_MOD_NUM < 1:
+        REPORT_MOD_NUM = 1
 
 #######################################
 ### Objects and logic for the model ###
@@ -467,7 +470,7 @@ class DataHandler:
 
     def _report_model_state(self):
         """Report the model's state through any mechanism set in parameters"""
-        if self.timestep % REPORT_MOD_NUM == 0:
+        if REPORT_MOD_NUM is None or self.timestep % REPORT_MOD_NUM == 0:
             if REPORT_PROGRESS and not PRINT_DATA:
                 print("{}% complete".format(int(
                     self.timestep / int(NUM_TIMESTEPS / 10) * 10
