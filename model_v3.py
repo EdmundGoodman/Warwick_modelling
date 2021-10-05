@@ -5,7 +5,7 @@
 ### Change these parameters ###
 ###############################
 
-# General parameters
+"""# General parameters
 NUM_TIMESTEPS = 100
 POPULATION_SIZE = 5000
 NUM_RESISTANCE_TYPES = 4
@@ -31,7 +31,36 @@ NUM_SPREAD_TO = 1
 # does it based on whether they have it as an instantaneous test
 PRODUCT_IN_USE = True
 PROBABILIY_PRODUCT_DETECT = 1
-PRODUCT_DETECTION_LEVEL = ISOLATION_THRESHOLD
+PRODUCT_DETECTION_LEVEL = ISOLATION_THRESHOLD"""
+
+
+# General parameters
+NUM_TIMESTEPS = 200
+POPULATION_SIZE = 5000
+NUM_RESISTANCE_TYPES = 3
+
+# Recovery generally or by treatment (green line in powerpoint)
+PROBABILITY_GENERAL_RECOVERY = 0.01
+PROBABILITY_TREATMENT_RECOVERY = 0.02
+# Mutation to higher resistance due to treatment (blue line in powerpoint)
+PROBABILITY_MUTATION = 0.1
+PROBABILITY_MOVE_UP_TREATMENT = 0.1
+TIMESTEPS_MOVE_UP_LAG_TIME = 10
+ISOLATION_THRESHOLD = 3
+# Death (orange line in powerpoint)
+PROBABILITY_DEATH = 0.01
+DEATH_FUNCTION = lambda p, t: round(min(0.000*t + p, 1), 4)
+# Spreading (grey line in powerpoint)
+PROBABILITY_SPREAD = 1
+NUM_SPREAD_TO = 1
+
+# Whether our product is used in the simulation
+# This changes how people are put into isolation. Normally, this is done when
+# they are being treated for a resistance (i.e. expected to have it), but this
+# does it based on whether they have it as an instantaneous test
+PRODUCT_IN_USE = True
+PROBABILIY_PRODUCT_DETECT = 1
+PRODUCT_DETECTION_LEVEL = 2
 
 
 """
@@ -74,7 +103,7 @@ ANIMATE_GRAPH = False
 GRAPH_TYPE = "line"  # line, stackplot (default)
 OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
-REPORT_MOD_NUM = None
+REPORT_MOD_NUM = 5
 if REPORT_PERCENTAGE is not None:
     REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
 RESISTANCE_NAMES = [str(i+1) for i in range(NUM_RESISTANCE_TYPES)]
@@ -284,37 +313,10 @@ class Model:
                         if time_cond and rand_cond:
                             person.increase_treatment()
 
-                        if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
-                            # If the product is in use, and it detects the
-                            # infection (which occurs a certain probability of
-                            # the time) immediately isolate this with the
-                            # resistance
-
-                            # The product detects exclusively when at one level
-                            # of resistance and no higher, but since the disease
-                            # will develop resistance incrementally due to the
-                            # tiered antibiotics, this should acheive all above
-                            if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
-                                person.isolate()
-
-                            # If the person is known to have a resistance that
-                            # is higher than their treatment, increase their
-                            # treatment
-                            if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
-                                person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
-
-                            # More verbose/slightly different implementation
-                            """
-                            for v in range(PRODUCT_DETECTION_LEVEL, NUM_RESISTANCE_TYPES):
-                                if person.infection.resistances[str(v)]:
-                                    person.isolate()
-                                    break
-                            """
-
+                        # Isolate if in high enough treatment class (which
+                        # is not the same as infection class - this will
+                        # likely lag behind)
                         if int(person.treatment.drug) >= ISOLATION_THRESHOLD:
-                            # Isolate if in high enough treatment class (which
-                            # is not the same as infection class - this will
-                            # likely lag behind)
                             person.isolate()
 
                         # Increment the number of timesteps a person has been
@@ -323,6 +325,27 @@ class Model:
 
                     # Increment the of timesteps a person has had the infection
                     person.total_time_infected += 1
+
+                    if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
+                        # If the product is in use, and it detects the
+                        # infection (which occurs a certain probability of
+                        # the time) immediately isolate this with the
+                        # resistance
+
+                        # The product detects exclusively when at one level
+                        # of resistance and no higher, but since the disease
+                        # will develop resistance incrementally due to the
+                        # tiered antibiotics, this should acheive all above
+                        if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
+                            #if not person.isolated:
+                            #    print("Hit")
+                            person.isolate()
+
+                        """# If the person is known to have a resistance that
+                        # is higher than their treatment, increase their
+                        # treatment
+                        if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
+                            person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)"""
 
 
                     # Recovery generally or by treatment if currently infected
@@ -531,7 +554,50 @@ class DataRenderer:
         drawnow(lambda: DataRenderer._draw_graph(time, ys_data, labels))
 
 
+
+
 if __name__ == "__main__":
+    plt.ion()
+
+    PRODUCT_IN_USE = True
+
+    # Seed the random number generator
+    if RANDOM_SEED is not None:
+        seed(RANDOM_SEED)
+    # Create a population with some initially infected people
+    population = [Person() for _ in range(POPULATION_SIZE - 10)]
+    for _ in range(10):
+        population.append(Person(infection=Infection()))
+    # Create and run the model
+    m = Model(population=population)
+    m.run()
+    # Finally show the full simulation graph
+    plt.figure()
+    m.data_handler.draw_full_graph() # Figure 1
+
+
+    print("\n\n")
+    PRODUCT_IN_USE = False
+
+    # Seed the random number generator
+    if RANDOM_SEED is not None:
+        seed(RANDOM_SEED)
+    # Create a population with some initially infected people
+    population = [Person() for _ in range(POPULATION_SIZE - 10)]
+    for _ in range(10):
+        population.append(Person(infection=Infection()))
+    # Create and run the model
+    m = Model(population=population)
+    m.run()
+    # Finally show the full simulation graph
+    plt.figure()
+    m.data_handler.draw_full_graph() # Figure 2
+
+
+    input()
+
+
+"""if __name__ == "__main__":
     # Seed the random number generator
     if RANDOM_SEED is not None:
         seed(RANDOM_SEED)
@@ -554,3 +620,4 @@ if __name__ == "__main__":
 
     # Don't immediately close when the simulation is done
     input("Press any key to exit: ")
+"""
