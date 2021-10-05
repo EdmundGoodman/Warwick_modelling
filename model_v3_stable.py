@@ -6,20 +6,20 @@
 ###############################
 
 # General parameters
-NUM_TIMESTEPS = 50
-POPULATION_SIZE = 500
-NUM_RESISTANCE_TYPES = 3
+NUM_TIMESTEPS = 100
+POPULATION_SIZE = 5000
+NUM_RESISTANCE_TYPES = 4
 
 # Recovery generally or by treatment (green line in powerpoint)
 PROBABILITY_GENERAL_RECOVERY = 0.01
-PROBABILITY_TREATMENT_RECOVERY = 0.02
+PROBABILITY_TREATMENT_RECOVERY = 0.2
 # Mutation to higher resistance due to treatment (blue line in powerpoint)
-PROBABILITY_MUTATION = 0.1
-PROBABILITY_MOVE_UP_TREATMENT = 0.1
+PROBABILITY_MUTATION = 0.02
+PROBABILITY_MOVE_UP_TREATMENT = 0.8
 TIMESTEPS_MOVE_UP_LAG_TIME = 5
 ISOLATION_THRESHOLD = 3
 # Death (orange line in powerpoint)
-PROBABILITY_DEATH = 0.03
+PROBABILITY_DEATH = 0.01
 # Spreading (grey line in powerpoint)
 PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 1
@@ -140,14 +140,14 @@ class Treatment:
 
 
 class Person:
-    def __init__(self, infection=None, treatment=None, isolated=False, immune=False):
+    def __init__(self, infection=None, treatment=None, isolated=False, immune=False, alive=True):
         """Initialise a person as having various properties within the model"""
         self.infection = infection
         self.treatment = treatment
 
         self.isolated = isolated
         self.immune = immune
-        self.alive = True
+        self.alive = alive
 
     def recover_from_infection(self):
         """Recover the person, returning them to their default state; totally
@@ -194,7 +194,7 @@ class Person:
 
     def die(self):
         """Make the person no longer alive"""
-        self.alive = False
+        self.__init__(alive=False)
 
     def __repr__(self):
         """Provide a string representation for the person"""
@@ -266,6 +266,8 @@ class Model:
                             # will develop resistance incrementally due to the
                             # tiered antibiotics, this should acheive all above
                             if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
+                                if not person.isolated:
+                                    print("Hit")
                                 person.isolate()
 
                             # If the person is known to have a resistance that
@@ -273,6 +275,14 @@ class Model:
                             # treatment
                             #if person.treatment.drug <= str(PRODUCT_DETECTION_LEVEL):
                             #    person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
+
+                            # More verbose/slightly different implementation
+                            """
+                            for v in range(PRODUCT_DETECTION_LEVEL, NUM_RESISTANCE_TYPES):
+                                if person.infection.resistances[str(v)]:
+                                    person.isolate()
+                                    break
+                            """
 
                         if int(person.treatment.drug) >= ISOLATION_THRESHOLD:
                             # Isolate if in high enough treatment class (which
