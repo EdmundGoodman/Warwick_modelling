@@ -35,9 +35,11 @@ DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
 PROBABILITY_SPREAD = 1
 NUM_SPREAD_TO = 1
 
+INITIALLY_INFECTED = 10
 PROBABILITY_MOVE_UP_TREATMENT = 0.1
 TIMESTEPS_MOVE_UP_LAG_TIME = 10
 ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
+
 PRODUCT_IN_USE = True
 PROBABILIY_PRODUCT_DETECT = 1
 PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
@@ -78,8 +80,10 @@ if REPORT_PERCENTAGE is not None:
 PRINT_DATA = True
 OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
+DRAW_GRAPH = True
 GRAPH_TYPE = "line"  # line, stackplot (default)
-
+EXPORT_TO_EXCEL = False
+DEFAULT_EXCEL_FILENAME = "out.xlsx"
 
 #######################################
 ### Objects and logic for the model ###
@@ -489,7 +493,7 @@ class DataHandler:
         datas, final_labels = self._preprocess_disjoint_labels()
         DataRenderer.draw_full_graph(self.time, datas, final_labels)
 
-    def export_to_excel(self, filename="out.xlsx"):
+    def export_to_excel(self, filename):
         """Export all the data to an excel file"""
         datas, final_labels = self._preprocess_disjoint_labels()
         DataRenderer.export_to_excel(filename, datas, final_labels)
@@ -541,24 +545,44 @@ class DataRenderer:
         writer.save()
 
 
-if __name__ == "__main__":
-    plt.ion()
 
+def run(excel_filename=None):
+    """Run the model with a given set of parameters"""
     # Seed the random number generator
     if RANDOM_SEED is not None:
         seed(RANDOM_SEED)
 
     # Create a population with some initially infected people
-    population = [Person() for _ in range(POPULATION_SIZE - 10)]
+    population = [Person() for _ in range(POPULATION_SIZE - INITIALLY_INFECTED)]
     for _ in range(10):
         population.append(Person(infection=Infection()))
 
     # Create and run the model
     m = Model(population=population)
     m.run()
+    print()
+
+    # Export the finished model to an excel file
+    if EXPORT_TO_EXCEL:
+        if excel_filename is None:
+            excel_filename = DEFAULT_EXCEL_FILENAME
+        m.data_handler.export_to_excel(excel_filename)
 
     # Finally show the full simulation graph
-    #m.data_handler.draw_full_graph()
-    # input()
+    if DRAW_GRAPH:
+        m.data_handler.draw_full_graph()
 
-    m.data_handler.export_to_excel()
+
+if __name__ == "__main__":
+    # Make the matplotlib graphs interactive
+    plt.ion()
+
+    # Run the model with and without the product
+    run() # Figure 1
+    PRODUCT_IN_USE = False
+    run() # Figure 2
+
+    # Don't immediately exit, otherwise the graphs won't show up - so wait
+    # for the user to prompt the program to end
+    if DRAW_GRAPH:
+        input()
