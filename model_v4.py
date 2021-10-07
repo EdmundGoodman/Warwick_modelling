@@ -8,6 +8,7 @@
 from random import seed, random, sample
 from copy import deepcopy
 import matplotlib.pyplot as plt
+import pandas as pd
 
 ###############################
 ### Change these parameters ###
@@ -64,18 +65,21 @@ RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_M
 #################################################
 
 RANDOM_SEED = 0
+
 REPORT_PROGRESS = True
 REPORT_PERCENTAGE = 5
-PRINT_DATA = True
-GRAPH_TYPE = "line"  # line, stackplot (default)
-OUTPUT_PADDING = len(str(POPULATION_SIZE))
-
 REPORT_MOD_NUM = None
 if REPORT_PERCENTAGE is not None:
     REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
     # Don't try to report more than once per timestep
     if REPORT_MOD_NUM < 1:
         REPORT_MOD_NUM = 1
+
+PRINT_DATA = True
+OUTPUT_PADDING = len(str(POPULATION_SIZE))
+
+GRAPH_TYPE = "line"  # line, stackplot (default)
+
 
 #######################################
 ### Objects and logic for the model ###
@@ -407,6 +411,23 @@ class DataHandler:
         if person.isolated:
             self.num_isolated += 1
 
+    def process_timestep_data(self):
+        """Store the current timestep's data into the appropriate data
+        structures"""
+        for j, v in enumerate(self.num_infected_stages):
+            self.ys_data[j].append(v)
+        self.ys_data[-3].append(self.num_dead)
+        self.ys_data[-2].append(self.num_immune)
+        self.ys_data[-1].append(self.num_uninfected)
+        self.non_disjoint[0].append(self.num_isolated)
+        self.time.append(self.timestep)
+
+        # Report the model's state through any mechanism set in parameters
+        self._report_model_state()
+
+        # Reset the helper variables
+        self._new_timestep_vars()
+
     def _preprocess_disjoint_labels(self):
         """Preprocess the data and the labelling for some graph types"""
         # When as a line graph, we can draw lines for categories which
@@ -428,19 +449,8 @@ class DataHandler:
             return datas, final_labels
         return self.ys_data, self.labels
 
-    def draw_full_graph(self):
-        """Draw a graph of all of the data in the graph"""
-        datas, final_labels = self._preprocess_disjoint_labels()
-        DataRenderer.draw_full_graph(self.time, datas, final_labels)
-
-    def export_to_excel(self):
-        """Export all the data to an excel file"""
-        datas, final_labels = self._preprocess_disjoint_labels()
-        DataExporter.export_to_excel(datas, final_labels)
-
     def _print_current_data(self):
         """Print the values of the current state of the simulation"""
-        # TODO: Automate this from the disjoint and non-disjoint labels?
         print("uninfected: {}, immune: {}, dead: {}, infected: {}, isolated: {}".format(
             str(self.num_uninfected).ljust(OUTPUT_PADDING),
             str(self.num_immune).ljust(OUTPUT_PADDING),
@@ -452,44 +462,44 @@ class DataHandler:
             str(self.num_isolated)
         ))
 
+    def _print_current_progress(self, end="\n", ljust=None):
+        """Output the current progress of the model"""
+        out = "{}% complete".format(str(int(
+                                self.timestep / int(NUM_TIMESTEPS / 10) * 10)))
+        if ljust is not None:
+            out.ljust(ljust)
+        print(out, end=end)
+
     def _report_model_state(self):
         """Report the model's state through any mechanism set in parameters"""
         if REPORT_MOD_NUM is None or self.timestep % REPORT_MOD_NUM == 0:
+            #P Print how far through the model run we our
             if REPORT_PROGRESS and not PRINT_DATA:
-                print("{}% complete".format(int(
-                    self.timestep / int(NUM_TIMESTEPS / 10) * 10
-                )))
+                self._print_current_progress()
 
+            # Print both how far through, and the current state of the model
             if PRINT_DATA:
                 if REPORT_PROGRESS:
                     # Display it on the same line for ease of reading
-                    print("{}% complete".format(str(int(
-                        self.timestep / int(NUM_TIMESTEPS / 10) * 10
-                    )).ljust(2)), end=" - ")
+                    self._print_current_progress(end=" - ", ljust=2)
                 self._print_current_data()
 
-    def process_timestep_data(self):
-        """Store the current timestep's data into the appropriate data
-        structures"""
-        for j, v in enumerate(self.num_infected_stages):
-            self.ys_data[j].append(v)
-        self.ys_data[-3].append(self.num_dead)
-        self.ys_data[-2].append(self.num_immune)
-        self.ys_data[-1].append(self.num_uninfected)
-        self.non_disjoint[0].append(self.num_isolated)
-        self.time.append(self.timestep)
+    def draw_full_graph(self):
+        """Draw a graph of all of the data in the graph"""
+        datas, final_labels = self._preprocess_disjoint_labels()
+        DataRenderer.draw_full_graph(self.time, datas, final_labels)
 
-        # Report the model's state through any mechanism set in parameters
-        self._report_model_state()
-
-        # Reset the helper variables
-        self._new_timestep_vars()
+    def export_to_excel(self, filename="out.xlsx"):
+        """Export all the data to an excel file"""
+        datas, final_labels = self._preprocess_disjoint_labels()
+        DataRenderer.export_to_excel(filename, datas, final_labels)
 
 
 class DataRenderer:
     @staticmethod
     def _draw_graph(time, ys_data, labels):
         """Actually draw the graph via matplotlib"""
+        # matplotlib plots require: x_axis_data, y_axis_data(s), data labels
 
         if GRAPH_TYPE == "line":
             # line graph
@@ -510,42 +520,25 @@ class DataRenderer:
     @staticmethod
     def draw_full_graph(time, ys_data, labels):
         """Draw and show the graph with all the data and legend once"""
+        plt.figure()
         DataRenderer._draw_graph(time, ys_data, labels)
         DataRenderer._graph_settings()
         plt.show()
 
-
-class DataExporter:
-    BASE_WORKSHEET_NAME = "Model data #"
-
     @staticmethod
-    def export_to_excel(ys_data, labels, filename="out.xlsx"):
-        """Export all the data to an excel file"""
-        xOffset, yOffset = 1, 1
+    def export_to_DataFrame(ys_data, labels):
+        """Turn the datahandler data into a dataframe"""
+        df = pd.DataFrame()
+        for i in range(len(ys_data)):
+            df[labels[i]] = ys_data[i]
+        return df
 
-        with xlsxwriter.Workbook(filename) as workbook:
-            # Make a new worksheet for each export
-            # Not working as workbook overwrites each time!
-            n = 1
-            while True:
-                worksheet_name = "{}{}".format(DataExporter.BASE_WORKSHEET_NAME, n)
-                worksheet = workbook.get_worksheet_by_name(worksheet_name)
-                if worksheet is None:
-                    worksheet = workbook.add_worksheet(worksheet_name)
-                    break
-                n += 1
-
-            print(worksheet_name)
-
-            # Write label headings
-            for col, label in enumerate(labels):
-                worksheet.write(xOffset, col+yOffset, label)
-
-            # Write general data
-            for col, datas in enumerate(ys_data):
-                for row, data in enumerate(datas):
-                    # `xOffset + 1` to account for label heading
-                    worksheet.write(xOffset+1+row, yOffset+col, data)
+    def export_to_excel(filename, ys_data, labels):
+        """Export the datahandler data into an excel sheet"""
+        df = DataRenderer.export_to_DataFrame(ys_data, labels)
+        writer = pd.ExcelWriter(filename)
+        df.to_excel(writer)
+        writer.save()
 
 
 if __name__ == "__main__":
@@ -565,9 +558,7 @@ if __name__ == "__main__":
     m.run()
 
     # Finally show the full simulation graph
-    #plt.figure()
     #m.data_handler.draw_full_graph()
+    # input()
 
     m.data_handler.export_to_excel()
-
-    # input()
