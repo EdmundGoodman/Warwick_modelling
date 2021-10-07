@@ -8,7 +8,6 @@
 from random import seed, random, sample
 from copy import deepcopy
 import matplotlib.pyplot as plt
-import xlsxwriter
 
 ###############################
 ### Change these parameters ###
@@ -18,67 +17,47 @@ import xlsxwriter
 NUM_TIMESTEPS = 100
 POPULATION_SIZE = 2000
 
-
-"""Use these if you want to set all drugs to the same thing"""
-pgr = 0.01 # p general recovery
-ptr = 0.02 # p treatment recovery
-pm = 0.1  # p mutation
-it = 2  # isolation threshold
-pd = 0.01 # p death
-df = lambda p, t: round(min(0.001*t + p, 1), 4) # magic
-ps = 1 # p spread
-nst = 1 # n spread to
-
-
-
-"""
-This differs from the previous model in that it gives more granular control
-over what each drug does, and gives them names for better visual grepping.
-
-The logic might differ slightly, so see what you think it does and if you can
-get a set of parameters you like, then we can move forward with it, but if not,
-we can stick with the old stable version and it's not a problem
-"""
-
-
-
 # Ordered list of drugs used, their properties, and the properties of their
 # resistant pathogens
 DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
 
-# Lookup table of drug properties by their names
-DRUG_PROPERTIES = {}
-DRUG_PROPERTIES["Penicillin"] = (
-    ptr,                    # Drug treatment recovery probability
-)
-DRUG_PROPERTIES["Carbapenemase"] = (ptr,)
-DRUG_PROPERTIES["Colistin"] = (ptr,)
+################################################################################
 
-# Lookup table of resistance properties by their names
-NUM_RESISTANCES = len(DRUG_NAMES)
-RESISTANCE_PROPERTIES = {}
-RESISTANCE_PROPERTIES["None"] = (
-    pgr,                    # General recovery probability
-    pm,                     # Mutation probability
-    # TODO: Make this more robust
-    ps,                     # Spread probability
-    nst,                    # Number of people spread to
-    pd,                     # Death probability
-    df,                     # Death function
-)
-RESISTANCE_PROPERTIES["Penicillin"] = (pgr, pm, ps, nst, pd, df)
-RESISTANCE_PROPERTIES["Carbapenemase"] = (pgr, pm, ps, nst, pd, df)
-RESISTANCE_PROPERTIES["Colistin"] = (pgr, pm, ps, nst, pd, df)
-
+"""Use these if you want to set all drugs to the same thing"""
+PROBABILITY_GENERAL_RECOVERY = 0.01
+PROBABILITY_TREATMENT_RECOVERY = 0.02
+PROBABILITY_MUTATION = 0.1
+PROBABILITY_DEATH = 0.01
+# Add time infected into consideration for death chance
+DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
+# TODO: Make this more robust
+PROBABILITY_SPREAD = 1
+NUM_SPREAD_TO = 1
 
 PROBABILITY_MOVE_UP_TREATMENT = 0.1
 TIMESTEPS_MOVE_UP_LAG_TIME = 10
 ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
-
-global PRODUCT_IN_USE
 PRODUCT_IN_USE = True
 PROBABILIY_PRODUCT_DETECT = 1
 PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
+
+################################################################################
+
+# Lookup table of drug properties by their names
+DRUG_PROPERTIES = {}
+DRUG_PROPERTIES["Penicillin"] = (
+    PROBABILITY_TREATMENT_RECOVERY,
+)
+DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
+DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
+
+# Lookup table of resistance properties by their names
+NUM_RESISTANCES = len(DRUG_NAMES)
+RESISTANCE_PROPERTIES = {}
+RESISTANCE_PROPERTIES["None"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+RESISTANCE_PROPERTIES["Carbapenemase"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
 
 #################################################
 ### Internal parameters and derived constants ###
@@ -365,7 +344,7 @@ class Model:
                 person.try_spread_infection(updated_population)
             self.population = updated_population[:]
 
-            # Update data recorded in this timestep, and output any according
+            # updated_population data recorded in this timestep, and output any according
             # to parameters indicating output format
             self.data_handler.process_timestep_data()
 
@@ -572,44 +551,23 @@ class DataExporter:
 if __name__ == "__main__":
     plt.ion()
 
-    PRODUCT_IN_USE = True
-
     # Seed the random number generator
     if RANDOM_SEED is not None:
         seed(RANDOM_SEED)
+
     # Create a population with some initially infected people
     population = [Person() for _ in range(POPULATION_SIZE - 10)]
     for _ in range(10):
         population.append(Person(infection=Infection()))
+
     # Create and run the model
     m = Model(population=population)
     m.run()
+
     # Finally show the full simulation graph
     #plt.figure()
     #m.data_handler.draw_full_graph()
 
     m.data_handler.export_to_excel()
 
-
-
-    print("\n\n")
-    PRODUCT_IN_USE = False
-
-    # Seed the random number generator
-    if RANDOM_SEED is not None:
-        seed(RANDOM_SEED)
-    # Create a population with some initially infected people
-    population = [Person() for _ in range(POPULATION_SIZE - 10)]
-    for _ in range(10):
-        population.append(Person(infection=Infection()))
-    # Create and run the model
-    m = Model(population=population)
-    m.run()
-    # Finally show the full simulation graph
-    #plt.figure()
-    #m.data_handler.draw_full_graph()
-
-    m.data_handler.export_to_excel()
-
-
-    input()
+    # input()
