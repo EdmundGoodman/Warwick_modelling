@@ -8,6 +8,7 @@
 from random import seed, random, sample
 from copy import deepcopy
 import matplotlib.pyplot as plt
+import xlsxwriter
 
 ###############################
 ### Change these parameters ###
@@ -19,14 +20,14 @@ POPULATION_SIZE = 2000
 
 
 """Use these if you want to set all drugs to the same thing"""
-pgr = 0.01
-ptr = 0.02
-pm = 0.1
-it = 2
-pd = 0.01
-df = lambda p, t: round(min(0.000*t + p, 1), 4)
-ps = 1
-nst = 1
+pgr = 0.01 # p general recovery
+ptr = 0.02 # p treatment recovery
+pm = 0.1  # p mutation
+it = 2  # isolation threshold
+pd = 0.01 # p death
+df = lambda p, t: round(min(0.001*t + p, 1), 4) # magic
+ps = 1 # p spread
+nst = 1 # n spread to
 
 
 
@@ -34,7 +35,7 @@ nst = 1
 This differs from the previous model in that it gives more granular control
 over what each drug does, and gives them names for better visual grepping.
 
-The logic might differe slightly, so see what you think it does and if you can
+The logic might differ slightly, so see what you think it does and if you can
 get a set of parameters you like, then we can move forward with it, but if not,
 we can stick with the old stable version and it's not a problem
 """
@@ -43,14 +44,14 @@ we can stick with the old stable version and it's not a problem
 
 # Ordered list of drugs used, their properties, and the properties of their
 # resistant pathogens
-DRUG_NAMES = ["Penicillin", "Carbopenamase", "Colistin"]
+DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
 
 # Lookup table of drug properties by their names
 DRUG_PROPERTIES = {}
 DRUG_PROPERTIES["Penicillin"] = (
     ptr,                    # Drug treatment recovery probability
 )
-DRUG_PROPERTIES["Carbopenamase"] = (ptr,)
+DRUG_PROPERTIES["Carbapenemase"] = (ptr,)
 DRUG_PROPERTIES["Colistin"] = (ptr,)
 
 # Lookup table of resistance properties by their names
@@ -66,7 +67,7 @@ RESISTANCE_PROPERTIES["None"] = (
     df,                     # Death function
 )
 RESISTANCE_PROPERTIES["Penicillin"] = (pgr, pm, ps, nst, pd, df)
-RESISTANCE_PROPERTIES["Carbopenamase"] = (pgr, pm, ps, nst, pd, df)
+RESISTANCE_PROPERTIES["Carbapenemase"] = (pgr, pm, ps, nst, pd, df)
 RESISTANCE_PROPERTIES["Colistin"] = (pgr, pm, ps, nst, pd, df)
 
 
@@ -77,7 +78,7 @@ ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
 global PRODUCT_IN_USE
 PRODUCT_IN_USE = True
 PROBABILIY_PRODUCT_DETECT = 1
-PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbopenamase")
+PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
 
 #################################################
 ### Internal parameters and derived constants ###
@@ -304,6 +305,9 @@ class Model:
                             # Put people into isolation if we know they are beyond
                             # the isolation threshold
                             person.isolate()
+
+
+
                             """if PRODUCT_DETECTION_LEVEL >= ISOLATION_THRESHOLD:
                                 pass"""
 
@@ -450,6 +454,11 @@ class DataHandler:
         datas, final_labels = self._preprocess_disjoint_labels()
         DataRenderer.draw_full_graph(self.time, datas, final_labels)
 
+    def export_to_excel(self):
+        """Export all the data to an excel file"""
+        datas, final_labels = self._preprocess_disjoint_labels()
+        DataExporter.export_to_excel(datas, final_labels)
+
     def _print_current_data(self):
         """Print the values of the current state of the simulation"""
         # TODO: Automate this from the disjoint and non-disjoint labels?
@@ -527,7 +536,37 @@ class DataRenderer:
         plt.show()
 
 
+class DataExporter:
+    BASE_WORKSHEET_NAME = "Model data #"
 
+    @staticmethod
+    def export_to_excel(ys_data, labels, filename="out.xlsx"):
+        """Export all the data to an excel file"""
+        xOffset, yOffset = 1, 1
+
+        with xlsxwriter.Workbook(filename) as workbook:
+            # Make a new worksheet for each export
+            # Not working as workbook overwrites each time!
+            n = 1
+            while True:
+                worksheet_name = "{}{}".format(DataExporter.BASE_WORKSHEET_NAME, n)
+                worksheet = workbook.get_worksheet_by_name(worksheet_name)
+                if worksheet is None:
+                    worksheet = workbook.add_worksheet(worksheet_name)
+                    break
+                n += 1
+
+            print(worksheet_name)
+
+            # Write label headings
+            for col, label in enumerate(labels):
+                worksheet.write(xOffset, col+yOffset, label)
+
+            # Write general data
+            for col, datas in enumerate(ys_data):
+                for row, data in enumerate(datas):
+                    # `xOffset + 1` to account for label heading
+                    worksheet.write(xOffset+1+row, yOffset+col, data)
 
 
 if __name__ == "__main__":
@@ -546,8 +585,11 @@ if __name__ == "__main__":
     m = Model(population=population)
     m.run()
     # Finally show the full simulation graph
-    plt.figure()
-    m.data_handler.draw_full_graph()
+    #plt.figure()
+    #m.data_handler.draw_full_graph()
+
+    m.data_handler.export_to_excel()
+
 
 
     print("\n\n")
@@ -564,8 +606,10 @@ if __name__ == "__main__":
     m = Model(population=population)
     m.run()
     # Finally show the full simulation graph
-    plt.figure()
-    m.data_handler.draw_full_graph()
+    #plt.figure()
+    #m.data_handler.draw_full_graph()
+
+    m.data_handler.export_to_excel()
 
 
     input()
