@@ -546,8 +546,9 @@ class DataRenderer:
 
 
 
-def run(excel_filename=None):
+def run():
     """Run the model with a given set of parameters"""
+
     # Seed the random number generator
     if RANDOM_SEED is not None:
         seed(RANDOM_SEED)
@@ -560,6 +561,14 @@ def run(excel_filename=None):
     # Create and run the model
     m = Model(population=population)
     m.run()
+
+    return m
+
+def run_and_output(excel_filename=None):
+    """Wrapper on run, displaying and writing the output for the user"""
+
+    # Run the model
+    m = run()
     print()
 
     # Export the finished model to an excel file
@@ -578,9 +587,9 @@ if __name__ == "__main__":
     plt.ion()
 
     # Run the model with and without the product
-    run("withProduct.xlsx") # Figure 1
+    run_and_output("withProduct.xlsx") # Figure 1
     PRODUCT_IN_USE = False
-    run("withoutProduct.xlsx") # Figure 2
+    run_and_output("withoutProduct.xlsx") # Figure 2
 
     # Don't immediately exit, otherwise the graphs won't show up - so wait
     # for the user to prompt the program to end
