@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 # General parameters
 NUM_TIMESTEPS = 100
-POPULATION_SIZE = 2000
+POPULATION_SIZE = 500
 
 # Ordered list of drugs used, their properties, and the properties of their
 # resistant pathogens
@@ -25,19 +25,19 @@ DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
 ################################################################################
 
 """Use these if you want to set all drugs to the same thing"""
-PROBABILITY_GENERAL_RECOVERY = 0.01
-PROBABILITY_TREATMENT_RECOVERY = 0.02
-PROBABILITY_MUTATION = 0.1
-PROBABILITY_DEATH = 0.01
+PROBABILITY_GENERAL_RECOVERY = 0
+PROBABILITY_TREATMENT_RECOVERY = 0.3
+PROBABILITY_MUTATION = 0.25
+PROBABILITY_DEATH = 0.015
 # Add time infected into consideration for death chance
 DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
 # TODO: Make this more robust
-PROBABILITY_SPREAD = 1
+PROBABILITY_SPREAD = 0.25
 NUM_SPREAD_TO = 1
 
 INITIALLY_INFECTED = 10
-PROBABILITY_MOVE_UP_TREATMENT = 0.1
-TIMESTEPS_MOVE_UP_LAG_TIME = 10
+PROBABILITY_MOVE_UP_TREATMENT = 0.2
+TIMESTEPS_MOVE_UP_LAG_TIME = 5
 ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
 
 PRODUCT_IN_USE = True

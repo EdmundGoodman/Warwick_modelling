@@ -16,7 +16,7 @@ import pandas as pd
 
 # General parameters
 NUM_TIMESTEPS = 100
-POPULATION_SIZE = 2000
+POPULATION_SIZE = 500
 
 # Ordered list of drugs used, their properties, and the properties of their
 # resistant pathogens
@@ -25,19 +25,19 @@ DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
 ################################################################################
 
 """Use these if you want to set all drugs to the same thing"""
-PROBABILITY_GENERAL_RECOVERY = 0.01
-PROBABILITY_TREATMENT_RECOVERY = 0.02
-PROBABILITY_MUTATION = 0.1
-PROBABILITY_DEATH = 0.01
+PROBABILITY_GENERAL_RECOVERY = 0
+PROBABILITY_TREATMENT_RECOVERY = 0.3
+PROBABILITY_MUTATION = 0.25
+PROBABILITY_DEATH = 0.015
 # Add time infected into consideration for death chance
 DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
 # TODO: Make this more robust
-PROBABILITY_SPREAD = 1
+PROBABILITY_SPREAD = 0.25
 NUM_SPREAD_TO = 1
 
 INITIALLY_INFECTED = 10
-PROBABILITY_MOVE_UP_TREATMENT = 0.1
-TIMESTEPS_MOVE_UP_LAG_TIME = 10
+PROBABILITY_MOVE_UP_TREATMENT = 0.2
+TIMESTEPS_MOVE_UP_LAG_TIME = 5
 ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
 
 PRODUCT_IN_USE = True
@@ -82,7 +82,7 @@ OUTPUT_PADDING = len(str(POPULATION_SIZE))
 
 DRAW_GRAPH = True
 GRAPH_TYPE = "line"  # line, stackplot (default)
-EXPORT_TO_EXCEL = False
+EXPORT_TO_EXCEL = True
 DEFAULT_EXCEL_FILENAME = "out.xlsx"
 
 #######################################
@@ -578,9 +578,9 @@ if __name__ == "__main__":
     plt.ion()
 
     # Run the model with and without the product
-    run() # Figure 1
+    run("withProduct.xlsx") # Figure 1
     PRODUCT_IN_USE = False
-    run() # Figure 2
+    run("withoutProduct.xlsx") # Figure 2
 
     # Don't immediately exit, otherwise the graphs won't show up - so wait
     # for the user to prompt the program to end
