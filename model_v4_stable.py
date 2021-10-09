@@ -556,7 +556,7 @@ def run(excel_filename=None):
 
     # Create a population with some initially infected people
     population = [Person() for _ in range(POPULATION_SIZE - INITIALLY_INFECTED)]
-    for _ in range(10):
+    for _ in range(INITIALLY_INFECTED):
         population.append(Person(infection=Infection()))
 
     # Create and run the model
