@@ -8,7 +8,6 @@
 from random import seed, random, sample
 from copy import deepcopy
 import matplotlib.pyplot as plt
-import pandas as pd
 
 ###############################
 ### Change these parameters ###
@@ -88,9 +87,6 @@ class Settings:
 
     DRAW_GRAPH = True
     GRAPH_TYPE = "line"  # line, stackplot (default)
-    EXPORT_TO_EXCEL = True
-    DEFAULT_EXCEL_FILENAME = "out.xlsx"
-
 
 #######################################
 ### Objects and logic for the model ###
@@ -242,9 +238,13 @@ class Model:
     def __init__(self, population=None):
         """Initialise the model as having a population of people"""
         if population is None:
-            self.population = [Person() for _ in range(Params.POPULATION_SIZE)]
-        else:
-            self.population = population
+            # Make a default population as having a set number of initially
+            # infected people
+            num_intially_uninfected = Params.POPULATION_SIZE - Params.INITIALLY_INFECTED
+            population = [Person() for _ in range(num_intially_uninfected)]
+            for _ in range(Params.INITIALLY_INFECTED):
+                population.append(Person(infection=Infection()))
+        self.population = population
 
         # Abstract away all the data handling into another class to avoid
         # cluttering up the model logic
@@ -548,46 +548,24 @@ class DataRenderer:
         plt.show()
 
     @staticmethod
-    def export_to_dataframe(ys_data, labels):
-        """Turn the datahandler data into a dataframe
-        df = pd.DataFrame()
-        for i in range(len(ys_data)):
-            df[labels[i]] = ys_data[i]
-        return df"""
-        pass
-
-    @staticmethod
     def export_to_excel(filename, ys_data, labels):
-        """Export the datahandler data into an excel sheet
-        df = DataRenderer.export_to_dataframe(ys_data, labels)
-        writer = pd.ExcelWriter(filename)
-        df.to_excel(writer)
-        writer.save()"""
-        pass
-
+        """Export the datahandler data into an excel sheet"""
+        print("Exporting to excel is not supported in this version of the model")
 
 
 def run():
     """Run the model with a given set of parameters"""
-
     # Seed the random number generator
     if Settings.RANDOM_SEED is not None:
         seed(Settings.RANDOM_SEED)
 
-    # Create a population with some initially infected people
-    population = [Person() for _ in range(Params.POPULATION_SIZE - Params.INITIALLY_INFECTED)]
-    for _ in range(Params.INITIALLY_INFECTED):
-        population.append(Person(infection=Infection()))
-
     # Create and run the model
-    m = Model(population=population)
+    m = Model()
     m.run()
-
     return m
 
 def run_and_output(excel_filename=None):
     """Wrapper on run, displaying and writing the output for the user"""
-
     # Run the model
     m = run()
     print()

@@ -88,7 +88,7 @@ class Settings:
 
     DRAW_GRAPH = True
     GRAPH_TYPE = "line"  # line, stackplot (default)
-    EXPORT_TO_EXCEL = True
+    EXPORT_TO_EXCEL = False
     DEFAULT_EXCEL_FILENAME = "out.xlsx"
 
 
@@ -242,9 +242,13 @@ class Model:
     def __init__(self, population=None):
         """Initialise the model as having a population of people"""
         if population is None:
-            self.population = [Person() for _ in range(Params.POPULATION_SIZE)]
-        else:
-            self.population = population
+            # Make a default population as having a set number of initially
+            # infected people
+            num_intially_uninfected = Params.POPULATION_SIZE - Params.INITIALLY_INFECTED
+            population = [Person() for _ in range(num_intially_uninfected)]
+            for _ in range(Params.INITIALLY_INFECTED):
+                population.append(Person(infection=Infection()))
+        self.population = population
 
         # Abstract away all the data handling into another class to avoid
         # cluttering up the model logic
@@ -564,28 +568,19 @@ class DataRenderer:
         writer.save()
 
 
-
 def run():
     """Run the model with a given set of parameters"""
-
     # Seed the random number generator
     if Settings.RANDOM_SEED is not None:
         seed(Settings.RANDOM_SEED)
 
-    # Create a population with some initially infected people
-    population = [Person() for _ in range(Params.POPULATION_SIZE - Params.INITIALLY_INFECTED)]
-    for _ in range(Params.INITIALLY_INFECTED):
-        population.append(Person(infection=Infection()))
-
     # Create and run the model
-    m = Model(population=population)
+    m = Model()
     m.run()
-
     return m
 
 def run_and_output(excel_filename=None):
     """Wrapper on run, displaying and writing the output for the user"""
-
     # Run the model
     m = run()
     print()
