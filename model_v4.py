@@ -294,25 +294,19 @@ class Model:
                             person.isolate()
 
                     """Handle use of the product"""
-                    if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
-                        if person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL:
-                            # Put people into isolation if we know they are beyond
-                            # the isolation threshold
-                            person.isolate()
+                    correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
+                    decision_yes = decision(Params.PROBABILIY_PRODUCT_DETECT)
+                    if Params.PRODUCT_IN_USE and decision_yes and correct_tier:
+                        # Put people into isolation if our product detects
+                        # them as being infected
+                        person.isolate()
 
-
-
-                            """if Params.PRODUCT_DETECTION_LEVEL >= Params.ISOLATION_THRESHOLD:
-                                pass"""
-
-                            """# If a person has the detected infection, put them on
-                            # a treatment course for it, (i.e. only ever change
-                            # it up to one above)
-                            if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
-                                print(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
-                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])"""
-
-
+                        # If a person has the detected infection, put them on
+                        # a treatment course for it, (i.e. only ever change
+                        # it up to one above)
+                        """if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
+                            print(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
+                            person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])"""
 
                     """Handle Recovery generally or by treatment if currently infected"""
                     general_recovery = decision(person.infection.general_recovery_probability)
@@ -495,7 +489,7 @@ class DataHandler:
         out = "{}% complete".format(str(int(
                                 self.timestep / int(Params.NUM_TIMESTEPS / 10) * 10)))
         if ljust is not None:
-            out.ljust(ljust)
+            out = out.ljust(ljust)
         print(out, end=end)
 
     def _report_model_state(self):
@@ -554,16 +548,17 @@ class DataRenderer:
         plt.show()
 
     @staticmethod
-    def export_to_DataFrame(ys_data, labels):
+    def export_to_dataframe(ys_data, labels):
         """Turn the datahandler data into a dataframe"""
         df = pd.DataFrame()
         for i in range(len(ys_data)):
             df[labels[i]] = ys_data[i]
         return df
 
+    @staticmethod
     def export_to_excel(filename, ys_data, labels):
         """Export the datahandler data into an excel sheet"""
-        df = DataRenderer.export_to_DataFrame(ys_data, labels)
+        df = DataRenderer.export_to_dataframe(ys_data, labels)
         writer = pd.ExcelWriter(filename)
         df.to_excel(writer)
         writer.save()
