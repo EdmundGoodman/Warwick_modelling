@@ -8,82 +8,89 @@
 from random import seed, random, sample
 from copy import deepcopy
 import matplotlib.pyplot as plt
-"""import pandas as pd"""
+import pandas as pd
 
 ###############################
 ### Change these parameters ###
 ###############################
 
-# General parameters
-NUM_TIMESTEPS = 100
-POPULATION_SIZE = 500
+class Params:
+    # General model parameters
+    NUM_TIMESTEPS = 100
+    POPULATION_SIZE = 500
+    INITIALLY_INFECTED = 10
 
-# Ordered list of drugs used, their properties, and the properties of their
-# resistant pathogens
-DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+    # Ordered list of drugs used, their properties, and the properties of their
+    # resistant pathogens
+    DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
 
-################################################################################
+    PROBABILITY_MOVE_UP_TREATMENT = 0.2
+    TIMESTEPS_MOVE_UP_LAG_TIME = 5
+    ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
 
-"""Use these if you want to set all drugs to the same thing"""
-PROBABILITY_GENERAL_RECOVERY = 0
-PROBABILITY_TREATMENT_RECOVERY = 0.3
-PROBABILITY_MUTATION = 0.25
-PROBABILITY_DEATH = 0.015
-# Add time infected into consideration for death chance
-DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
-# TODO: Make this more robust
-PROBABILITY_SPREAD = 0.25
-NUM_SPREAD_TO = 1
+    PRODUCT_IN_USE = True
+    PROBABILIY_PRODUCT_DETECT = 1
+    PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
 
-INITIALLY_INFECTED = 10
-PROBABILITY_MOVE_UP_TREATMENT = 0.2
-TIMESTEPS_MOVE_UP_LAG_TIME = 5
-ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
+    ############################################################
+    # Use these if you want to set all drugs to the same thing #
+    ############################################################
 
-PRODUCT_IN_USE = True
-PROBABILIY_PRODUCT_DETECT = 1
-PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
+    PROBABILITY_GENERAL_RECOVERY = 0
+    PROBABILITY_TREATMENT_RECOVERY = 0.3
+    PROBABILITY_MUTATION = 0.25
+    PROBABILITY_DEATH = 0.015
+    # Add time infected into consideration for death chance
+    DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
+    # TODO: Make this more robust
+    PROBABILITY_SPREAD = 0.25
+    NUM_SPREAD_TO = 1
 
-################################################################################
+    ###########################################################################
+    # Set these explicitly for more granular control, or use the above to set #
+    # them all as a group                                                     #
+    ###########################################################################
 
-# Lookup table of drug properties by their names
-DRUG_PROPERTIES = {}
-DRUG_PROPERTIES["Penicillin"] = (
-    PROBABILITY_TREATMENT_RECOVERY,
-)
-DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
-DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
+    # Lookup table of drug properties by their names
+    DRUG_PROPERTIES = {}
+    DRUG_PROPERTIES["Penicillin"] = (
+        PROBABILITY_TREATMENT_RECOVERY,
+    )
+    DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
+    DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
 
-# Lookup table of resistance properties by their names
-NUM_RESISTANCES = len(DRUG_NAMES)
-RESISTANCE_PROPERTIES = {}
-RESISTANCE_PROPERTIES["None"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-RESISTANCE_PROPERTIES["Carbapenemase"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+    # Lookup table of resistance properties by their names
+    NUM_RESISTANCES = len(DRUG_NAMES)
+    RESISTANCE_PROPERTIES = {}
+    RESISTANCE_PROPERTIES["None"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+    RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+    RESISTANCE_PROPERTIES["Carbapenemase"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+    RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
 
-#################################################
-### Internal parameters and derived constants ###
-#################################################
+#########################
+### Internal settings ###
+#########################
 
-RANDOM_SEED = 0
+class Settings:
+    RANDOM_SEED = 0
 
-REPORT_PROGRESS = True
-REPORT_PERCENTAGE = 5
-REPORT_MOD_NUM = None
-if REPORT_PERCENTAGE is not None:
-    REPORT_MOD_NUM = int(NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
-    # Don't try to report more than once per timestep
-    if REPORT_MOD_NUM < 1:
-        REPORT_MOD_NUM = 1
+    REPORT_PROGRESS = True
+    REPORT_PERCENTAGE = 5
+    REPORT_MOD_NUM = None
+    if REPORT_PERCENTAGE is not None:
+        REPORT_MOD_NUM = int(Params.NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
+        # Don't try to report more than once per timestep
+        if REPORT_MOD_NUM < 1:
+            REPORT_MOD_NUM = 1
 
-PRINT_DATA = True
-OUTPUT_PADDING = len(str(POPULATION_SIZE))
+    PRINT_DATA = True
+    OUTPUT_PADDING = len(str(Params.POPULATION_SIZE))
 
-DRAW_GRAPH = True
-GRAPH_TYPE = "line"  # line, stackplot (default)
-EXPORT_TO_EXCEL = False
-DEFAULT_EXCEL_FILENAME = "out.xlsx"
+    DRAW_GRAPH = True
+    GRAPH_TYPE = "line"  # line, stackplot (default)
+    EXPORT_TO_EXCEL = True
+    DEFAULT_EXCEL_FILENAME = "out.xlsx"
+
 
 #######################################
 ### Objects and logic for the model ###
@@ -97,12 +104,12 @@ class Infection:
             resistance = "None"
 
         self.resistance = resistance
-        self.general_recovery_probability = RESISTANCE_PROPERTIES[resistance][0]
-        self.mutation_probability = RESISTANCE_PROPERTIES[resistance][1]
-        self.spread_probability = RESISTANCE_PROPERTIES[resistance][2]
-        self.num_spread_to = RESISTANCE_PROPERTIES[resistance][3]
-        self.death_probability = RESISTANCE_PROPERTIES[resistance][4]
-        self.death_function = RESISTANCE_PROPERTIES[resistance][5]
+        self.general_recovery_probability = Params.RESISTANCE_PROPERTIES[resistance][0]
+        self.mutation_probability = Params.RESISTANCE_PROPERTIES[resistance][1]
+        self.spread_probability = Params.RESISTANCE_PROPERTIES[resistance][2]
+        self.num_spread_to = Params.RESISTANCE_PROPERTIES[resistance][3]
+        self.death_probability = Params.RESISTANCE_PROPERTIES[resistance][4]
+        self.death_function = Params.RESISTANCE_PROPERTIES[resistance][5]
 
         self.time_treated = time_treated
 
@@ -124,7 +131,7 @@ class Infection:
         if resistance == "None":
             return -1
         else:
-            return DRUG_NAMES.index(resistance)
+            return Params.DRUG_NAMES.index(resistance)
 
     def __repr__(self):
         if self.resistance == "None":
@@ -134,10 +141,10 @@ class Infection:
 
 
 class Treatment:
-    def __init__(self, drug=DRUG_NAMES[0], time_treated=None):
+    def __init__(self, drug=Params.DRUG_NAMES[0], time_treated=None):
         """Initialise a treatment within the model"""
         self.drug = drug
-        self.treatment_recovery_probability = DRUG_PROPERTIES[drug][0]
+        self.treatment_recovery_probability = Params.DRUG_PROPERTIES[drug][0]
 
         if time_treated is not None:
             self.time_treated = time_treated
@@ -147,9 +154,9 @@ class Treatment:
     def next_treatment(self):
         """Move up the treatment to the next strongest drug, and reset the
         amount of time that it has been used to zero"""
-        drug_index = DRUG_NAMES.index(self.drug)
-        if drug_index < NUM_RESISTANCES - 1:
-            self.__init__(DRUG_NAMES[drug_index + 1], self.time_treated)
+        drug_index = Params.DRUG_NAMES.index(self.drug)
+        if drug_index < Params.NUM_RESISTANCES - 1:
+            self.__init__(Params.DRUG_NAMES[drug_index + 1], self.time_treated)
 
     def treats_infection(self, infection):
         """Return whether the treatment works on the infection given any
@@ -235,7 +242,7 @@ class Model:
     def __init__(self, population=None):
         """Initialise the model as having a population of people"""
         if population is None:
-            self.population = [Person() for _ in range(POPULATION_SIZE)]
+            self.population = [Person() for _ in range(Params.POPULATION_SIZE)]
         else:
             self.population = population
 
@@ -247,7 +254,7 @@ class Model:
         """Simulate a number of timesteps within the model"""
 
         # Repeat the simulation for a set number of timesteps
-        for _ in range(NUM_TIMESTEPS):
+        for _ in range(Params.NUM_TIMESTEPS):
 
             # For each person in the population
             for person in self.population:
@@ -274,8 +281,8 @@ class Model:
                         # If the person has been treated for a number of
                         # consecutive days with the, a certain probability is
                         # exceeded, move them up a treatment tier
-                        time_cond = person.treatment.time_treated > TIMESTEPS_MOVE_UP_LAG_TIME
-                        rand_cond = decision(PROBABILITY_MOVE_UP_TREATMENT)
+                        time_cond = person.treatment.time_treated > Params.TIMESTEPS_MOVE_UP_LAG_TIME
+                        rand_cond = decision(Params.PROBABILITY_MOVE_UP_TREATMENT)
                         if time_cond and rand_cond:
                             person.increase_treatment()
 
@@ -283,25 +290,23 @@ class Model:
                         # is not the same as infection class - this will
                         # likely lag behind)
                         treatment_tier = Infection.get_tier_from_resistance(person.treatment.drug)
-                        if treatment_tier >= ISOLATION_THRESHOLD:
+                        if treatment_tier >= Params.ISOLATION_THRESHOLD:
                             person.isolate()
 
                     """Handle use of the product"""
-                    correct_tier = person.infection.get_tier() >= PRODUCT_DETECTION_LEVEL
-                    decision_yes = decision(PROBABILIY_PRODUCT_DETECT)
-                    if PRODUCT_IN_USE and correct_tier and decision_yes:
-                        # Put people into isolation if we know they are beyond
-                        # the isolation threshold
+                    correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
+                    decision_yes = decision(Params.PROBABILIY_PRODUCT_DETECT)
+                    if Params.PRODUCT_IN_USE and decision_yes and correct_tier:
+                        # Put people into isolation if our product detects
+                        # them as being infected
                         person.isolate()
 
                         # If a person has the detected infection, put them on
                         # a treatment course for it, (i.e. only ever change
                         # it up to one above)
-                        """if DRUG_NAMES.index(person.treatment.drug) <= PRODUCT_DETECTION_LEVEL:
-                            print(DRUG_NAMES[PRODUCT_DETECTION_LEVEL+1])
-                            person.treatment = Treatment(DRUG_NAMES[PRODUCT_DETECTION_LEVEL+1])"""
-
-
+                        """if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
+                            print(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
+                            person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])"""
 
                     """Handle Recovery generally or by treatment if currently infected"""
                     general_recovery = decision(person.infection.general_recovery_probability)
@@ -371,10 +376,10 @@ class DataHandler:
         in an appropriate structure"""
         self.time = []
         # [infected, resistance #1,.. , resistance #2, dead, immune, uninfected]
-        self.ys_data = [[] for _ in range(4 + NUM_RESISTANCES)]
+        self.ys_data = [[] for _ in range(4 + Params.NUM_RESISTANCES)]
         self.labels = (
             ["Infected"]
-            + list(map(lambda x: "Resistance to " + x, DRUG_NAMES))
+            + list(map(lambda x: "Resistance to " + x, Params.DRUG_NAMES))
             + ["Dead", "Immune", "Uninfected"]
         )
 
@@ -385,9 +390,26 @@ class DataHandler:
         self.timestep = -1
         self._new_timestep_vars()
 
+    def get_infected_data(self):
+        """Return the data about infections across all timesteps. Indices give
+        0=no resistance, 1=resistance level 1, etc."""
+        return self.ys_data[0:Params.NUM_RESISTANCES+1]
+
+    def get_death_data(self):
+        """Return the data about deaths across all timesteps"""
+        return self.ys_data[-3]
+
+    def get_immune_data(self):
+        """Return the data about immune people across all timesteps"""
+        return self.ys_data[-2]
+
+    def get_uninfected_data(self):
+        """Return the data about uninfected people across all timesteps"""
+        return self.ys_data[-1]
+
     def _new_timestep_vars(self):
         """Make some helper variables"""
-        self.num_infected_stages = [0] * (NUM_RESISTANCES + 1)
+        self.num_infected_stages = [0] * (Params.NUM_RESISTANCES + 1)
         self.num_dead = 0
         self.num_immune = 0
         self.num_uninfected = 0
@@ -437,9 +459,9 @@ class DataHandler:
         # resistance #1 = r1 + r2 + r3, resistance #2 = r2 + r3, etc.)
         # Furthemore, categories such as isolated which are just totally
         # disjoint can also be included
-        if GRAPH_TYPE == "line":
+        if Settings.GRAPH_TYPE == "line":
             datas = []
-            for i in range(NUM_RESISTANCES + 1):
+            for i in range(Params.NUM_RESISTANCES + 1):
                 datas.append(
                     [sum(x) for x in zip(*self.ys_data[i:-3])]
                 )
@@ -452,11 +474,11 @@ class DataHandler:
     def _print_current_data(self):
         """Print the values of the current state of the simulation"""
         print("uninfected: {}, immune: {}, dead: {}, infected: {}, isolated: {}".format(
-            str(self.num_uninfected).ljust(OUTPUT_PADDING),
-            str(self.num_immune).ljust(OUTPUT_PADDING),
-            str(self.num_dead).ljust(OUTPUT_PADDING),
+            str(self.num_uninfected).ljust(Settings.OUTPUT_PADDING),
+            str(self.num_immune).ljust(Settings.OUTPUT_PADDING),
+            str(self.num_dead).ljust(Settings.OUTPUT_PADDING),
             "[" + ", ".join(map(
-                lambda x: str(x).ljust(OUTPUT_PADDING),
+                lambda x: str(x).ljust(Settings.OUTPUT_PADDING),
                 self.num_infected_stages
             )) + "]",
             str(self.num_isolated)
@@ -465,21 +487,21 @@ class DataHandler:
     def _print_current_progress(self, end="\n", ljust=None):
         """Output the current progress of the model"""
         out = "{}% complete".format(str(int(
-                                self.timestep / int(NUM_TIMESTEPS / 10) * 10)))
+                                self.timestep / int(Params.NUM_TIMESTEPS / 10) * 10)))
         if ljust is not None:
             out = out.ljust(ljust)
         print(out, end=end)
 
     def _report_model_state(self):
         """Report the model's state through any mechanism set in parameters"""
-        if REPORT_MOD_NUM is None or self.timestep % REPORT_MOD_NUM == 0:
+        if Settings.REPORT_MOD_NUM is None or self.timestep % Settings.REPORT_MOD_NUM == 0:
             #P Print how far through the model run we our
-            if REPORT_PROGRESS and not PRINT_DATA:
+            if Settings.REPORT_PROGRESS and not Settings.PRINT_DATA:
                 self._print_current_progress()
 
             # Print both how far through, and the current state of the model
-            if PRINT_DATA:
-                if REPORT_PROGRESS:
+            if Settings.PRINT_DATA:
+                if Settings.REPORT_PROGRESS:
                     # Display it on the same line for ease of reading
                     self._print_current_progress(end=" - ", ljust=2)
                 self._print_current_data()
@@ -501,7 +523,7 @@ class DataRenderer:
         """Actually draw the graph via matplotlib"""
         # matplotlib plots require: x_axis_data, y_axis_data(s), data labels
 
-        if GRAPH_TYPE == "line":
+        if Settings.GRAPH_TYPE == "line":
             # line graph
             for i in range(len(ys_data)):
                 plt.plot(time, ys_data[i], label=labels[i])
@@ -545,30 +567,39 @@ class DataRenderer:
 
 
 
-def run(excel_filename=None):
+def run():
     """Run the model with a given set of parameters"""
+
     # Seed the random number generator
-    if RANDOM_SEED is not None:
-        seed(RANDOM_SEED)
+    if Settings.RANDOM_SEED is not None:
+        seed(Settings.RANDOM_SEED)
 
     # Create a population with some initially infected people
-    population = [Person() for _ in range(POPULATION_SIZE - INITIALLY_INFECTED)]
-    for _ in range(INITIALLY_INFECTED):
+    population = [Person() for _ in range(Params.POPULATION_SIZE - Params.INITIALLY_INFECTED)]
+    for _ in range(Params.INITIALLY_INFECTED):
         population.append(Person(infection=Infection()))
 
     # Create and run the model
     m = Model(population=population)
     m.run()
+
+    return m
+
+def run_and_output(excel_filename=None):
+    """Wrapper on run, displaying and writing the output for the user"""
+
+    # Run the model
+    m = run()
     print()
 
     # Export the finished model to an excel file
-    if EXPORT_TO_EXCEL:
+    if Settings.EXPORT_TO_EXCEL:
         if excel_filename is None:
-            excel_filename = DEFAULT_EXCEL_FILENAME
+            excel_filename = Settings.DEFAULT_EXCEL_FILENAME
         m.data_handler.export_to_excel(excel_filename)
 
     # Finally show the full simulation graph
-    if DRAW_GRAPH:
+    if Settings.DRAW_GRAPH:
         m.data_handler.draw_full_graph()
 
 
@@ -577,11 +608,11 @@ if __name__ == "__main__":
     plt.ion()
 
     # Run the model with and without the product
-    run() # Figure 1
-    PRODUCT_IN_USE = False
-    run() # Figure 2
+    run_and_output("withProduct.xlsx") # Figure 1
+    Params.PRODUCT_IN_USE = False
+    run_and_output("withoutProduct.xlsx") # Figure 2
 
     # Don't immediately exit, otherwise the graphs won't show up - so wait
     # for the user to prompt the program to end
-    if DRAW_GRAPH:
+    if Settings.DRAW_GRAPH:
         input()
