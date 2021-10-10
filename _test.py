@@ -8,8 +8,11 @@ class TestModel(unittest.TestCase):
 
     def test_empty_model(self):
         """Test that a model with no infected people always stays fully uninfected"""
+        # Change parameters for the test setup and run the test
+        prev_initially_uninfected = Params.INITIALLY_INFECTED
         Params.INITIALLY_INFECTED = 0
         m = run()
+
         # The number of uninfected people should always be the size of the population
         self.assertEqual(m.data_handler.get_uninfected_data(),
                                 [Params.POPULATION_SIZE]*Params.NUM_TIMESTEPS)
@@ -17,22 +20,8 @@ class TestModel(unittest.TestCase):
         self.assertEqual(m.data_handler.get_infected_data()[0],
                                                     [0]*Params.NUM_TIMESTEPS)
 
-    def test_instant_death(self):
-        """Test that a model where infection causes instant death immediately
-        'peters out', as dead people cannot spread"""
-        Params.PROBABILITY_DEATH = 1
-        m = run()
-
-        # The final number of uninfected people should be the size of the
-        # initially uninfected population
-        self.assertEqual(m.data_handler.get_uninfected_data()[-1],
-                            Params.POPULATION_SIZE - Params.INITIALLY_INFECTED)
-        # The final number of infected people should be zero
-        self.assertEqual(m.data_handler.get_infected_data()[0][-1], 0)
-        # The final number of dead people should be the number of initially
-        # infected people
-        self.assertEqual(m.data_handler.get_death_data()[-1],
-                                                    Params.INITIALLY_INFECTED)
+        # Reset the parameters as before
+        Params.INITIALLY_INFECTED = prev_initially_uninfected
 
 
 if __name__ == "__main__":
