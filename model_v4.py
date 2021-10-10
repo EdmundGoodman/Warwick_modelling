@@ -396,6 +396,23 @@ class DataHandler:
         self.timestep = -1
         self._new_timestep_vars()
 
+    def get_infected_data(self):
+        """Return the data about infections across all timesteps. Indices give
+        0=no resistance, 1=resistance level 1, etc."""
+        return self.ys_data[0:Params.NUM_RESISTANCES+1]
+
+    def get_death_data(self):
+        """Return the data about deaths across all timesteps"""
+        return self.ys_data[-3]
+
+    def get_immune_data(self):
+        """Return the data about immune people across all timesteps"""
+        return self.ys_data[-2]
+
+    def get_uninfected_data(self):
+        """Return the data about uninfected people across all timesteps"""
+        return self.ys_data[-1]
+
     def _new_timestep_vars(self):
         """Make some helper variables"""
         self.num_infected_stages = [0] * (Params.NUM_RESISTANCES + 1)
