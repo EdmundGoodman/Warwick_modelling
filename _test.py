@@ -4,8 +4,8 @@
 import unittest
 from model_v4 import Params, Settings, Infection, Treatment, Person, Model, DataHandler, DataRenderer, decision, run
 
-class TestModel(unittest.TestCase):
 
+class TestModel(unittest.TestCase):
     def test_empty_model(self):
         """Test that a model with no infected people always stays fully uninfected"""
         # Change parameters for the test setup and run the test
@@ -15,17 +15,21 @@ class TestModel(unittest.TestCase):
 
         # The number of uninfected people should always be the size of the population
         self.assertEqual(m.data_handler.get_uninfected_data(),
-                                [Params.POPULATION_SIZE]*Params.NUM_TIMESTEPS)
+                         [Params.POPULATION_SIZE]*Params.NUM_TIMESTEPS)
         # The number of infected people should always be zero
         self.assertEqual(m.data_handler.get_infected_data()[0],
-                                                    [0]*Params.NUM_TIMESTEPS)
+                         [0]*Params.NUM_TIMESTEPS)
 
         # Reset the parameters as before
         Params.INITIALLY_INFECTED = prev_initially_uninfected
 
 
 if __name__ == "__main__":
-    """Test the model"""
+    """Apply unit tests to the model. However, since the model itself is
+    stochastic, these unit tests are in fact a form of property based testing,
+    as the inputs can vary dependent on the random seed. This means that by
+    iterating within the tests, a proportion of the input space can be searched,
+    adding further guarantees at correctness."""
 
     # Don't always use the same seed - allows property based testing
     Settings.RANDOM_SEED = None
