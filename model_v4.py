@@ -48,30 +48,31 @@ class Params:
     PROBABILITY_SPREAD = 0.25
     NUM_SPREAD_TO = 1
 
-    ###########################################################################
-    # Set these explicitly for more granular control, or use the above to set #
-    # them all as a group                                                     #
-    ###########################################################################
+    @staticmethod
+    def reset_granular_parameters():
+        ###########################################################################
+        # Set these explicitly for more granular control, or use the above to set #
+        # them all as a group                                                     #
+        ###########################################################################
 
-    # Lookup table of drug properties by their names
-    DRUG_PROPERTIES = {}
-    DRUG_PROPERTIES["Penicillin"] = (
-        PROBABILITY_TREATMENT_RECOVERY,
-    )
-    DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
-    DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
+        # Lookup table of drug properties by their names
+        Params.DRUG_PROPERTIES = {}
+        Params.DRUG_PROPERTIES["Penicillin"] = (
+            Params.PROBABILITY_TREATMENT_RECOVERY,
+        )
+        Params.DRUG_PROPERTIES["Carbapenemase"] = (Params.PROBABILITY_TREATMENT_RECOVERY,)
+        Params.DRUG_PROPERTIES["Colistin"] = (Params.PROBABILITY_TREATMENT_RECOVERY,)
 
-    # Lookup table of resistance properties by their names
-    NUM_RESISTANCES = len(DRUG_NAMES)
-    RESISTANCE_PROPERTIES = {}
-    RESISTANCE_PROPERTIES["None"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION,
-                                     PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-    RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION,
-                                           PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-    RESISTANCE_PROPERTIES["Carbapenemase"] = (
-        PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-    RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION,
-                                         PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+        # Lookup table of resistance properties by their names
+        Params.NUM_RESISTANCES = len(Params.DRUG_NAMES)
+        Params.RESISTANCE_PROPERTIES = {}
+        Params.RESISTANCE_PROPERTIES["None"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+        Params.RESISTANCE_PROPERTIES["Penicillin"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+        Params.RESISTANCE_PROPERTIES["Carbapenemase"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+        Params.RESISTANCE_PROPERTIES["Colistin"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+
+# Set the granular parameters from the generic ones
+Params.reset_granular_parameters()
 
 
 #########################
@@ -304,19 +305,21 @@ class Model:
                             person.isolate()
 
                     """Handle use of the product"""
-                    correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
-                    decision_yes = decision(Params.PROBABILIY_PRODUCT_DETECT)
-                    if Params.PRODUCT_IN_USE and decision_yes and correct_tier:
-                        # Put people into isolation if our product detects
-                        # them as being infected
-                        person.isolate()
+                    #correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
+                    #decision_yes = decision(Params.PROBABILIY_PRODUCT_DETECT)
+                    #if Params.PRODUCT_IN_USE and decision_yes and correct_tier:
+                    if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
+                        if person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL:
+                            # Put people into isolation if our product detects
+                            # them as being infected
+                            person.isolate()
 
-                        # If a person has the detected infection, put them on
-                        # a treatment course for it, (i.e. only ever change
-                        # it up to one above)
-                        """if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
-                            print(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
-                            person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])"""
+                            # If a person has the detected infection, put them on
+                            # a treatment course for it, (i.e. only ever change
+                            # it up to one above)
+                            """if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
+                                print(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
+                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])"""
 
                     """Handle Recovery generally or by treatment if currently infected"""
                     general_recovery = decision(person.infection.general_recovery_probability)
