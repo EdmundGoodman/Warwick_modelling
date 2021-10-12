@@ -6,21 +6,24 @@
 ### Library imports for the model ###
 #####################################
 
-from random import random, choice, seed
+from random import random, choice
 
 ###############################
 ### Change these parameters ###
 ###############################
 
+DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+
+
 class Params:
     # General model parameters
-    NUM_TIMESTEPS = 100
+    NUM_TIMESTEPS = 500
     POPULATION_SIZE = 500
     INITIALLY_INFECTED = 10
 
     # Ordered list of drugs used, their properties, and the properties of their
     # resistant pathogens
-    DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+    DRUG_NAMES = DRUG_NAMES[:]
 
     PROBABILITY_MOVE_UP_TREATMENT = 0.2
     TIMESTEPS_MOVE_UP_LAG_TIME = 5
@@ -76,8 +79,6 @@ Params.reset_granular_parameters()
 #########################
 
 class Settings:
-    RANDOM_SEED = 0
-
     REPORT_PROGRESS = True
     REPORT_PERCENTAGE = 5
     REPORT_MOD_NUM = None
@@ -86,7 +87,6 @@ class Settings:
         # Don't try to report more than once per timestep
         if REPORT_MOD_NUM < 1:
             REPORT_MOD_NUM = 1
-
     PRINT_DATA = True
 
 
@@ -430,7 +430,7 @@ class DataHandler:
 
     def _new_timestep_vars(self):
         """Make some helper variables"""
-        self.num_infected_stages = [0] * (Params.NUM_RESISTANCES + 1)
+        self.num_infected_stages = [0 for _ in range(Params.NUM_RESISTANCES + 1)]
         self.num_dead = 0
         self.num_immune = 0
         self.num_uninfected = 0
@@ -561,11 +561,6 @@ class DataRenderer:
 
 def run():
     """Run the model with a given set of parameters"""
-    # Seed the random number generator
-    if Settings.RANDOM_SEED is not None:
-        seed(Settings.RANDOM_SEED)
-
-
     # Make a default population as having a set number of initially
     # infected people
     num_intially_uninfected = Params.POPULATION_SIZE - Params.INITIALLY_INFECTED
