@@ -1,14 +1,24 @@
-## Modelling the spread of antibiotic resistance
+# iGEM modelling
 
-To show that our proposed product would positively benefit the environment where it is proposed to be used, we wrote a computer model of the environment, with and without the product in use, and showed that when it is in use, the model scenario result improved.
-
-In our case, this involved modelling the spread of an antibiotic resistant bacteria in a hospital, with and without our diagnostic tool for quickly identifying it, and showing that the rates of infection, recovery and death improve.
-
-### Table of contents
+## Table of contents
 
 [TOC]
 
+## Custom modelling
+
+The most significant component of the modelling we performed as part of the project was the design, implementation, and interpretation of a custom stochastic model we designed to show that our proposed product would be "useful" in the real world.
+
+We understand that computer models can become quite dry, particularly when explaining the details of their implementation, as if this is not done precisely, a small misunderstanding can be quickly amplified to an unexpected result, as the model's high complexity causes it to have a fairly so-called chaotic output.
+
+As a result of this, we created an in-browser interactive implementation of the model, which plots the output graph of the model based on the user inputting initial parameter states. We intend that this can quickly, intuitively, and interactively show the function and results of the model, which can help inform the goal throughout the implementation explanation, and provide a top-level understanding even if the rest of this page were omitted.
+
 ### Introduction
+
+To show that our proposed product would positively benefit the environment where it is proposed to be used, we wrote a computer model of the environment, with and without the product in use, and showed that when it is in use, the model scenario result improved.
+
+#### Abstract
+
+We propose a validated computational model of the spread of an antibiotic resistant pathogens in a hospital, with and without our diagnostic tool for quickly identifying it, and show that in a relevant scenario it reduces the presence of antibiotic resistant pathogens in our selected scenario, showing our product is beneficial in the real-world.
 
 #### Motivation
 
@@ -22,9 +32,9 @@ The purpose of the model is two-fold:
 
 The whole project repository is available on GitHub at: [https://github.com/Warwick-iGEM-2021/modelling](https://github.com/Warwick-iGEM-2021/modelling)
 
-The newest model version is also available: [Model V3](https://github.com/Warwick-iGEM-2021/modelling/blob/main/model_v3.py)
+The newest model version is also available: [Model V3](https://github.com/Warwick-iGEM-2021/modelling/blob/main/model_v4.py)
 
-A interactive toy simulator currently under development for the model is [hosted here](https://www.dcs.warwick.ac.uk/~u2006527/iGEM/model_v3_in.html), but is not fully tested, and may be subject to location change
+#### Model development
 
 #### Model type
 
@@ -37,31 +47,67 @@ Our model is discrete time, stochastic, and compartmental:
   - A set of constant probabilities define the properties of the model
   - Transitions between states are chosen randomly with these constant probabilities
 
+  These probabilities, and other variable aspects of the model, such as population size or how many drugs are used, are set as constant values at the top of the model.
+
+  Initially, the model just had a parameter for how many different antibiotics are used, and all the associated probabilities (e.g. likelihood of recovery, likelihood of death, etc.) with these antibiotics were the same, but in the final version, the different antibiotics are named to more closely map to the real world, and they are allowed to have their own separate values for these probabilities. However, for convenience's sake, we introduce meta-parameters which can be used to set all the antibiotics to have the same probability in a given category.
   Below shows code for a default setting of these probabilities, the meaning of which will be explained further on:
 
   ```python
-  # General
-  NUM_TIMESTEPS = 50
-  POPULATION_SIZE = 5000
-  NUM_RESISTANCE_TYPES = 3
-  # Recovery generally or by treatment
-  PROBABILITY_GENERAL_RECOVERY = 0.01
-  PROBABILITY_TREATMENT_RECOVERY = 0.2
-  # Mutation to higher resistance due to treatment
-  PROBABILITY_MUTATION = 0.02
-  PROBABILITY_MOVE_UP_TREATMENT = 0.8
+  # General model parameters
+  NUM_TIMESTEPS = 100
+  POPULATION_SIZE = 500
+  INITIALLY_INFECTED = 10
+  
+  # Ordered list of drugs used, their properties, and the properties of their
+  # resistant pathogens
+  DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+  
+  PROBABILITY_MOVE_UP_TREATMENT = 0.2
   TIMESTEPS_MOVE_UP_LAG_TIME = 5
-  ISOLATION_THRESHOLD = 2
-  # Death
-  PROBABILITY_DEATH = 0.01
-  # Spreading
-  PROBABILITY_SPREAD = 1
-  NUM_SPREAD_TO = 1
-  # Whether our product is used in the simulation
+  ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
+  
   PRODUCT_IN_USE = True
-  PROBABILIY_PRODUCT_DETECT = 0.5
-  PRODUCT_DETECTION_LEVEL = ISOLATION_THRESHOLD
+  PROBABILIY_PRODUCT_DETECT = 1
+  PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
+  
+  ############################################################
+  # Use these if you want to set all drugs to the same thing #
+  ############################################################
+  
+  PROBABILITY_GENERAL_RECOVERY = 0
+  PROBABILITY_TREATMENT_RECOVERY = 0.3
+  PROBABILITY_MUTATION = 0.25
+  PROBABILITY_DEATH = 0.015
+  # Add time infected into consideration for death chance
+  DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
+  # TODO: Make this more robust
+  PROBABILITY_SPREAD = 0.25
+  NUM_SPREAD_TO = 1
+  
+  ###########################################################################
+  # Set these explicitly for more granular control, or use the above to set #
+  # them all as a group                                                     #
+  ###########################################################################
+  
+  # Lookup table of drug properties by their names
+  DRUG_PROPERTIES = {}
+  DRUG_PROPERTIES["Penicillin"] = (
+      PROBABILITY_TREATMENT_RECOVERY,
+  )
+  DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
+  DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
+  
+  # Lookup table of resistance properties by their names
+  NUM_RESISTANCES = len(DRUG_NAMES)
+  RESISTANCE_PROPERTIES = {}
+  RESISTANCE_PROPERTIES["None"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+  RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+  RESISTANCE_PROPERTIES["Carbapenemase"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+  RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+  
   ```
+
+  Additionally, there are internal settings, for example how the model outputs it results.
 
 - Discrete time means that changes in the model occur at granular timesteps - like turns in a boards game
 
@@ -128,8 +174,8 @@ Antibiotics are used in a specific order, which are numbered accordingly for cla
 Pathogens have a small chance of mutating to develop resistance to antibiotics being used to treat them, as such strains will only become dominant when there is a pressure giving them a survival advantage.
 
 ```python
-# Mutation to higher resistance due to treatment
-if decision(PROBABILITY_MUTATION):
+# Handle Mutation to higher resistance due to treatment
+if decision(person.infection.mutation_probability):
     person.mutate_infection()
 ```
 
@@ -143,16 +189,12 @@ Once a person becomes infected, treatment with the lowest tier of antibiotics be
 
 If the pathogen is resistant to the antibiotic, the patient still has the opportunity to make a recovery on their own, but the antibiotic will have no effect, whereas if the pathogen is not, the patient has the opportunity  to recover both on their own, and via the antibiotic - increasing their likelihood of recovery each timestep.
 
-
-
 Since multiple antibiotics are used in a tiered system, there must be a mechanism to move to a higher antibiotic.
 
 There are a number of days which can be set as a parameter for the model, before which the same antibiotic will be used, then after this is exceeded a probability parameter is used each day to decide whether they will me moved up to a higher treatment tier.
 
-With our product, since it provides a fast testing mechanism for highly resistant strains, patients can be detected as having the resistant strain, and immediately moved up to the required higher treatment
-
 ```python
-# Move up in treatment class if needed
+# Handle increasing treatment
 if person.treatment is None:
     # If the person is infected but are not being treated
     # with **anything**, start them on the lowest tier
@@ -168,19 +210,6 @@ else:
     rand_cond = decision(PROBABILITY_MOVE_UP_TREATMENT)
     if time_cond and rand_cond:
         person.increase_treatment()
-
-    if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
-        # If the product is in use, and it detects the
-        # infection (which occurs a certain probability of
-        # the time) immediately isolate this with the
-        # resistance
-
-
-        # If the person is known to have a resistance that
-        # is higher than their treatment, increase their
-        # treatment
-        if person.treatment.drug < str(PRODUCT_DETECTION_LEVEL):
-            person.treatment.drug = str(PRODUCT_DETECTION_LEVEL)
 ```
 
 #### 3. Spread
@@ -206,27 +235,22 @@ Patients can be put into isolation, preventing the spreading the disease. This i
 
 Without our product, a person is put in isolation when they exceed a threshold of **treatment**
 
-With our product, as the pathogen can be detected, they are put into isolation when they exceed a threshold of **having the resistant strain**
+With our product, since it provides a fast testing mechanism for highly resistant strains, patients can be detected as having the resistant strain, they are put into isolation when they exceed a threshold of **having the resistant strain**
 
 ```python
-if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
-    # If the product is in use, and it detects the
-    # infection (which occurs a certain probability of
-    # the time) immediately isolate this with the
-    # resistance
-
-    if person.infection.resistances[str(PRODUCT_DETECTION_LEVEL)]:
-        person.isolate()
-
-if int(person.treatment.drug) >= ISOLATION_THRESHOLD:
-    # Isolate if in high enough treatment class (which
-    # is not the same as infection class - this will
-    # likely lag behind)
+# Isolate if in high enough treatment class (which
+# is not the same as infection class - this will
+# likely lag behind)
+treatment_tier = Infection.get_tier_from_resistance(person.treatment.drug)
+if treatment_tier >= ISOLATION_THRESHOLD:
     person.isolate()
 
-# Increment the number of times a person has been
-# treated with the drug
-person.treatment.time_treated += 1
+# Handle use of the product
+if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
+    if person.infection.get_tier() >= PRODUCT_DETECTION_LEVEL:
+        # Put people into isolation if our product detects
+        # them as being infected
+        person.isolate()
 ```
 
 Below shows the same specified diagram used above, with additional information about the isolation step to elucidate it:
@@ -240,33 +264,137 @@ As discussed in section (1), each timestep, patients can recover (either natural
 Recovery makes the patients immune, meaning they cannot be infected again, essentially removing them from the system. Death also essentially removes patients from the system, as there cannot be any more state changes after death.
 
 ```python
-# Recovery generally or by treatment if currently infected
-general_recovery = decision(PROBABILITY_GENERAL_RECOVERY)
+# Handle Recovery generally or by treatment if currently infected
+general_recovery = decision(person.infection.general_recovery_probability)
 treatment_recovery = (person.correct_treatment() and
-                    decision(PROBABILITY_TREATMENT_RECOVERY))
+                    decision(person.treatment.treatment_recovery_probability))
 if general_recovery or treatment_recovery:
     person.recover_from_infection()
+    # Don't do anything else, as infection/treatment will
+    # now be set to None
+    continue
 
-# Deaths due to infection
-if decision(PROBABILITY_DEATH):
+# Handle deaths due to infection
+death_probability = person.infection.death_function(
+    person.infection.death_probability,
+    person.time_infected
+)
+if decision(death_probability):
     person.die()
+    # Don't do anything else, as infection/treatment will
+    # now be set to None
+    continue
 ```
 
 The goal is to create a situation where in the limit of time, the number of uninfected and immune people is maximised, and the number of dead people is minimised.
 
-### Context
+### Testing and validation
 
-Due to the flexibility of the model, its parameters can be adjusted to simulate the spread of many real-world diseases. Adding such context to the model helps us better understand better how our product could improve the situation in such scenarios. Here we have chosen to use Neo-natal Bacterial Meningitis as an example. The disease can easily be spread within hospitals by medical staff and often has a deadly outcome [2], all of which can be simulated in the model. Furthermore, since the last line of treatment of meropenem, a carbapenem, it is relevant to the use of our product.
+It is important to remember that computer models are not infallible. It is impossible for a computer model of a system to "perfectly" emulate the real system, as that would require total simulation of the entire universe, which is evidently unfeasible. However, closely approximate models provide a wealth of information when correctly implemented, and can provide a level of abstraction to make the applicable in a wide variety of cases.
 
-The parameters of the model have hence been adjusted because:
+To ensure that models are sufficiently accurate to the real-world scenario they are trying to emulate, it is important to test and validate them.
 
-1. NBM has two lines of treatment (amoxicillin + cefotaxime/ceftriaxone, then meropenem) [3], the model has two levels of treatment and corresponding resistance levels.
+#### Types of testing
 
-2. There is a 100% mortality rate of untreated NBM [4], there is no chance of recovery if the pathogen is resistant against the current antibiotic in use.
+*Reference books on how to test and validate model*
 
-3. There is 40% overall mortality [4] , parameters have been adjusted to end up with a 40% mortality rate
+#### Manual testing
 
-### Discussion of the model
+#### Automated testing
+
+
+
+### Contextualisation
+
+*Due to the flexibility of the model, its parameters can be adjusted to simulate the spread of many real-world diseases. Adding such context to the model helps us better understand better how our product could improve the situation in such scenarios.*
+
+#### Selected scenario
+
+*Here we have chosen to use Neo-natal Bacterial Meningitis as an example. The disease can easily be spread within hospitals by medical staff and often has a deadly outcome [2], all of which can be simulated in the model. Furthermore, since the last line of treatment of meropenem, a carbapenem, it is relevant to the use of our product.*
+
+*The parameters of the model have hence been adjusted because:*
+
+1. *NBM has two lines of treatment (amoxicillin + cefotaxime/ceftriaxone, then meropenem) [3], the model has two levels of treatment and corresponding resistance levels.*
+2. *There is a 100% mortality rate of untreated NBM [4], there is no chance of recovery if the pathogen is resistant against the current antibiotic in use.*
+3. *There is 40% overall mortality [4] , parameters have been adjusted to end up with a 40% mortality rate*
+
+
+
+The input parameters for the model of this scenario are:
+
+```python
+# General model parameters
+NUM_TIMESTEPS = 100
+POPULATION_SIZE = 500
+INITIALLY_INFECTED = 10
+
+# Ordered list of drugs used, their properties, and the properties of their
+# resistant pathogens
+DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+
+PROBABILITY_MOVE_UP_TREATMENT = 0.2
+TIMESTEPS_MOVE_UP_LAG_TIME = 5
+ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
+
+PRODUCT_IN_USE = True
+PROBABILIY_PRODUCT_DETECT = 1
+PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
+
+############################################################
+# Use these if you want to set all drugs to the same thing #
+############################################################
+
+PROBABILITY_GENERAL_RECOVERY = 0
+PROBABILITY_TREATMENT_RECOVERY = 0.3
+PROBABILITY_MUTATION = 0.25
+PROBABILITY_DEATH = 0.015
+# Add time infected into consideration for death chance
+DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
+# TODO: Make this more robust
+PROBABILITY_SPREAD = 0.25
+NUM_SPREAD_TO = 1
+
+###########################################################################
+# Set these explicitly for more granular control, or use the above to set #
+# them all as a group                                                     #
+###########################################################################
+
+# Lookup table of drug properties by their names
+DRUG_PROPERTIES = {}
+DRUG_PROPERTIES["Penicillin"] = (
+    PROBABILITY_TREATMENT_RECOVERY,
+)
+DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
+DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
+
+# Lookup table of resistance properties by their names
+NUM_RESISTANCES = len(DRUG_NAMES)
+RESISTANCE_PROPERTIES = {}
+RESISTANCE_PROPERTIES["None"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+RESISTANCE_PROPERTIES["Carbapenemase"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+```
+
+#### Results
+
+Raw data output graphs for with and without
+
+short explanation of what each line means 
+
+#### Analysis
+
+Whatever analysis you think is relevant
+
+Final headline chart which simply shows our product making things better (two lines, one labelled without, one labelled with)
+
+​	- I might add something additional here (box plot of how much better our stuff is with different random seeds?)
+
+### Conclusion
+
+Given the fact that we have tested and validated our model to be sufficiently representative of the real world, and the model output indicates that the use of the product reduces the presence of antibiotic resistant pathogenic strains in our selected scenario, we conclude that our product is beneficial.
+
+### Discussion
 
 Some common questions about the model are answered below:
 
@@ -305,3 +433,9 @@ Some common questions about the model are answered below:
 [3] Meningitis Research Foundation, 2017. *_Management of Bacterial Meningitis in infants <3 months_*. Available at: [https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017](https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017) [pdf]
 
 [4] Tesini, B., 2020. *_Neonatal Bacterial Meningitis_*. [online] MSD Manual Professional Edition. Available at: [https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis](https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis) [Accessed 23 September 2021].
+
+
+
+## NUPAC modelling
+
+## COPASI modelling
