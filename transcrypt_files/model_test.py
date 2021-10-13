@@ -6,7 +6,11 @@
 ### Library imports for the model ###
 #####################################
 
-from random import random, choice, seed
+from random import seed, random, sample
+from copy import deepcopy
+import matplotlib.pyplot as plt
+import pandas as pd
+
 
 ###############################
 ### Change these parameters ###
@@ -88,6 +92,12 @@ class Settings:
             REPORT_MOD_NUM = 1
 
     PRINT_DATA = True
+    OUTPUT_PADDING = len(str(Params.POPULATION_SIZE))
+
+    DRAW_GRAPH = False
+    GRAPH_TYPE = "line"  # line, stackplot (default)
+    EXPORT_TO_EXCEL = False
+    DEFAULT_EXCEL_FILENAME = "out.xlsx"
 
 
 #######################################
@@ -95,8 +105,11 @@ class Settings:
 #######################################
 
 class Infection:
-    def __init__(self, resistance, time_treated):
+    def __init__(self, resistance=None, time_treated=0):
         """Initialise an infection within the model"""
+        if resistance is None:
+            resistance = "None"
+
         self.resistance = resistance
         self.general_recovery_probability = Params.RESISTANCE_PROPERTIES[resistance][0]
         self.mutation_probability = Params.RESISTANCE_PROPERTIES[resistance][1]
@@ -127,10 +140,6 @@ class Infection:
         else:
             return Params.DRUG_NAMES.index(resistance)
 
-    def duplicate(self):
-        """Return a duplicate object of the current infection"""
-        return Infection(self.resistance, self.time_treated)
-
     def __repr__(self):
         if self.resistance == "None":
             return "infected"
@@ -139,11 +148,15 @@ class Infection:
 
 
 class Treatment:
-    def __init__(self, drug, time_treated):
+    def __init__(self, drug=Params.DRUG_NAMES[0], time_treated=None):
         """Initialise a treatment within the model"""
         self.drug = drug
         self.treatment_recovery_probability = Params.DRUG_PROPERTIES[drug][0]
-        self.time_treated = time_treated
+
+        if time_treated is not None:
+            self.time_treated = time_treated
+        else:
+            self.time_treated = 0
 
     def next_treatment(self):
         """Move up the treatment to the next strongest drug, and reset the
@@ -156,10 +169,6 @@ class Treatment:
         """Return whether the treatment works on the infection given any
         resistances the infection may have"""
         return not infection.is_resistant(self.drug)
-
-    def duplicate(self):
-        """Return a duplicate object of the current treatment"""
-        return Treatment(self.drug, self.time_treated)
 
     def __repr__(self):
         return "treated with drug {} for {} timesteps".format(
@@ -212,7 +221,7 @@ class Person:
                 susceptible = not receiver.immune and receiver.alive
                 contactable = not self.isolated and not receiver.isolated
                 if directional and susceptible and contactable:
-                    receiver.infection = Infection(self.infection.resistance, 0)
+                    receiver.infection = Infection(self.infection.resistance)
 
     def isolate(self):
         """Put the person in isolation"""
@@ -221,18 +230,6 @@ class Person:
     def die(self):
         """Make the person no longer alive"""
         self.__init__(alive=False)
-
-    def duplicate(self):
-        """Return a duplicate object of the current person, including
-        duplicates of their infections and treatments"""
-        return Person(
-            None if self.infection is None else self.infection.duplicate(),
-            None if self.treatment is None else self.treatment.duplicate(),
-            self.isolated,
-            self.immune,
-            self.time_infected,
-            self.alive,
-        )
 
     def __repr__(self):
         """Provide a string representation for the person"""
@@ -249,8 +246,15 @@ class Person:
 
 
 class Model:
-    def __init__(self, population):
+    def __init__(self, population=None):
         """Initialise the model as having a population of people"""
+        if population is None:
+            # Make a default population as having a set number of initially
+            # infected people
+            num_intially_uninfected = Params.POPULATION_SIZE - Params.INITIALLY_INFECTED
+            population = [Person() for _ in range(num_intially_uninfected)]
+            for _ in range(Params.INITIALLY_INFECTED):
+                population.append(Person(infection=Infection()))
         self.population = population
 
         # Abstract away all the data handling into another class to avoid
@@ -283,7 +287,7 @@ class Model:
                         # treatment (we can know that the person is infected,
                         # but not which tier they are on, without diagnostic
                         # tools, as we can see they are sick)
-                        person.treatment = Treatment(Params.DRUG_NAMES[0], 0)
+                        person.treatment = Treatment()
                     else:
                         # If the person has been treated for a number of
                         # consecutive days with the, a certain probability is
@@ -293,12 +297,13 @@ class Model:
                         if time_cond and rand_cond:
                             person.increase_treatment()
 
-                        # Isolate if in high enough treatment class (which
-                        # is not the same as infection class - this will
-                        # likely lag behind)
-                        treatment_tier = Infection.get_tier_from_resistance(person.treatment.drug)
-                        if treatment_tier >= Params.ISOLATION_THRESHOLD:
-                            person.isolate()
+                    """Handle isolation"""
+                    # Isolate if in high enough treatment class (which
+                    # is not the same as infection class - this will
+                    # likely lag behind)
+                    treatment_tier = Infection.get_tier_from_resistance(person.treatment.drug)
+                    if treatment_tier >= Params.ISOLATION_THRESHOLD:
+                        person.isolate()
 
                     """Handle use of the product"""
                     #correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
@@ -315,7 +320,7 @@ class Model:
                             # it up to one above)
                             """if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
                                 print(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
-                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1], 0)"""
+                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])"""
 
                     """Handle Recovery generally or by treatment if currently infected"""
                     general_recovery = decision(person.infection.general_recovery_probability)
@@ -354,7 +359,7 @@ class Model:
             # We need a deepcopy operation, to prevent someone who has just
             # been spread to in this timestep spreading the thing they've
             # just received, so technically don't have yet
-            updated_population = [p.duplicate() for p in self.population]
+            updated_population = deepcopy(self.population)
             for person in self.population:
                 # `updated_population` is passed by reference, since it is
                 # a list, so we can mutate it's state in different functions
@@ -369,20 +374,6 @@ class Model:
     def __repr__(self):
         return "Model"
 
-def sample(population, k):
-    """Return a random sample of k elements from a population - little bit
-    hack-y not the standard implementation for simplicity and due to
-    constrictions on supported random methods"""
-    if not 0 <= k <= len(population):
-        raise ValueError("Sample larger than population or is negative")
-
-    indices = list(range(len(population)))
-    sample = []
-    for _ in range(k):
-        index = choice(indices)
-        indices.remove(index)
-        sample.append(population[index])
-    return sample
 
 def decision(probability):
     """Get a boolean value with a given probability"""
@@ -400,9 +391,11 @@ class DataHandler:
         self.time = []
         # [infected, resistance #1,.. , resistance #2, dead, immune, uninfected]
         self.ys_data = [[] for _ in range(4 + Params.NUM_RESISTANCES)]
-        self.labels = ["Infected"]
-        self.labels.extend(["Resistance {}".format(n) for n in Params.DRUG_NAMES])
-        self.labels.extend(["Dead", "Immune", "Uninfected"])
+        self.labels = (
+            ["Infected"]
+            + list(map(lambda x: "Resistance to " + x, Params.DRUG_NAMES))
+            + ["Dead", "Immune", "Uninfected"]
+        )
 
         # Include isolations separately as they are a non-disjoint category
         self.non_disjoint = [[]]
@@ -418,15 +411,15 @@ class DataHandler:
 
     def get_death_data(self):
         """Return the data about deaths across all timesteps"""
-        return self.ys_data[len(self.ys_data)-3]
+        return self.ys_data[-3]
 
     def get_immune_data(self):
         """Return the data about immune people across all timesteps"""
-        return self.ys_data[len(self.ys_data)-2]
+        return self.ys_data[-2]
 
     def get_uninfected_data(self):
         """Return the data about uninfected people across all timesteps"""
-        return self.ys_data[len(self.ys_data)-1]
+        return self.ys_data[-1]
 
     def _new_timestep_vars(self):
         """Make some helper variables"""
@@ -459,9 +452,9 @@ class DataHandler:
         structures"""
         for j, v in enumerate(self.num_infected_stages):
             self.ys_data[j].append(v)
-        self.ys_data[len(self.ys_data)-3].append(self.num_dead)
-        self.ys_data[len(self.ys_data)-2].append(self.num_immune)
-        self.ys_data[len(self.ys_data)-1].append(self.num_uninfected)
+        self.ys_data[-3].append(self.num_dead)
+        self.ys_data[-2].append(self.num_immune)
+        self.ys_data[-1].append(self.num_uninfected)
         self.non_disjoint[0].append(self.num_isolated)
         self.time.append(self.timestep)
 
@@ -471,23 +464,46 @@ class DataHandler:
         # Reset the helper variables
         self._new_timestep_vars()
 
+    def _preprocess_disjoint_labels(self):
+        """Preprocess the data and the labelling for some graph types"""
+        # When as a line graph, we can draw lines for categories which
+        # are not disjoint, as they needn't sum to a fixed value as with
+        # the stacked plot. This means we sum up infections to include
+        # all resistances above them (i.e. infection = i + r1 + r2 + r3,
+        # resistance #1 = r1 + r2 + r3, resistance #2 = r2 + r3, etc.)
+        # Furthemore, categories such as isolated which are just totally
+        # disjoint can also be included
+        if Settings.GRAPH_TYPE == "line":
+            datas = []
+            for i in range(Params.NUM_RESISTANCES + 1):
+                datas.append(
+                    [sum(x) for x in zip(*self.ys_data[i:-3])]
+                )
+            datas.extend(self.ys_data[-3:])
+            datas.extend(self.non_disjoint)
+            final_labels = self.labels + self.non_disjoint_labels
+            return datas, final_labels
+        return self.ys_data, self.labels
+
     def _print_current_data(self):
         """Print the values of the current state of the simulation"""
         print("uninfected: {}, immune: {}, dead: {}, infected: {}, isolated: {}".format(
-            str(self.num_uninfected),
-            str(self.num_immune),
-            str(self.num_dead),
+            str(self.num_uninfected).ljust(Settings.OUTPUT_PADDING),
+            str(self.num_immune).ljust(Settings.OUTPUT_PADDING),
+            str(self.num_dead).ljust(Settings.OUTPUT_PADDING),
             "[" + ", ".join(map(
-                lambda x: str(x),
+                lambda x: str(x).ljust(Settings.OUTPUT_PADDING),
                 self.num_infected_stages
             )) + "]",
             str(self.num_isolated)
         ))
 
-    def _print_current_progress(self, end="\n"):
+    def _print_current_progress(self, end="\n", ljust=None):
         """Output the current progress of the model"""
         out = "{}% complete".format(str(int(
                                 self.timestep / int(Params.NUM_TIMESTEPS / 10) * 10)))
+        if ljust is not None:
+            out = out.ljust(ljust)
         print(out, end=end)
 
     def _report_model_state(self):
@@ -501,62 +517,65 @@ class DataHandler:
             if Settings.PRINT_DATA:
                 if Settings.REPORT_PROGRESS:
                     # Display it on the same line for ease of reading
-                    self._print_current_progress(end=" - ")
+                    self._print_current_progress(end=" - ", ljust=2)
                 self._print_current_data()
 
-    def generate_data_sets(self):
-        """Generate the data sets through a helper class for abstraction"""
-        return DataRenderer.generate_data_sets(
-            self.time,
-            self.ys_data,
-            self.non_disjoint,
-            self.labels,
-            self.non_disjoint_labels
-        )
+    def draw_full_graph(self):
+        """Draw a graph of all of the data in the graph"""
+        datas, final_labels = self._preprocess_disjoint_labels()
+        DataRenderer.draw_full_graph(self.time, datas, final_labels)
+
+    def export_to_excel(self, filename):
+        """Export all the data to an excel file"""
+        datas, final_labels = self._preprocess_disjoint_labels()
+        DataRenderer.export_to_excel(filename, datas, final_labels)
 
 
 class DataRenderer:
     @staticmethod
-    def generate_data_sets(time, ys_data, non_disjoint, labels, non_disjoint_labels):
-        """Preprocess the data and the labelling for some graph types"""
-        # When as a line graph, we can draw lines for categories which
-        # are not disjoint, as they needn't sum to a fixed value as with
-        # the stacked plot. This means we sum up infections to include
-        # all resistances above them (i.e. infection = i + r1 + r2 + r3,
-        # resistance #1 = r1 + r2 + r3, resistance #2 = r2 + r3, etc.)
-        # Furthemore, categories such as isolated which are just totally
-        # disjoint can also be included
-        datas = []
-        for i in range(Params.NUM_RESISTANCES + 1):
-            datas.append(
-                [sum(x) for x in zip(*ys_data[i:-3])]
-            )
-        datas.extend(ys_data[len(ys_data)-3:])
-        datas.extend(non_disjoint)
-        final_labels = labels
-        final_labels.extend(non_disjoint_labels)
+    def _draw_graph(time, ys_data, labels):
+        """Actually draw the graph via matplotlib"""
+        # matplotlib plots require: x_axis_data, y_axis_data(s), data labels
 
-        # Package the data up into the correct format for chart.js
-        colours = DataRenderer.generate_colours(len(final_labels))
-        datasets = [{
-            "data": datas[i],
-            "label": final_labels[i],
-            "borderColor": colours[i],
-            "fill": False
-        } for i in range(len(datas))]
-        chart_data = {
-            "labels": [x+1 for x in time],
-            "datasets": datasets
-        }
-        return chart_data
+        if Settings.GRAPH_TYPE == "line":
+            # line graph
+            for i in range(len(ys_data)):
+                plt.plot(time, ys_data[i], label=labels[i])
+        else:
+            # stackplot as default
+            plt.stackplot(time, *ys_data, labels=labels)
 
     @staticmethod
-    def generate_colours(num_colours):
-        """Generate an arbitrary number of visually distinct colours"""
-        if num_colours < 1:
-            num_colours = 1
-        return ["hsl({}, 40%, 60%)".format(
-                int(n * (360 / num_colours) % 360)) for n in range(num_colours)]
+    def _graph_settings():
+        """Add settings for the graph, e.g. axis labels and legend"""
+        plt.title('Resistance simulation')
+        plt.legend(loc='upper right')
+        plt.xlabel("Time / timesteps")
+        plt.ylabel("# People")
+
+    @staticmethod
+    def draw_full_graph(time, ys_data, labels):
+        """Draw and show the graph with all the data and legend once"""
+        plt.figure()
+        DataRenderer._draw_graph(time, ys_data, labels)
+        DataRenderer._graph_settings()
+        plt.show()
+
+    @staticmethod
+    def export_to_dataframe(ys_data, labels):
+        """Turn the datahandler data into a dataframe"""
+        df = pd.DataFrame()
+        for i in range(len(ys_data)):
+            df[labels[i]] = ys_data[i]
+        return df
+
+    @staticmethod
+    def export_to_excel(filename, ys_data, labels):
+        """Export the datahandler data into an excel sheet"""
+        df = DataRenderer.export_to_dataframe(ys_data, labels)
+        writer = pd.ExcelWriter(filename)
+        df.to_excel(writer)
+        writer.save()
 
 
 def run():
@@ -565,19 +584,36 @@ def run():
     if Settings.RANDOM_SEED is not None:
         seed(Settings.RANDOM_SEED)
 
-
-    # Make a default population as having a set number of initially
-    # infected people
-    num_intially_uninfected = Params.POPULATION_SIZE - Params.INITIALLY_INFECTED
-    population = [Person(None, None, False, False, 0, True) for _ in range(num_intially_uninfected)]
-    for _ in range(Params.INITIALLY_INFECTED):
-        population.append(Person(Infection("None", 0), None, False, False, 0, True))
-
     # Create and run the model
-    m = Model(population)
+    m = Model()
     m.run()
+    return m
 
-    # Generate the datasets to plot via chart.js
-    return m.data_handler.generate_data_sets()
+def run_and_output(excel_filename=None):
+    """Wrapper on run, displaying and writing the output for the user"""
+    # Run the model
+    m = run()
+    print()
 
-run()
+    # Export the finished model to an excel file
+    if Settings.EXPORT_TO_EXCEL:
+        if excel_filename is None:
+            excel_filename = Settings.DEFAULT_EXCEL_FILENAME
+        m.data_handler.export_to_excel(excel_filename)
+
+    # Finally show the full simulation graph
+    if Settings.DRAW_GRAPH:
+        m.data_handler.draw_full_graph()
+
+
+if __name__ == "__main__":
+    # Make the matplotlib graphs interactive
+    plt.ion()
+
+    # Run the model with and without the product
+    run_and_output("withProduct.xlsx")
+
+    # Don't immediately exit, otherwise the graphs won't show up - so wait
+    # for the user to prompt the program to end
+    if Settings.DRAW_GRAPH:
+        input()
