@@ -307,8 +307,8 @@ class Model:
                     #correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
                     #decision_yes = decision(Params.PROBABILIY_PRODUCT_DETECT)
                     #if Params.PRODUCT_IN_USE and decision_yes and correct_tier:
-                    if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
-                        if person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL:
+                    if person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL:
+                        if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
                             # Put people into isolation if our product detects
                             # them as being infected
                             person.isolate()
@@ -316,9 +316,8 @@ class Model:
                             # If a person has the detected infection, put them on
                             # a treatment course for it, (i.e. only ever change
                             # it up to one above)
-                            """if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
-                                print(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
-                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1], 0)"""
+                            if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
+                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1], 0)
 
                     """Handle Recovery generally or by treatment if currently infected"""
                     general_recovery = decision(person.infection.general_recovery_probability)

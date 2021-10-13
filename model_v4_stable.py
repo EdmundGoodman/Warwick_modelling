@@ -305,8 +305,8 @@ class Model:
                     #correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
                     #decision_yes = decision(Params.PROBABILIY_PRODUCT_DETECT)
                     #if Params.PRODUCT_IN_USE and decision_yes and correct_tier:
-                    if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
-                        if person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL:
+                    if person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL:
+                        if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
                             # Put people into isolation if our product detects
                             # them as being infected
                             person.isolate()
@@ -314,9 +314,8 @@ class Model:
                             # If a person has the detected infection, put them on
                             # a treatment course for it, (i.e. only ever change
                             # it up to one above)
-                            """if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
-                                print(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
-                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])"""
+                            if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
+                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
 
                     """Handle Recovery generally or by treatment if currently infected"""
                     general_recovery = decision(person.infection.general_recovery_probability)
@@ -579,12 +578,6 @@ def run_and_output(excel_filename=None):
     # Run the model
     m = run()
     print()
-
-    # Export the finished model to an excel file
-    if Settings.EXPORT_TO_EXCEL:
-        if excel_filename is None:
-            excel_filename = Settings.DEFAULT_EXCEL_FILENAME
-        m.data_handler.export_to_excel(excel_filename)
 
     # Finally show the full simulation graph
     if Settings.DRAW_GRAPH:

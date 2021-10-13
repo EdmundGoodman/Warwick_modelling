@@ -19,7 +19,7 @@ import pandas as pd
 class Params:
     # General model parameters
     NUM_TIMESTEPS = 100
-    POPULATION_SIZE = 500
+    POPULATION_SIZE = 2500
     INITIALLY_INFECTED = 10
 
     # Ordered list of drugs used, their properties, and the properties of their
@@ -83,8 +83,8 @@ class Settings:
     RANDOM_SEED = 0
 
     REPORT_PROGRESS = True
-    REPORT_PERCENTAGE = 5
-    REPORT_MOD_NUM = None
+    REPORT_PERCENTAGE = None
+    REPORT_MOD_NUM = None # Ensure scope
     if REPORT_PERCENTAGE is not None:
         REPORT_MOD_NUM = int(Params.NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
         # Don't try to report more than once per timestep
@@ -309,8 +309,8 @@ class Model:
                     #correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
                     #decision_yes = decision(Params.PROBABILIY_PRODUCT_DETECT)
                     #if Params.PRODUCT_IN_USE and decision_yes and correct_tier:
-                    if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
-                        if person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL:
+                    if person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL:
+                        if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
                             # Put people into isolation if our product detects
                             # them as being infected
                             person.isolate()
@@ -318,9 +318,8 @@ class Model:
                             # If a person has the detected infection, put them on
                             # a treatment course for it, (i.e. only ever change
                             # it up to one above)
-                            """if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
-                                print(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
-                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])"""
+                            if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
+                                person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
 
                     """Handle Recovery generally or by treatment if currently infected"""
                     general_recovery = decision(person.infection.general_recovery_probability)
