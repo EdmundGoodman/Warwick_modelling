@@ -72,7 +72,6 @@ class Params:
 # Set the granular parameters from the generic ones
 Params.reset_granular_parameters()
 
-print(Params.RESISTANCE_PROPERTIES["Penicillin"])
 
 
 #########################
@@ -185,7 +184,7 @@ class Person:
         """Recover the person, returning them to their default state; totally
         uninfected with no resistances, but now immune to the infection -
         irrespective of any resistances it has"""
-        self.__init__(immune=True)
+        self.__init__(None, None, False, True, 0, True)
 
     def mutate_infection(self):
         """Make the infection become resistant to the treatment with a given
@@ -224,7 +223,7 @@ class Person:
 
     def die(self):
         """Make the person no longer alive"""
-        self.__init__(alive=False)
+        self.__init__(None, None, False, False, 0, False)
 
     def duplicate(self):
         """Return a duplicate object of the current person, including
@@ -583,5 +582,3 @@ def run():
 
     # Generate the datasets to plot via chart.js
     return m.data_handler.generate_data_sets()
-
-#run()
