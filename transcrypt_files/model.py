@@ -12,6 +12,8 @@ from random import random, choice, seed
 ### Change these parameters ###
 ###############################
 
+DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+
 class Params:
     # General model parameters
     NUM_TIMESTEPS = 100
@@ -20,7 +22,7 @@ class Params:
 
     # Ordered list of drugs used, their properties, and the properties of their
     # resistant pathogens
-    DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+    DRUG_NAMES = DRUG_NAMES[:]
 
     PROBABILITY_MOVE_UP_TREATMENT = 0.2
     TIMESTEPS_MOVE_UP_LAG_TIME = 5
@@ -69,6 +71,8 @@ class Params:
 
 # Set the granular parameters from the generic ones
 Params.reset_granular_parameters()
+
+print(Params.RESISTANCE_PROPERTIES["Penicillin"])
 
 
 #########################
@@ -430,7 +434,7 @@ class DataHandler:
 
     def _new_timestep_vars(self):
         """Make some helper variables"""
-        self.num_infected_stages = [0] * (Params.NUM_RESISTANCES + 1)
+        self.num_infected_stages = [0 for _ in range(Params.NUM_RESISTANCES + 1)]
         self.num_dead = 0
         self.num_immune = 0
         self.num_uninfected = 0
@@ -580,4 +584,4 @@ def run():
     # Generate the datasets to plot via chart.js
     return m.data_handler.generate_data_sets()
 
-run()
+#run()
