@@ -293,12 +293,13 @@ class Model:
                         if time_cond and rand_cond:
                             person.increase_treatment()
 
-                        # Isolate if in high enough treatment class (which
-                        # is not the same as infection class - this will
-                        # likely lag behind)
-                        treatment_tier = Infection.get_tier_from_resistance(person.treatment.drug)
-                        if treatment_tier >= Params.ISOLATION_THRESHOLD:
-                            person.isolate()
+                    """Handle isolation"""
+                    # Isolate if in high enough treatment class (which
+                    # is not the same as infection class - this will
+                    # likely lag behind)
+                    treatment_tier = Infection.get_tier_from_resistance(person.treatment.drug)
+                    if treatment_tier >= Params.ISOLATION_THRESHOLD:
+                        person.isolate()
 
                     """Handle use of the product"""
                     #correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
