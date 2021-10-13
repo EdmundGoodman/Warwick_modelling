@@ -420,6 +420,10 @@ class DataHandler:
         """Return the data about uninfected people across all timesteps"""
         return self.ys_data[-1]
 
+    def get_isolated_data(self):
+        """Return the data about isolated people across all timesteps"""
+        return self.non_disjoint[0]
+
     def _new_timestep_vars(self):
         """Make some helper variables"""
         self.num_infected_stages = [0] * (Params.NUM_RESISTANCES + 1)
