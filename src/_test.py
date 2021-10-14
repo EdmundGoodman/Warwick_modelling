@@ -5,7 +5,6 @@ import unittest
 from model_minimal import Params, Settings, Infection, Treatment, Person, Model, DataHandler, decision, run
 
 
-
 DEFAULT_NUM_TIMESTEPS = Params.NUM_TIMESTEPS
 DEFAULT_POPULATION_SIZE = Params.POPULATION_SIZE
 DEFAULT_INITIALLY_INFECTED = Params.INITIALLY_INFECTED
@@ -23,6 +22,7 @@ DEFAULT_PROBABILITY_DEATH = Params.PROBABILITY_DEATH
 DEFAULT_DEATH_FUNCTION = Params.DEATH_FUNCTION
 DEFAULT_PROBABILITY_SPREAD = Params.PROBABILITY_SPREAD
 DEFAULT_NUM_SPREAD_TO = Params.NUM_SPREAD_TO
+
 
 def reset_params():
     DEFAULT_NUM_TIMESTEPS = Params.NUM_TIMESTEPS
@@ -44,14 +44,15 @@ def reset_params():
     DEFAULT_NUM_SPREAD_TO = Params.NUM_SPREAD_TO
     Params.reset_granular_parameters()
 
+
 def set_no_deaths_recoveries():
     Params.DEATH_FUNCTION = lambda p, t: p
     Params.PROBABILITY_GENERAL_RECOVERY = 0
     Params.PROBABILITY_TREATMENT_RECOVERY = 0
     Params.NUM_TIMESTEPS = 3 * Params.TIMESTEPS_MOVE_UP_LAG_TIME
 
-class TestModel(unittest.TestCase):
 
+class TestModel(unittest.TestCase):
     def test_empty_model(self):
         """Test that a model with no infected people always stays fully uninfected"""
         # Change parameters for the test setup and run the test
@@ -235,8 +236,6 @@ class TestModel(unittest.TestCase):
             uninfected = m.data_handler.get_uninfected_data()[i]
             self.assertEqual(sum([infected, dead, immune, uninfected]),Params.POPULATION_SIZE)
         reset_params()
-
-
 
 
 if __name__ == "__main__":

@@ -51,16 +51,36 @@ class Params:
         Params.DRUG_PROPERTIES["Penicillin"] = (
             Params.PROBABILITY_TREATMENT_RECOVERY,
         )
-        Params.DRUG_PROPERTIES["Carbapenemase"] = (Params.PROBABILITY_TREATMENT_RECOVERY,)
-        Params.DRUG_PROPERTIES["Colistin"] = (Params.PROBABILITY_TREATMENT_RECOVERY,)
+        Params.DRUG_PROPERTIES["Carbapenemase"] = (
+            Params.PROBABILITY_TREATMENT_RECOVERY,
+        )
+        Params.DRUG_PROPERTIES["Colistin"] = (
+            Params.PROBABILITY_TREATMENT_RECOVERY,
+        )
 
         # Lookup table of resistance properties by their names
         Params.NUM_RESISTANCES = len(Params.DRUG_NAMES)
         Params.RESISTANCE_PROPERTIES = {}
-        Params.RESISTANCE_PROPERTIES["None"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
-        Params.RESISTANCE_PROPERTIES["Penicillin"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
-        Params.RESISTANCE_PROPERTIES["Carbapenemase"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
-        Params.RESISTANCE_PROPERTIES["Colistin"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+        Params.RESISTANCE_PROPERTIES["None"] = (
+            Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION,
+            Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO,
+            Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,
+        )
+        Params.RESISTANCE_PROPERTIES["Penicillin"] = (
+            Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION,
+            Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO,
+            Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,
+        )
+        Params.RESISTANCE_PROPERTIES["Carbapenemase"] = (
+            Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION,
+            Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO,
+            Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,
+        )
+        Params.RESISTANCE_PROPERTIES["Colistin"] = (
+            Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION,
+            Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO,
+            Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,
+        )
 
 # Set the granular parameters from the generic ones
 Params.reset_granular_parameters()
@@ -72,6 +92,7 @@ Params.reset_granular_parameters()
 
 class Settings:
     RANDOM_SEED = 0
+
     REPORT_PROGRESS = True
     REPORT_PERCENTAGE = 5
     REPORT_MOD_NUM = None # Ensure scope
@@ -163,8 +184,7 @@ class Treatment:
         return Treatment(self.drug, self.time_treated)
 
     def __repr__(self):
-        return "treated with drug {} for {} timesteps".format(
-                self.drug, self.time_treated)
+        return "treated with drug {} for {} timesteps".format(self.drug, self.time_treated)
 
 
 class Person:
@@ -310,9 +330,6 @@ class Model:
                         person.isolate()
 
                     """Handle use of the product"""
-                    #correct_tier = person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL
-                    #decision_yes = decision(Params.PROBABILIY_PRODUCT_DETECT)
-                    #if Params.PRODUCT_IN_USE and decision_yes and correct_tier:
                     if person.infection.get_tier() >= Params.PRODUCT_DETECTION_LEVEL:
                         if Params.PRODUCT_IN_USE and decision(Params.PROBABILIY_PRODUCT_DETECT):
                             # Put people into isolation if our product detects
@@ -328,7 +345,7 @@ class Model:
                     """Handle Recovery generally or by treatment if currently infected"""
                     general_recovery = decision(person.infection.general_recovery_probability)
                     treatment_recovery = (person.correct_treatment() and
-                                        decision(person.treatment.treatment_recovery_probability))
+                                          decision(person.treatment.treatment_recovery_probability))
                     if general_recovery or treatment_recovery:
                         person.recover_from_infection()
                         # Don't do anything else, as infection/treatment will
@@ -507,8 +524,7 @@ class DataHandler:
 
     def _print_current_progress(self, end="\n", ljust=None):
         """Output the current progress of the model"""
-        out = "{}% complete".format(str(int(
-                                self.timestep / int(Params.NUM_TIMESTEPS / 10) * 10)))
+        out = "{}% complete".format(str(int(self.timestep / int(Params.NUM_TIMESTEPS / 10) * 10)))
         if ljust is not None:
             out = out.ljust(ljust)
         print(out, end=end)
@@ -516,7 +532,7 @@ class DataHandler:
     def _report_model_state(self):
         """Report the model's state through any mechanism set in parameters"""
         if Settings.REPORT_MOD_NUM is None or self.timestep % Settings.REPORT_MOD_NUM == 0:
-            #P Print how far through the model run we our
+            # Print how far through the model run we are
             if Settings.REPORT_PROGRESS and not Settings.PRINT_DATA:
                 self._print_current_progress()
 
