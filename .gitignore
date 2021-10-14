@@ -1,4 +1,7 @@
-__pycache__/
-transcrypt_files/__target__/
 venv/
+__pycache__/
+.pytest_cache/
+
+transcrypt_files/__target__/
+
 *.xlsx
