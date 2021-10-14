@@ -1,4 +1,4 @@
 __pycache__/
-venv/
 transcrypt_files/__target__/
+venv/
 *.xlsx
