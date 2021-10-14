@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
-#####################################
-### Library imports for the model ###
-#####################################
-
 from random import seed, random, sample
-from copy import deepcopy
 import matplotlib.pyplot as plt
 import pandas as pd
-
 
 ###############################
 ### Change these parameters ###
@@ -19,7 +12,7 @@ import pandas as pd
 class Params:
     # General model parameters
     NUM_TIMESTEPS = 100
-    POPULATION_SIZE = 2500
+    POPULATION_SIZE = 7500
     INITIALLY_INFECTED = 10
 
     # Ordered list of drugs used, their properties, and the properties of their
@@ -83,7 +76,7 @@ class Settings:
     RANDOM_SEED = 0
 
     REPORT_PROGRESS = True
-    REPORT_PERCENTAGE = None
+    REPORT_PERCENTAGE = 5
     REPORT_MOD_NUM = None # Ensure scope
     if REPORT_PERCENTAGE is not None:
         REPORT_MOD_NUM = int(Params.NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
@@ -140,6 +133,10 @@ class Infection:
         else:
             return Params.DRUG_NAMES.index(resistance)
 
+    def duplicate(self):
+        """Return a duplicate object of the current infection"""
+        return Infection(self.resistance, self.time_treated)
+
     def __repr__(self):
         if self.resistance == "None":
             return "infected"
@@ -169,6 +166,10 @@ class Treatment:
         """Return whether the treatment works on the infection given any
         resistances the infection may have"""
         return not infection.is_resistant(self.drug)
+
+    def duplicate(self):
+        """Return a duplicate object of the current treatment"""
+        return Treatment(self.drug, self.time_treated)
 
     def __repr__(self):
         return "treated with drug {} for {} timesteps".format(
@@ -230,6 +231,18 @@ class Person:
     def die(self):
         """Make the person no longer alive"""
         self.__init__(alive=False)
+
+    def duplicate(self):
+        """Return a duplicate object of the current person, including
+        duplicates of their infections and treatments"""
+        return Person(
+            None if self.infection is None else self.infection.duplicate(),
+            None if self.treatment is None else self.treatment.duplicate(),
+            self.isolated,
+            self.immune,
+            self.time_infected,
+            self.alive,
+        )
 
     def __repr__(self):
         """Provide a string representation for the person"""
@@ -358,7 +371,7 @@ class Model:
             # We need a deepcopy operation, to prevent someone who has just
             # been spread to in this timestep spreading the thing they've
             # just received, so technically don't have yet
-            updated_population = deepcopy(self.population)
+            updated_population = [p.duplicate() for p in self.population]
             for person in self.population:
                 # `updated_population` is passed by reference, since it is
                 # a list, so we can mutate it's state in different functions
@@ -614,8 +627,10 @@ if __name__ == "__main__":
     plt.ion()
 
     # Run the model with and without the product
+    print("With product:")
     run_and_output("withProduct.xlsx") # Figure 1
     Params.PRODUCT_IN_USE = False
+    print("Without product:")
     run_and_output("withoutProduct.xlsx") # Figure 2
 
     # Don't immediately exit, otherwise the graphs won't show up - so wait

@@ -1,15 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
-#####################################
-### Library imports for the model ###
-#####################################
-
 from random import seed, random, sample
-from copy import deepcopy
-import matplotlib.pyplot as plt
-
 
 ###############################
 ### Change these parameters ###
@@ -18,7 +10,7 @@ import matplotlib.pyplot as plt
 class Params:
     # General model parameters
     NUM_TIMESTEPS = 100
-    POPULATION_SIZE = 500
+    POPULATION_SIZE = 7500
     INITIALLY_INFECTED = 10
 
     # Ordered list of drugs used, their properties, and the properties of their
@@ -47,30 +39,31 @@ class Params:
     PROBABILITY_SPREAD = 0.25
     NUM_SPREAD_TO = 1
 
-    ###########################################################################
-    # Set these explicitly for more granular control, or use the above to set #
-    # them all as a group                                                     #
-    ###########################################################################
+    @staticmethod
+    def reset_granular_parameters():
+        ###########################################################################
+        # Set these explicitly for more granular control, or use the above to set #
+        # them all as a group                                                     #
+        ###########################################################################
 
-    # Lookup table of drug properties by their names
-    DRUG_PROPERTIES = {}
-    DRUG_PROPERTIES["Penicillin"] = (
-        PROBABILITY_TREATMENT_RECOVERY,
-    )
-    DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
-    DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
+        # Lookup table of drug properties by their names
+        Params.DRUG_PROPERTIES = {}
+        Params.DRUG_PROPERTIES["Penicillin"] = (
+            Params.PROBABILITY_TREATMENT_RECOVERY,
+        )
+        Params.DRUG_PROPERTIES["Carbapenemase"] = (Params.PROBABILITY_TREATMENT_RECOVERY,)
+        Params.DRUG_PROPERTIES["Colistin"] = (Params.PROBABILITY_TREATMENT_RECOVERY,)
 
-    # Lookup table of resistance properties by their names
-    NUM_RESISTANCES = len(DRUG_NAMES)
-    RESISTANCE_PROPERTIES = {}
-    RESISTANCE_PROPERTIES["None"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION,
-                                     PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-    RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION,
-                                           PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-    RESISTANCE_PROPERTIES["Carbapenemase"] = (
-        PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-    RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION,
-                                         PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+        # Lookup table of resistance properties by their names
+        Params.NUM_RESISTANCES = len(Params.DRUG_NAMES)
+        Params.RESISTANCE_PROPERTIES = {}
+        Params.RESISTANCE_PROPERTIES["None"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+        Params.RESISTANCE_PROPERTIES["Penicillin"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+        Params.RESISTANCE_PROPERTIES["Carbapenemase"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+        Params.RESISTANCE_PROPERTIES["Colistin"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+
+# Set the granular parameters from the generic ones
+Params.reset_granular_parameters()
 
 
 #########################
@@ -79,21 +72,16 @@ class Params:
 
 class Settings:
     RANDOM_SEED = 0
-
     REPORT_PROGRESS = True
     REPORT_PERCENTAGE = 5
-    REPORT_MOD_NUM = None
+    REPORT_MOD_NUM = None # Ensure scope
     if REPORT_PERCENTAGE is not None:
         REPORT_MOD_NUM = int(Params.NUM_TIMESTEPS / (100/REPORT_PERCENTAGE))
         # Don't try to report more than once per timestep
         if REPORT_MOD_NUM < 1:
             REPORT_MOD_NUM = 1
-
     PRINT_DATA = True
     OUTPUT_PADDING = len(str(Params.POPULATION_SIZE))
-
-    DRAW_GRAPH = True
-    GRAPH_TYPE = "line"  # line, stackplot (default)
 
 
 #######################################
@@ -136,6 +124,10 @@ class Infection:
         else:
             return Params.DRUG_NAMES.index(resistance)
 
+    def duplicate(self):
+        """Return a duplicate object of the current infection"""
+        return Infection(self.resistance, self.time_treated)
+
     def __repr__(self):
         if self.resistance == "None":
             return "infected"
@@ -165,6 +157,10 @@ class Treatment:
         """Return whether the treatment works on the infection given any
         resistances the infection may have"""
         return not infection.is_resistant(self.drug)
+
+    def duplicate(self):
+        """Return a duplicate object of the current treatment"""
+        return Treatment(self.drug, self.time_treated)
 
     def __repr__(self):
         return "treated with drug {} for {} timesteps".format(
@@ -226,6 +222,18 @@ class Person:
     def die(self):
         """Make the person no longer alive"""
         self.__init__(alive=False)
+
+    def duplicate(self):
+        """Return a duplicate object of the current person, including
+        duplicates of their infections and treatments"""
+        return Person(
+            None if self.infection is None else self.infection.duplicate(),
+            None if self.treatment is None else self.treatment.duplicate(),
+            self.isolated,
+            self.immune,
+            self.time_infected,
+            self.alive,
+        )
 
     def __repr__(self):
         """Provide a string representation for the person"""
@@ -354,7 +362,7 @@ class Model:
             # We need a deepcopy operation, to prevent someone who has just
             # been spread to in this timestep spreading the thing they've
             # just received, so technically don't have yet
-            updated_population = deepcopy(self.population)
+            updated_population = [p.duplicate() for p in self.population]
             for person in self.population:
                 # `updated_population` is passed by reference, since it is
                 # a list, so we can mutate it's state in different functions
@@ -519,52 +527,6 @@ class DataHandler:
                     self._print_current_progress(end=" - ", ljust=2)
                 self._print_current_data()
 
-    def draw_full_graph(self):
-        """Draw a graph of all of the data in the graph"""
-        datas, final_labels = self._preprocess_disjoint_labels()
-        DataRenderer.draw_full_graph(self.time, datas, final_labels)
-
-    def export_to_excel(self, filename):
-        """Export all the data to an excel file"""
-        datas, final_labels = self._preprocess_disjoint_labels()
-        DataRenderer.export_to_excel(filename, datas, final_labels)
-
-
-class DataRenderer:
-    @staticmethod
-    def _draw_graph(time, ys_data, labels):
-        """Actually draw the graph via matplotlib"""
-        # matplotlib plots require: x_axis_data, y_axis_data(s), data labels
-
-        if Settings.GRAPH_TYPE == "line":
-            # line graph
-            for i in range(len(ys_data)):
-                plt.plot(time, ys_data[i], label=labels[i])
-        else:
-            # stackplot as default
-            plt.stackplot(time, *ys_data, labels=labels)
-
-    @staticmethod
-    def _graph_settings():
-        """Add settings for the graph, e.g. axis labels and legend"""
-        plt.title('Resistance simulation')
-        plt.legend(loc='upper right')
-        plt.xlabel("Time / timesteps")
-        plt.ylabel("# People")
-
-    @staticmethod
-    def draw_full_graph(time, ys_data, labels):
-        """Draw and show the graph with all the data and legend once"""
-        plt.figure()
-        DataRenderer._draw_graph(time, ys_data, labels)
-        DataRenderer._graph_settings()
-        plt.show()
-
-    @staticmethod
-    def export_to_excel(filename, ys_data, labels):
-        """Export the datahandler data into an excel sheet"""
-        print("Exporting to excel is not supported in this version of the model")
-
 
 def run():
     """Run the model with a given set of parameters"""
@@ -577,27 +539,10 @@ def run():
     m.run()
     return m
 
-def run_and_output(excel_filename=None):
-    """Wrapper on run, displaying and writing the output for the user"""
-    # Run the model
-    m = run()
-    print()
-
-    # Finally show the full simulation graph
-    if Settings.DRAW_GRAPH:
-        m.data_handler.draw_full_graph()
-
-
 if __name__ == "__main__":
-    # Make the matplotlib graphs interactive
-    plt.ion()
-
     # Run the model with and without the product
-    run_and_output("withProduct.xlsx") # Figure 1
+    print("With product:")
+    run()
     Params.PRODUCT_IN_USE = False
-    run_and_output("withoutProduct.xlsx") # Figure 2
-
-    # Don't immediately exit, otherwise the graphs won't show up - so wait
-    # for the user to prompt the program to end
-    if Settings.DRAW_GRAPH:
-        input()
+    print("\n\nWithout product:")
+    run()
