@@ -294,6 +294,13 @@ It is important to remember that computer models are not infallible. It is impos
 
 To ensure that models are sufficiently accurate to the real-world scenario they are trying to emulate, it is important to test and validate them.
 
+#### Levels of validation
+
+1. Grounding
+2. Calibrating
+3. Verification
+4. Harmonization
+
 #### Types of testing
 
 *Reference books on how to test and validate model*
@@ -301,6 +308,8 @@ To ensure that models are sufficiently accurate to the real-world scenario they 
 #### Manual testing
 
 #### Automated testing
+
+Wrote tests of the model using the python unittest library = allows continuous integration
 
 
 
