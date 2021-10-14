@@ -32,7 +32,7 @@ The purpose of the model is two-fold:
 
 The whole project repository is available on GitHub at: [https://github.com/Warwick-iGEM-2021/modelling](https://github.com/Warwick-iGEM-2021/modelling)
 
-The newest model version is also available: [Model V3](https://github.com/Warwick-iGEM-2021/modelling/blob/main/model_v4.py)
+The newest model version is also available: [Model V3](https://github.com/Warwick-iGEM-2021/modelling/blob/main/src/model.py)
 
 #### Model development
 
@@ -57,23 +57,23 @@ Our model is discrete time, stochastic, and compartmental:
   NUM_TIMESTEPS = 100
   POPULATION_SIZE = 500
   INITIALLY_INFECTED = 10
-  
+
   # Ordered list of drugs used, their properties, and the properties of their
   # resistant pathogens
   DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
-  
+
   PROBABILITY_MOVE_UP_TREATMENT = 0.2
   TIMESTEPS_MOVE_UP_LAG_TIME = 5
   ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
-  
+
   PRODUCT_IN_USE = True
   PROBABILIY_PRODUCT_DETECT = 1
   PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
-  
+
   ############################################################
   # Use these if you want to set all drugs to the same thing #
   ############################################################
-  
+
   PROBABILITY_GENERAL_RECOVERY = 0
   PROBABILITY_TREATMENT_RECOVERY = 0.3
   PROBABILITY_MUTATION = 0.25
@@ -83,12 +83,12 @@ Our model is discrete time, stochastic, and compartmental:
   # TODO: Make this more robust
   PROBABILITY_SPREAD = 0.25
   NUM_SPREAD_TO = 1
-  
+
   ###########################################################################
   # Set these explicitly for more granular control, or use the above to set #
   # them all as a group                                                     #
   ###########################################################################
-  
+
   # Lookup table of drug properties by their names
   DRUG_PROPERTIES = {}
   DRUG_PROPERTIES["Penicillin"] = (
@@ -96,7 +96,7 @@ Our model is discrete time, stochastic, and compartmental:
   )
   DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
   DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
-  
+
   # Lookup table of resistance properties by their names
   NUM_RESISTANCES = len(DRUG_NAMES)
   RESISTANCE_PROPERTIES = {}
@@ -104,7 +104,7 @@ Our model is discrete time, stochastic, and compartmental:
   RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
   RESISTANCE_PROPERTIES["Carbapenemase"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
   RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-  
+
   ```
 
   Additionally, there are internal settings, for example how the model outputs it results.
@@ -116,19 +116,19 @@ Our model is discrete time, stochastic, and compartmental:
   ```python
   # Make a new data handler for each simulation
   self.data_handler.__init__()
-  
+
   # Repeat the simulation for a set number of timesteps
   for _ in range(NUM_TIMESTEPS):
-  
+
       # For each person in the population
       for person in self.population:
-  
+
           # Record the data throughout the model
           self.data_handler.record_person(person)
-  
+
   ```
 
-  
+
 
 The model essentially is a modification of the standard SIR model for epidemic disease, adding more "compartments" for additional states people can take, when they are infected with increasingly antibiotic resistant pathogens.
 
@@ -389,7 +389,7 @@ RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_M
 
 Raw data output graphs for with and without
 
-short explanation of what each line means 
+short explanation of what each line means
 
 #### Analysis
 
