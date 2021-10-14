@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from model import Params, Settings, Infection, Treatment, Person, Model, DataHandler, DataRenderer, decision, run
+from model_minimal import Params, Settings, Infection, Treatment, Person, Model, DataHandler, decision, run
 
 
 
