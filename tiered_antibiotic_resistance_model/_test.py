@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-from model_minimal import Params, Settings, Infection, Treatment, Person, Model, DataHandler, decision, run
+from .model_minimal import Params, Settings, Infection, Treatment, Person, Model, DataHandler, decision, run
 
 
 DEFAULT_NUM_TIMESTEPS = Params.NUM_TIMESTEPS
