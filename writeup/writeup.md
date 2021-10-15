@@ -136,6 +136,8 @@ The model essentially is a modification of the standard SIR model for epidemic d
 
 A diagram of the SIR model. Image source: [1]
 
+There are already examples of models of this class for examining antibiotic resistance in E. coli (https://bmcmedicine.biomedcentral.com/articles/10.1186/s12916-019-1314-9, https://www.nature.com/articles/s42003-019-0545-9, https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005160), showing that it is a suitable methodology for this problem, however, we believe that a custom model written from scratch was required to integrate the mechanism of the product being used.
+
 ### Implementation
 
 The key features of the model can be split up into five semi-distinct sections, which are enumerated in the sections below.
@@ -210,6 +212,8 @@ Since multiple antibiotics are used in a tiered system, there must be a mechanis
 
 There are a number of days which can be set as a parameter for the model, before which the same antibiotic will be used, then after this is exceeded a probability parameter is used each day to decide whether they will me moved up to a higher treatment tier.
 
+Additionally, when our product if a person is detected to be resistant using the product their treatment level is immediately increased to be above that resistance level, as we know that any other lower treatment will be ineffective.
+
 ```python
 # Handle increasing treatment
 if person.treatment is None:
@@ -227,6 +231,15 @@ else:
     rand_cond = decision(PROBABILITY_MOVE_UP_TREATMENT)
     if time_cond and rand_cond:
         person.increase_treatment()
+        
+# Handle use of the product
+if person.infection.get_tier() >= PRODUCT_DETECTION_LEVEL:
+    if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
+        # If a person has the detected infection, put them on
+        # a treatment course for it, (i.e. only ever change
+        # it up to one above)
+        if Params.DRUG_NAMES.index(person.treatment.drug) <= Params.PRODUCT_DETECTION_LEVEL:
+            person.treatment = Treatment(Params.DRUG_NAMES[Params.PRODUCT_DETECTION_LEVEL+1])
 ```
 
 #### 3. Spread
@@ -263,8 +276,8 @@ if treatment_tier >= ISOLATION_THRESHOLD:
     person.isolate()
 
 # Handle use of the product
-if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
-    if person.infection.get_tier() >= PRODUCT_DETECTION_LEVEL:
+if person.infection.get_tier() >= PRODUCT_DETECTION_LEVEL:
+    if PRODUCT_IN_USE and decision(PROBABILIY_PRODUCT_DETECT):
         # Put people into isolation if our product detects
         # them as being infected
         person.isolate()
@@ -426,31 +439,36 @@ Wrote tests of the model using the Python unittest library = allows continuous i
 
 ### Contextualisation
 
-*Due to the flexibility of the model, its parameters can be adjusted to simulate the spread of many real-world diseases. Adding such context to the model helps us better understand better how our product could improve the situation in such scenarios.*
+Due to the flexibility of the model, its parameters can be adjusted to simulate the spread of many real-world diseases. Adding such context to the model helps us better understand better how our product could improve the situation in such scenarios.
 
 #### Selected scenario
 
-*Here we have chosen to use Neo-natal Bacterial Meningitis as an example. The disease can easily be spread within hospitals by medical staff and often has a deadly outcome [2], all of which can be simulated in the model. Furthermore, since the last line of treatment of meropenem, a carbapenem, it is relevant to the use of our product.*
+##### Adapting parameters
 
-*The parameters of the model have hence been adjusted because:*
+Due to the flexibility of the model, its parameters can be adjusted to simulate the spread of many real-world diseases. Adding such context to the model helps us better understand how our product could improve the situation in such scenarios. We do this by anchoring some of the parameters and expected outputs to available data, giving us more plausible outcomes.
 
-1. *NBM has two lines of treatment (amoxicillin + cefotaxime/ceftriaxone, then meropenem) [3], the model has two levels of treatment and corresponding resistance levels.*
-2. *There is a 100% mortality rate of untreated NBM [4], there is no chance of recovery if the pathogen is resistant against the current antibiotic in use.*
-3. *There is 40% overall mortality [4] , parameters have been adjusted to end up with a 40% mortality rate*
+##### Neonatal bacterial meningitis
 
+Here we have chosen to use neonatal bacterial meningitis (NBM) as an example. The disease, and the nature of its spread and treatment have numerous properties that can be simulated using the model. NBM can easily be spread within hospitals by medical staff and often has a deadly outcome [2], all of which can be simulated in the model. Furthermore, treatment involves a line of antibiotics, the last of which generally is treatment with meropenem, a carbapenem [3]. However, since the model does not allow for the product to identify resistance to the last line of defense, requiring a later line of defense, we included colistin as the last treatment. Colistin has been used to treat multi-resistant NBM [4], however it is infrequently used due to its harmful side-effects [5]. 
 
+The parameters of the model have hence been adjusted as such:
 
-The input parameters for the model of this scenario are:
+1. NBM has three lines of treatment: amoxicillin + cefotaxime/ceftriaxone, meropenem, and finally colistin. Therefore the model has three levels of treatment and corresponding resistance levels. The first level of treatment will henceforth be referred to as “Amoxicillin+” for the sake of conciseness.
+
+2. There is a 100% mortality rate of untreated NBM [6]. Hence, we have set the chance of recovery if the pathogen is resistant to the current antibiotic in use to zero.
+
+3. There is a 40% overall mortality rate in developed countries [6]. Therefore the  parameters have been adjusted such that the expected outcome when our product is not in use averages to a 40% mortality rate.
+
+#### Method
+
+The parameters used in the model were as follows:
 
 ```python
-# General model parameters
-NUM_TIMESTEPS = 100
-POPULATION_SIZE = 500
-INITIALLY_INFECTED = 10
+NUM_TIMESTEPS = 150
+POPULATION_SIZE = 5000
+INITIALLY_INFECTED = 50
 
-# Ordered list of drugs used, their properties, and the properties of their
-# resistant pathogens
-DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+DRUG_NAMES = ["Amoxicillin+", "Meropenem", "Colistin"]
 
 PROBABILITY_MOVE_UP_TREATMENT = 0.2
 TIMESTEPS_MOVE_UP_LAG_TIME = 5
@@ -458,7 +476,7 @@ ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
 
 PRODUCT_IN_USE = True
 PROBABILIY_PRODUCT_DETECT = 1
-PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
+PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Meropenem")
 
 ############################################################
 # Use these if you want to set all drugs to the same thing #
@@ -467,52 +485,258 @@ PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
 PROBABILITY_GENERAL_RECOVERY = 0
 PROBABILITY_TREATMENT_RECOVERY = 0.3
 PROBABILITY_MUTATION = 0.25
-PROBABILITY_DEATH = 0.015
+PROBABILITY_DEATH = 0.02
 # Add time infected into consideration for death chance
 DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
 # TODO: Make this more robust
 PROBABILITY_SPREAD = 0.25
 NUM_SPREAD_TO = 1
-
-###########################################################################
-# Set these explicitly for more granular control, or use the above to set #
-# them all as a group                                                     #
-###########################################################################
-
-# Lookup table of drug properties by their names
-DRUG_PROPERTIES = {}
-DRUG_PROPERTIES["Penicillin"] = (
-    PROBABILITY_TREATMENT_RECOVERY,
-)
-DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
-DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
-
-# Lookup table of resistance properties by their names
-NUM_RESISTANCES = len(DRUG_NAMES)
-RESISTANCE_PROPERTIES = {}
-RESISTANCE_PROPERTIES["None"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-RESISTANCE_PROPERTIES["Carbapenemase"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
 ```
 
-#### Results
+We ran the programme 10 times with the product in use and 10 times without. Albeit unrealistic in a hospital scenario, the population size was set to 5000 to minimise fluctuations between outcomes due to the stochastic nature of the model.
 
-Raw data output graphs for with and without
+To further minimise the fluctuations, we then combined all the runs with and without the product respectively to create averaged runs. This meant that, for example, the deaths at timestep 20 of the averaged run without the product was the average of deaths at timestep 20 of each run when the product was not in use.
 
-short explanation of what each line means
+After each run we also calculated the Death rate (deaths as % of the population), the Mortality rate (deaths as % of the population that was infected), and the Infection rate (the population that was infected as % of the total population). We then calculated the mean value and variance of the Death, Mortality and Infection rates of the runs with and without the product in use respectively. To confirm that there were statistically significant improvements in outcomes when using the product compared to not using the product, we conducted three one-sided hypothesis tests at the 1% level.
 
-#### Analysis
+Since we used an unrealistically large population size in our initial runs, we also ran the programme again but with:
 
-Whatever analysis you think is relevant
+```python
+POPULATION_SIZE = 200
+INITIALLY_INFECTED = 10
+```
 
-Final headline chart which simply shows our product making things better (two lines, one labelled without, one labelled with)
+The graphic results of the runs with and without the product in use respectively were then compared to the averaged runs with populations of 5000. This was to confirm that the population size does not adversely affect the outcome of the model.
 
-	- I might add something additional here (box plot of how much better our stuff is with different random seeds?)
+Finally, we also did some further analysis into how the product affects the outcome of the model by looking a bit closer at the data. This involved looking at the change over time of cases of resistant pathogens and patients put into isolation.
+
+#### Results and analysis
+
+##### Outputs
+
+A graph showing the change of several variables over time, having averaged 10 runs without the product in use. “Amoxicillin+”, “Meropenem”, and “Colistin” refer to the number of patients carrying a pathogen with resistance to said antibiotic(s). “Infected” is virtually indistinguishable from “Amoxicillin+” as almost all infected patients develop resistance to Amoxicillin+ immediately as treatment starts due to the parameters of the model. Only the first 100 time-steps are shown as the variables change only marginally after that.
+
+TODO: INSERT IMAGE -  NBM average simulation without product in use graph
+
+Some statistics from the averaged run over a population of 5000 without the product in use:
+
+| Category            | Mean value | Variance |
+| ------------------- | ---------- | -------- |
+| Mean deaths         | 1840.6     | -        |
+| Mean infected       | 4504.9     | -        |
+| Mean infection rate | 90.10%     | 0.0024%  |
+| Mean mortality rate | 40.86%     | 0.0078%  |
+| Mean death rate     | 36.81%     | 0.0084%  |
+
+The mortality rate of the averaged run without the product at 40.86% is very close to the actual mortality rate of NBM in developed countries. This means we have anchored the outcome correctly, which should give us more interesting takeaways when we compare with the outcome when the product is in use. The infection rate is very high, however, this is largely due to the model not simulating space (for example between departments of a hospital). Without a spatial element, there is no barrier to infection apart from people turning immune, dying or being put into isolation.
+
+TODO: INSERT IMAGE -  NBM average simulation with product in use graph
+
+A graph showing the change of several variables over time, having averaged 10 runs with the product in use. “Amoxicillin+”, “Meropenem”, and “Colistin” refer to the number of patients carrying a pathogen with resistance to said antibiotic(s). “Infected” is virtually indistinguishable from “Amoxicillin+” as almost all infected patients develop resistance to Amoxicillin+ immediately as treatment starts due to the parameters of the model. “Meropenem” is virtually indistinguishable from “Isolated” as all patients with resistance to Meropenem are put into isolation when the product is in use, with few patients being put into isolation that are not resistant to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+
+Some statistics from the averaged run over a population of 5000 without the product in use:
+
+| Category            | Mean value | Variance |
+| ------------------- | ---------- | -------- |
+| Mean deaths         | 1635.8     | -        |
+| Mean infected       | 1635.8     | -        |
+| Mean infection rate | 85.85%     | 0.0296%  |
+| Mean mortality rate | 38.11%     | 0.0149%  |
+| Mean death rate     | 32.72%     | 0.0309%  |
+
+There is a clear difference in the number of mean deaths and mean infected compared to when the product was not in use. The total number of infections has dropped by 4.71% and the chance of dying among the infected (the mortality rate) has dropped by 6.56%. This results in a drop of total deaths by 11.13%, a notable improvement thanks to the product.
+
+The drop in infection rates is because of the product proactively putting patients carrying a pathogen resistant to Meropenem in isolation. With more people put into isolation and patients on average being put into isolation earlier, infection rates will inevitably fall (this is covered in more detail in the ‘Further Analysis’ section). Importantly, the product does not only make use of isolation more often, it also ensures the right patients are isolated. The marginal increase in patients in isolation compared to when not using the product will all be from Meropenem-resistant or Colistin-resistant patients. Therefore, lower infection rates not only reflect an overall decrease in the spread of the disease, but they also reflect a decreased likelihood of a patient contracting a multidrug-resistant pathogen. This means the average patient with NBM is more likely to receive effective treatment, further causing mortality rates to drop.
+
+The drop in mortality is therefore due to two reasons. The first is that, as we just outlined, a patient is less likely to carry a multidrug-resistant pathogen and is hence more likely to be treated effectively. The second is that once resistance to Meropenem has been detected, treatment immediately changes to Colistin. This means patients are not unnecessarily treated with Meropenem when it is not effective, decreasing their overall chance of dying.
+
+Since the outcome of the model is largely dependent on probability, we must, however, before moving on verify that the product has led to the improved outcomes, rather than being a result of “fortuitous fluctuations”. In other words, we need to test whether these improvements are actually statistically significant.
+
+##### Hypothesis tests
+
+We conducted three difference-in-means hypothesis tests to verify that the product improved the outcomes of the runs. We compared the mean values of infection, mortality and death rates to ensure all improvements were statistically significant.
+
+The null hypothesis is the initial presumption that the two mean values we are comparing are in fact equal and are part of the same distribution. To verify that our product has improved the average outcome, we must try to reject the null hypothesis. We reject the null hypothesis if the probability of a type I error is lower than the significance level chosen.
+
+The probability of a type I error is the likelihood that you reject the null hypothesis when the null hypothesis is in fact correct. We chose a significance level of 1%, which means that if we are able to reject the null hypothesis, it is because there is a less than 1% chance that we are wrong. 
+
+We assumed the product cannot worsen the outcome, hence we conducted one-sided hypothesis tests. This means that our alternative hypothesis (as opposed to the null hypothesis) was that the mean values for infection, mortality and death rates were lower when using the product than when not using it.
+
+We can assume that the outcomes of the model follow a normal distribution. However, we do not know the standard deviation of outcomes. Therefore we were left with two options: to approximate a normal distribution or to use a student’s t-distribution. Since we ran the simulations 10 times using and 10 times not using the product respectively, we have a sample size of 10 to calculate the mean values. This is a very low sample size, which suggested the most appropriate distribution was a student’s t-distribution.
+
+We calculated the probability of a Type I error using this formula:
+$$
+P \left( t_{n_1 + n_2 - 2} > \frac{\overline{x_1} - \overline{x_2}}{\sqrt{\frac{S_0^2}{n_1} + \frac{S_0^2}{n_2}}} \right)
+$$
+We let $$\overline{x_1}$$ be the mean value for any given outcome variable when not using the product and $$\overline{x_2}$$ the mean value when using the product. $$n_1$$ and $$n_2$$ were the sample sizes, which was 10 in both cases. Since the initial assumption is that the null hypothesis holds, $$S_0^2$$ is the hypothesised variance of the hypothesised real distribution, or in other words the square of the standard deviation of the hypothesised distribution.
+
+Since the sample sizes are equal, we calculate the hypothesised variance using the formula:
+$$
+S_0^2 = \frac{S_1^2 + S_2^2}{2}
+$$
+Where $$S_1^2$$ is the variance of any given outcome variable when not using the product and $$S_2^2$$ is the equivalent when using the product.
+
+###### Infection rates
+
+For the difference-in-means test of the infection rates, we used the following variables and calculation:
+
+| Category                                           | Value                  |
+| -------------------------------------------------- | ---------------------- |
+| Mean infection rate without the product            | 0.9010                 |
+| Variance of the infection rate without the product | 2.4$$\times 10^{-5}$$  |
+| Mean infection rate with the product               | 0.8585                 |
+| Variance of the infection rate with the product    | 2.96$$\times 10^{-4}$$ |
+
+$$
+P \left( t_{18} > \frac{0.9010 - 0.8585}{\sqrt{\frac{2.4 \times 10^{-5} + 2.96 \times 10^{-4}}{10}}} \right) = P(t_{18} > 7.513) < 1\%
+$$
+
+###### Mortality rates
+
+For the difference-in-means test of the mortality rates, we used the following variables and calculation:
+
+| Category                                           | Value                  |
+| -------------------------------------------------- | ---------------------- |
+| Mean infection rate without the product            | 0.4086                 |
+| Variance of the infection rate without the product | 7.8$$\times 10^{-5}$$  |
+| Mean infection rate with the product               | 0.3812                 |
+| Variance of the infection rate with the product    | 1.49$$\times 10^{-4}$$ |
+
+$$
+P \left( t_{18} > \frac{0.4086 - 0.3812}{\sqrt{\frac{7.8 \times 10^{-5} + 1.49 \times 10^{-4}}{10}}} \right) = P(t_{18} > 5.751) < 1\%
+$$
+
+###### Death rates
+
+For the difference-in-means test of the death rates, we used the following variables and calculation:
+
+| Category                                           | Value                  |
+| -------------------------------------------------- | ---------------------- |
+| Mean infection rate without the product            | 0.3682                 |
+| Variance of the infection rate without the product | 8.4$$\times 10^{-5}$$  |
+| Mean infection rate with the product               | 0.3273                 |
+| Variance of the infection rate with the product    | 3.09$$\times 10^{-4}$$ |
+
+$$
+P \left( t_{18} > \frac{0.3682 - 0.3273}{\sqrt{\frac{8.4 \times 10^{-5} + 3.09 \times 10^{-4}}{10}}} \right) = P(t_{18} > 6.524) < 1\%
+$$
+
+Thus, we see that all changes in means are statistically significant, implying that the product has significantly improved the expected outcome of the model.
+
+##### Further analysis
+
+Digging deeper into how the product impacts the outcome of the model, we can look at how variables interact over time. While the programme does not give us granular data to the extent that we can conditionalise the patients on certain variables, we can see how trends relate to each other.
+
+TODO: INSERT IMAGE -  NBM average simulation without product in use, focussing on resistances and isolation graph
+
+A graph showing the change of frequency in Meropenem and Colistin resistances as well as isolation over time, having averaged 10 runs without the product in use. As resistance to Colistin naturally yields resistance again Meropenem in the model, the frequency of resistance to Meropenem is always higher than that to Colistin. It is clear that isolation is lagging behind the spread of resistant pathogens, with many people who carry and could spread pathogens resistant to Meropenems not being put into isolation. At peak levels, resistance to Meropenem and Colistin reaches 496.8 and 256.5 respectively, while peak isolation reaches 295.5.
+
+A graph showing the change of frequency in Meropenem and Colistin resistances as well as isolation over time, having averaged 10 runs with the product in use. As resistance to Colistin naturally yields resistance again Meropenem in the model, the frequency of resistance to Meropenem is always higher than that to Colistin, however only by a slight amount. The frequency of resistance to Meropenem and that of being put into isolation is almost indistinguishable, as everyone who is resistant to Meropenem is put into isolation. The frequency of resistance to Meropenem is slightly higher than isolation levels while the disease is still spreading since patients only enter isolation the timestep after they develop Meropenem-resistance. At peak levels, resistance to Meropenem and Colistin reaches 323.6 and 271.7 respectively, while peak isolation reaches 313.5. 
+
+The first notable takeaway when comparing the data is the difference in frequency of resistance to Meropenem. At peak levels, not using the product increases the frequency of resistance to Meropenem by 53%. This is because patients who carry resistant pathogens are quickly put into isolation when using the product, preventing further spread. Notably, peak isolation is only 6% higher, which suggests that it is not merely putting more people into isolation that prevents spread.
+
+ TODO: INSERT IMAGE -  NBM average simulation with product in use, focussing on resistances and isolation graph
+
+Looking at timestep 30, isolation in the averaged run with the product is at 75.1, while isolation in the averaged run without the product is at 49.9, a massive 50.5% increase.
+
+At timestep 60, isolation in the averaged run with the product is at 274.7, while isolation in the averaged run without the product is at 267.4, a mere 2.7% increase.
+
+This rather anecdotal look at the data suggests that the reason why the product prevents spread is not because it puts more people into isolation, but because it puts them into isolation *earlier*. This is important because it implies hospitals in the real world would not have to acquire higher capacity to accommodate patients with resistant pathogens, but can improve outcomes by using existing capacity more proactively.
+
+Furthermore, the insights into isolation also explain why the product causes overall infection rates to decrease. While putting more people into isolation will inevitably decrease infection rates, putting them earlier into isolation will have the same effect.
+
+Something else to note is the higher frequency of resistance to Colistin when using the product. Peak resistance when using the product reaches 271.7 compared to 256.5 when not using the product, a 5.9% increase. While this may not seem high, it has important implications as resistance again Colistin prevents the effective use of *any antibiotic*. Once a patient contracts a Colistin-resistant pathogen in this scenario, with no chance of a natural recovery, you are effectively dead.
+
+Why does this happen? When the product detects resistance to Meropenem, treatment immediately changes to Colistin. This means that overall when using the product, more people are treated with Colistin than otherwise. Hence, while the frequency of Meropenem-resistance might be lower, the likelihood a pathogen develops resistance against Colistin if it is already resistant against Meropenem is much higher since resistance can only develop if it is treated with Colistin.
+
+Is this a problem? Not necessarily, due to two reasons. First of all, Colistin is only used when all other options are exhausted. In the case of a patient resistant to Meropenem, Colistin is the only effective treatment available to them. Since the chance of recovering without effective treatment is zero, not treating them is effectively letting them die. Furthermore, despite Colistin-resistance increasing in frequency, it is much less likely to spread. Without the product, we cannot know who carries Colistin-resistant pathogens, hence they are not guaranteed to be in isolation. Using the product, however, we always detect any patient resistant to Meropenem *or any higher-tier antibiotic*. This means all patients with resistance to Colistin are also put in isolation. Hence Colistin-resistance will not spread when the product is used. This is not totally true to the real world, and the change to fix this is discussed in the future work section, as we did not have time to propagate all the new data a fix to this would generate. However, we performed an informal test on the proposed fix (shown below), and found that the change appeared to be negligible.
+
+```python
+if person.infection.get_tier() >= PRODUCT_DETECTION_LEVEL:
+```
+
+Is replaced by
+
+```python
+if person.infection.get_tier() == PRODUCT_DETECTION_LEVEL:
+```
+
+##### Using a small population
+
+Below, we show pairs of graphs of results with large and small population sizes for comparison
+
+ TODO: INSERT IMAGE -  NBM average simulation (population=5000) without product, focussing on Meropenem resistance graph
+
+A graph showing the change of several variables over time, having averaged 10 runs without the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+
+ TODO: INSERT IMAGE -  NBM average simulation (population=200) without product, focussing on Meropenem resistance graph
+
+A graph showing the change of several variables over time, when the population size was set to 200 and initially infected at 10, without the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+
+
+
+ TODO: INSERT IMAGE -  NBM average simulation (population=5000) with product, focussing on Meropenem resistance graph
+
+A graph showing the change of several variables over time, having averaged 10 runs with the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+
+ TODO: INSERT IMAGE -  NBM average simulation (population=200) with product, focussing on Meropenem resistance graph
+
+A graph showing the change of several variables over time, when the population size was set to 200 and initially infected at 10, with the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+
+
+
+As you can see, the runs with lower populations sizes and fewer infected at the start provide similar results to the averaged runs with much higher populations. They largely have the same outcomes, with the simulation not using the product ending up with 88%, 37% and 32% infection, mortality and death rates respectively, and the simulation using the product ending up with 90%, 35% and 32% infection, mortality and death rates respectively.
+
+There are a few things worth noting. At surface level it seems as if the product made no difference in the runs with smaller population sizes, as the death rate was the same when using compared to when not using the product. Furthermore, in the run with the small population and with the product in use, the peak in cases was much earlier. The takeaway is that due to the model being stochastic, small sample sizes result in very different outcomes. This does not mean the product is less useful, it only points to the necessity of modelling with large enough sample sizes to get an accurate measurement of its impact.
+
+All in all, the major trends seen in the simulations are very similar when comparing the averaged runs and the runs with the smaller populations. This indicates that the averaged runs give us a useful indicator of how the model works even with smaller populations.
+
+#### Implications
+
+Through our analysis we have been able to find several useful takeaways. First of all, in the case of neonatal bacterial meningitis, the product can decrease the total amount of deaths in a population through two means.
+
+1) Ensuring patients carrying a pathogen resistant to Meropenem are treated with an effective treatment, such as Colistin, thereby lowering mortality rates.
+
+2) Ensuring patients carrying a pathogen resistant to Meropenem are proactively put into isolation, directly lowering infection rates and indirectly lowering mortality rates, by preventing spread of Meropenem-resistance. Notably, the product does not seem to increase overall isolation rates by much. Rather, it puts patients into isolation earlier. Therefore hospitals are not required to increase isolation capacity, the product just allows any existing capacity to be used more effectively.
+
+These two mechanisms work to decrease the infection rate by 4.71% and the mortality rate by 6.56%, overall resulting in a 11.13% lower death rate. Hypothesis testing confirmed all these improvements are statistically significant.
+
+One cause for concern is the increased frequency of resistance to Colistin. At peak levels, using the product increased Colistin resistance by 5.9%. This is due to the product putting more people on Colistin treatment. While at surface level this might seem like an issue, one has to keep in mind two things.
+
+1) The reason for higher use of Colistin is because all other options are exhausted. In the case of NBM, not treating a patient resistant to Meropenem with Colistin is effectively letting them die.
+
+2) Thanks to the product putting patients resistant to Meropenem or any higher tier antibiotic in isolation, all patients with resistance to Colistin are also put in isolation. Hence Colistin-resistance will not spread. 
+
+While these statistics paint a promising picture, one needs to keep in mind that these are based on averaged runs with a large sample size. Were you to run the programme again trying to simulate the spread of NBM in an actual hospital department, the population will have to be decreased. Instead of using 5000 patients, a more realistic scenario would be hundreds or even tens of patients. Since the model is stochastic, the probabilities of individual events will lead to very different outcomes every time the programme is ran. Therefore, it is unrealistic to always expect the product to have the same impact. However, the test runs with populations of 200 tell us something interesting. While the outcomes will vary a lot, the averaged runs are good at predicting overall trends in terms of resistance frequencies and infection, mortality and death rates. Furthermore, they allow us to estimate the average impact of the product. Therefore, the unrealistic large population size of the averaged runs is not a reason to dispute any insights we get from them.
+
+More generally, the contextualisation shows that the model can be useful to simulate real-world scenarios, and both qualify and quantify the impact of using the product. Generally, the more parameters that can be anchored, the more realistic the simulation and the more takeaways can be made. The simulation of our product being used to combat neonatal bacterial meningitis could just as well be applied to scenarios with other diseases, helping us understand how our product could make a difference there as well.
+
+#### Summary
+
+TODO: Insert box plot comparing with and without product on metrics above
+
+TODO: Single sentence conclusion of contextualisation results
 
 ### Development and future work
 
 Throughout the development process, we presented the modelling work to other members of our team and our principal investigators, along with an external expert in the field, [Alex Darlington](https://warwick.ac.uk/fac/sci/eng/people/alexander_darlington/). Presenting our work was incredibly helpful not only for ensuring that we could explain everything fully and understandably, but also as we received useful suggestions about ways we could improve the model.
+
+A table of suggested improvements we received during development is:
+
+| Proposer               | Summary                                                      | Done? |
+| ---------------------- | ------------------------------------------------------------ | ----- |
+| Alex Darlington        | Real hospitals only contain a fairly small number of people susceptible within the model, maximum 250, so the population size should be limited by that. This has the effect of increasing variance in the markov model, as the law of large numbers does not apply, however, it is important for realistic simulation | Yes   |
+| Alex Darlington        | Add the use of a "last resort" drug, such as Colistin, to resolve the issue of the product detection being too late to make any meaningful action. For example, if Carbapenemase is the final drug in the hierarchy, detection of resistance is not useful, as the highest possible isolation threshold is being treated with it, which is a pre-requisite for developing resistance, so people will never be isolated as a result, and there is no higher tier treatment to use, so better treatment cannot be given either. | Yes   |
+| Alex Darlington        | Add an increasing risk of death if a person has been infected for a long time, as in the real world, people become frail after having been sick for some time. | Yes   |
+| Axel Schoerner Emillon | Change the detection method to only detect whether someone is currently resistant to Carbapenemase, rather than if they have any higher tier resistance, as it is not a pre-requisite in the real world given that mutations might not occur in the Carbapenemase treatment stage. This was not implemented as it was identified very late in the process after most of the analysis was completed and we would not have had time to redo it, but we performed an informal test, and found it caused a negligible difference in the model results. | No    |
+
+A table of suggested future work we received during development is:
+
+| Proposer               | Summary                                                      | Accepted? |
+| ---------------------- | ------------------------------------------------------------ | --------- |
+| Alex Darlington        | Add a cap of the people who can be isolated at one time, as there is a physical limitation of beds in hospital. This was rejected as a change as isolation can be modelled as just more regular changing of PPE, rather than necessarily having totally discrete rooms. | No        |
+| Alex Darlington        | Add a spatial aspect to the model, for example having two wards which cannot spread to each other, but having staff who serve both wards and can become infected, in order to act as transmission vectors between the two wards. | Yes       |
+| Axel Schoerner Emillon | Add an asymptomatic phase to the infections, where people can have the infection and be able to transmit it, but they are have no symptoms, so treatment will no start. | Yes       |
 
 ### Conclusion
 
@@ -552,15 +776,17 @@ Some common questions about the model are answered below:
 
 ### References
 
-[1] Simon, Cory M., 2020. *_The SIR dynamic model of infectious disease transmission and its analogy with chemical kinetics_*. Available at [https://peerj.com/articles/pchem-14/](https://peerj.com/articles/pchem-14/) [Accessed 27 September 2021]. DOI: 10.7717/peerj-pchem.14
+[1] Simon, C., 2020. The SIR dynamic model of infectious disease transmission and its analogy with chemical kinetics. *PeerJ Physical Chemistry*, 2, p.e14.
 
-[2] Şah İpek, M., 2019. *_Neonatal Bacterial Meningitis_*. [online] IntechOpen. Available at: [https://www.intechopen.com/chapters/68042](https://www.intechopen.com/chapters/68042). DOI: 10.5772/intechopen.87118
+[2] Şah İpek, M., 2019. Neonatal Bacterial Meningitis. *Neonatal Medicine*.
 
-[3] Meningitis Research Foundation, 2017. *_Management of Bacterial Meningitis in infants <3 months_*. Available at: [https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017](https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017) [pdf]
+[3] 2017. *Management of Bacterial Meningitis in infants <3 months*. [pdf] Meningitis Research Foundation. Available at: <https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017> [Accessed 15 October 2021].
 
-[4] Tesini, B., 2020. *_Neonatal Bacterial Meningitis_*. [online] MSD Manual Professional Edition. Available at: [https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis](https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis) [Accessed 23 September 2021].
+[4] Mahabeer, P., Mzimela, B., Lawler, M., Singh-Moodley, A., Singh, R. and Mlisana, K., 2018. Colistin-resistantAcinetobacter baumanniias a cause of neonatal ventriculitis. *Southern African Journal of Infectious Diseases*, pp.1-3.
 
+[5] Nation, R. and Li, J., 2009. Colistin in the 21st century. *Current Opinion in Infectious Diseases*, 22(6), pp.535-543.
 
+[6] Tesini, B., 2020. *Neonatal Bacterial Meningitis*. [online] MSD Manual Professional Edition. Available at: <https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis> [Accessed 15 October 2021].
 
 ## NUPAC modelling
 
