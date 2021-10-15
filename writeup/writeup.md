@@ -116,16 +116,16 @@ Our model is discrete time, stochastic, and compartmental:
   ```python
   # Make a new data handler for each simulation
   self.data_handler.__init__()
-
+  
   # Repeat the simulation for a set number of timesteps
   for _ in range(NUM_TIMESTEPS):
-
+  
       # For each person in the population
       for person in self.population:
-
+  
           # Record the data throughout the model
           self.data_handler.record_person(person)
-
+  
   ```
 
 
@@ -138,7 +138,24 @@ A diagram of the SIR model. Image source: [1]
 
 ### Implementation
 
-The key features of the model can be split up into five semi-distinct sections:
+The key features of the model can be split up into five semi-distinct sections, which are enumerated in the sections below.
+
+In each timestep of the model, each of these features are applied to mutate the state of the population. The order in which they are applied, whilst arbitrary, slightly effects the results of the model, in the sense that different application orders would give different results given the same random seed, but any application order can reasonably be considered a adequate model of the system. In our implementation, this order is:
+
+```
+FOR EACH person in the population
+	Record the state of the person
+	Increase treatment
+	Isolate based on treatment level
+	IF product is in use
+		Isolate based on product
+	ENDIF
+	Recovery
+	Mutation
+	Death
+ENDFOR
+Spread through the population
+```
 
 #### 1. Pathogen and people
 
@@ -287,6 +304,14 @@ if decision(death_probability):
 ```
 
 The goal is to create a situation where in the limit of time, the number of uninfected and immune people is maximised, and the number of dead people is minimised.
+
+### Software engineering
+
+#### Automated testing
+
+#### Transpilation to JavaScript
+
+#### Uploading to PyPI
 
 ### Testing and validation
 

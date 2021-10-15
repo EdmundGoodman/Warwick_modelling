@@ -18,7 +18,7 @@ product is beneficial in the real-world.
 We used Python to implement a discrete time, stochastic, compartmental model of
 the spread of antibiotic resistant pathogens through a population.
 
-## Contributions and Errata
+## Contributions and errata
 
 If you find a bug in the code or an error in the writeup, feel free to submit
 a pull request or an issue, and we will endeavour to fix it!
