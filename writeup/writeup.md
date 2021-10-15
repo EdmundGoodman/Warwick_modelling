@@ -309,9 +309,95 @@ The goal is to create a situation where in the limit of time, the number of unin
 
 #### Automated testing
 
+Whilst testing strategies and reasoning for testing are discussed in the "Testing and validation" section, the implementation of the testing is a point of interest in its own right. We used the `unittest` module in Python to implement tests for the source code.
+
+An example of a test is as follows, where we check that the boundary case of no-one being infected to start results in no infections for the entire model one. Whilst this might seem trivial, if it fails it is clear something is very wrong with the model, which might be a subtle result of a change made during development, and hence can prevent confusion about model results not making sense by showing that the problem is in the model implementation, not the analysis.
+
+```python
+class TestModel(unittest.TestCase):
+    def test_empty_model(self):
+        """Test that a model with no infected people always stays fully uninfected"""
+        # Change parameters for the test setup and run the test
+        Params.INITIALLY_INFECTED = 0
+        m = run()
+        self.assertEqual(m.data_handler.get_uninfected_data(),
+                         [Params.POPULATION_SIZE]*Params.NUM_TIMESTEPS)
+        self.assertEqual(m.data_handler.get_infected_data()[0],
+                         [0]*Params.NUM_TIMESTEPS)
+        reset_params()
+```
+
+An interesting note about these tests is despite the fact they are written as unit tests, which normally refers to tests with a fixed input, these can be thought of as being tested with different inputs dependent on the result of the random number generator.
+
+```python
+class TestModel(unittest.TestCase):
+    def test_empty_model(self):
+        """Test that a model with no infected people always stays fully uninfected"""
+        # Change parameters for the test setup and run the test
+        Params.INITIALLY_INFECTED = 0
+        
+        # Repeat the testing phase many times, with random number generation as the
+        # function input differing each time
+        for _ in range(100):
+            m = run()
+            self.assertEqual(m.data_handler.get_uninfected_data(),
+                             [Params.POPULATION_SIZE]*Params.NUM_TIMESTEPS)
+            self.assertEqual(m.data_handler.get_infected_data()[0],
+                             [0]*Params.NUM_TIMESTEPS)
+        
+        reset_params()
+```
+
+If the tests are run many times, with many different resulting random number inputs, these unit tests can now be thought of as property based tests. This refers to checking that a function fulfils a property by randomly providing it with values from its input domain, and checking that the resultant outputs fulfil the property. This is a strategy which was pioneered in the functional programming language Haskell https://medium.com/criteo-engineering/introduction-to-property-based-testing-f5236229d237, and is often considered preferable to unit based tests. https://www.cognitect.com/blog/2013/11/26/better-than-unit-tests
+
+#### Version control and CI/CD
+
+Having implemented a robust testing strategy, we now had all the building blocks for a continuous integration/continuous development workflow, as shown below:
+
+![CI/CD diagram](https://www.redhat.com/cms/managed-files/styles/wysiwyg_full_width/s3/ci-cd-flow-desktop.png?itok=2EX0MpQZ)
+
+The build phase is relatively simple - writing the code in an editor of your choice, and running it with the Python interpreter, and the testing phase is discussed above.
+
+Throughout the entire project, we used `git` as version control, due to the vast number of reasons `git` is helpful in software development. From this, we linked the project to a remote repository on GitHub, which forms the main way to access the most up to data code. This forms the merge and continuous delivery steps.
+
+We chose not to automate publishing the code to PyPI (discussed below), which could be considered the production aspect of the modelling, as the project is still under active development, and minor changes to the repository should not necessarily be pushed, as their general stability and usefulness is not fully known.
+
 #### Transpilation to JavaScript
 
+In order to create the toy model, we needed to use a language which can be run client side in the browser. Since Python cannot do this, we needed to convert the source code into a language which can - with the obvious choice being JavaScript.
+
+Instead of manually re-writing the entire model into JavaScript, we decided to use an automated tool to do it for us. This class of tool is called a transpiler, which converts between two languages in the same tier in the language complexity hierarchy (e.g. two high level languages). We considered a number of tools, with the main decision being between [Brython](https://brython.info/), a runtime transpiler which translates the Python code to JavaScript on the fly, and [Transcrypt](https://www.transcrypt.org/), a build-time transpiler which translates the code beforehand. We decided to use Transcrypt, as it offers better performance, having pre-compiled the code, and since it allows an easier integration into the JavaScript DOM.
+
+The transpilation process was not totally seamless, as some language properties in python are not supported in JavaScript, for example named parameters and adding lists, and not all of the libraries used were supported by Transcrypt, meaning some of the `random` methods had to be implemented by hand, and the output graphs and excel exporter had to be totally removed.
+
+In order to display the output in a visual manner, we used the `Chart.js` package, which is commonly used for client side data plotting.
+
 #### Uploading to PyPI
+
+Since we developed our model in python, and it follows best practices as opposed to just being a standalone script, uploading the repository to PyPI, the Python package index, was fairly trivial.
+
+Doing this greatly simplifies the way in which the package can be distributed. Instead of cloning the repository, and running the code directly through that:
+
+```bash
+git clone https://github.com/Warwick-iGEM-2021/modelling
+cd modelling/tiered-antibiotic-resistance-model
+python3 model.py
+```
+
+The module can be installed using `pip` on the command line, then just imported directly in a Python file:
+
+```bash
+pip install tiered_antibiotic_resistance_model
+```
+
+```python
+from tiered_antibiotic_resistance_model import *
+run_and_output()
+```
+
+And the parameters of the model can be set within the other Python file by directly manipulating the `Param` object, instead of having to go into the source code and change them in the actual model, which is not a best practice.
+
+The [PyPI page for the project is accessible here](https://pypi.org/project/tiered-antibiotic-resistance-model/2.0.1/)
 
 ### Testing and validation
 
@@ -334,7 +420,7 @@ To ensure that models are sufficiently accurate to the real-world scenario they 
 
 #### Automated testing
 
-Wrote tests of the model using the python unittest library = allows continuous integration
+Wrote tests of the model using the Python unittest library = allows continuous integration
 
 
 
@@ -422,11 +508,17 @@ Whatever analysis you think is relevant
 
 Final headline chart which simply shows our product making things better (two lines, one labelled without, one labelled with)
 
-​	- I might add something additional here (box plot of how much better our stuff is with different random seeds?)
+	- I might add something additional here (box plot of how much better our stuff is with different random seeds?)
+
+### Development and future work
+
+Throughout the development process, we presented the modelling work to other members of our team and our principal investigators, along with an external expert in the field, [Alex Darlington](https://warwick.ac.uk/fac/sci/eng/people/alexander_darlington/). Presenting our work was incredibly helpful not only for ensuring that we could explain everything fully and understandably, but also as we received useful suggestions about ways we could improve the model.
 
 ### Conclusion
 
 Given the fact that we have tested and validated our model to be sufficiently representative of the real world, and the model output indicates that the use of the product reduces the presence of antibiotic resistant pathogenic strains in our selected scenario, we conclude that our product is beneficial.
+
+There are a number of aspects in which we could expand our model into if we did not have the time constraints of the iGEM competition, but we believe that the model in it's current state both achieves it's goal of showing our product is beneficial, along with being a useful tool for understanding the issue of antibiotic resistance in its own right.
 
 ### Discussion
 
