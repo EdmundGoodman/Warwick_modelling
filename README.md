@@ -13,6 +13,17 @@ quickly identifying it, and show that in a relevant scenario it reduces the
 presence of antibiotic resistant pathogens in our selected scenario, showing our
 product is beneficial in the real-world.
 
+## Team
+
+The core team members of the project are:
+
+- Edmund Goodman, Model design and software implementation
+- Axel Schoerner Emillon, Model design and data analysis
+
+With thanks to Reanna Gregory, Alex Darlington, and the rest of the 2021 iGEM
+Warwick team for their time discussing the initial design and ways to improve
+the model.
+
 ## Summary
 
 We used Python to implement a discrete time, stochastic, compartmental model of
