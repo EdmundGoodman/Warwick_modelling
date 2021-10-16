@@ -135,7 +135,7 @@ Our model is discrete time, stochastic, and compartmental:
 
 The model essentially is a modification of the standard SIR model for epidemic disease, adding more "compartments" for additional states people can take, when they are infected with increasingly antibiotic resistant pathogens.
 
-![SIR Graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\SIR_graph.png)
+![SIR Graph](./diagrams/SIR_graph.png)
 
 A diagram of the SIR model. Image source: [1]
 
@@ -181,13 +181,13 @@ In the limit of time to infinity, all individuals will be either uninfected, imm
 
 Below shows the state transition diagram of every state a person within the population can take (for reasons discussed later in the treatment section, pathogenic resistances to antibiotics will occur in a set order):
 
-![General state transition diagram](C:\Users\egood\Desktop\modelling\writeup\diagrams\general.PNG)
+![General state transition diagram](./diagrams/general.PNG)
 
 
 
 Below shows a state transition diagram of a person centred around the state of being infected with a pathogen resistant to antibiotic $$n$$ in the precedence of antibiotics:
 
-![Specific state transition diagram](C:\Users\egood\Desktop\modelling\writeup\diagrams\specific_none.png)
+![Specific state transition diagram](./diagrams/specific_none.png)
 
 #### 2. Treatment and mutation
 
@@ -203,7 +203,7 @@ if decision(person.infection.mutation_probability):
 
 Below shows the same specified diagram used above, with additional information about the mutation step to elucidate it:
 
-![Specific state transition diagram with mutation explanation](C:\Users\egood\Desktop\modelling\writeup\diagrams\specific_mutation.png)
+![Specific state transition diagram with mutation explanation](./diagrams/specific_mutation.png)
 
 The pathogen is modelled as being immediately symptomatic, meaning doctors can immediately identify a patient is infected with it, but they cannot quickly identify whether or not they have a resistant strain if our product is not in use.
 
@@ -288,7 +288,7 @@ if person.infection.get_tier() >= PRODUCT_DETECTION_LEVEL:
 
 Below shows the same specified diagram used above, with additional information about the isolation step to elucidate it:
 
-![Specific state transition diagram with isolation explanation](C:\Users\egood\Desktop\modelling\writeup\diagrams\specific_isolation.png)
+![Specific state transition diagram with isolation explanation](./diagrams/specific_isolation.png)
 
 #### 5. Recovery and death
 
@@ -327,7 +327,7 @@ The goal is to create a situation where in the limit of time, the number of unin
 
 We used an iterative design process during the development of the model, as discussed on page 21 in the book "Testing and Validation of Computer Simulation Models: Principles, Methods and Applications" [5].
 
-![Block diagram of model design](C:\Users\egood\Desktop\modelling\writeup\diagrams\designBlockDiagram.png)
+![Block diagram of model design](./diagrams/designBlockDiagram.png)
 
 Block diagram of steps in model design - taken from "Testing and Validation of Computer Simulation Models: Principles, Methods and Applications" [5]
 
@@ -387,7 +387,7 @@ If the tests are run many times, with many different resulting random number inp
 
 Having implemented a robust testing strategy, we now had all the building blocks for a continuous integration/continuous development workflow, as shown below:
 
-![CI/CD diagram](https://www.redhat.com/cms/managed-files/styles/wysiwyg_full_width/s3/ci-cd-flow-desktop.png?itok=2EX0MpQZ)
+![CI/CD diagram](./diagrams/CI_CD_Diagram.png)
 
 The build phase is relatively simple - writing the code in an editor of your choice, and running it with the Python interpreter, and the testing phase is discussed above.
 
@@ -470,7 +470,7 @@ The paper defines the verification technique in the following way: "Verification
 
 We graphically compared the data outputs with the expected characteristic "S-curve" shape which is prevalent in SIR type stochastic models similar to ours. Whilst the individual lines for different resistance levels do not form such a curve, if their total is taken, it does - which is the expected behaviour, as the sum of the resistance levels gives total number infected. This is shown below with the boundary between the pink and the brown items in the graph forming the characteristic curve.
 
-![A stack plot showing the S-curve shape](C:\Users\egood\Desktop\modelling\writeup\diagrams\stackplot.png)
+![A stack plot showing the S-curve shape](./diagrams/stackplot.png)
 
 Additionally, the book notes that "A special issue in verification occurs with respect to multi-agent models.  Multi-agent models can potentially undergo dual level verification; i.e., verification at both the individual and group level.  To wit, does the model accurately predict group level behavior, individual level behavior, or both?" [8]
 
@@ -561,7 +561,7 @@ Finally, we also did some further analysis into how the product affects the outc
 
 A graph showing the change of several variables over time, having averaged 10 runs without the product in use. “Amoxicillin+”, “Meropenem”, and “Colistin” refer to the number of patients carrying a pathogen with resistance to said antibiotic(s). “Infected” is virtually indistinguishable from “Amoxicillin+” as almost all infected patients develop resistance to Amoxicillin+ immediately as treatment starts due to the parameters of the model. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
-![NBM average simulation without product in use graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\graph1.png)
+![NBM average simulation without product in use graph](./diagrams/graph1.png)
 
 
 
@@ -577,7 +577,7 @@ Some statistics from the averaged run over a population of 5000 without the prod
 
 The mortality rate of the averaged run without the product at 40.86% is very close to the actual mortality rate of NBM in developed countries. This means we have anchored the outcome correctly, which should give us more interesting takeaways when we compare with the outcome when the product is in use. The infection rate is very high, however, this is largely due to the model not simulating space (for example between departments of a hospital). Without a spatial element, there is no barrier to infection apart from people turning immune, dying or being put into isolation.
 
-![NBM average simulation with product in use graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\graph2.png)
+![NBM average simulation with product in use graph](./diagrams/graph2.png)
 
 A graph showing the change of several variables over time, having averaged 10 runs with the product in use. “Amoxicillin+”, “Meropenem”, and “Colistin” refer to the number of patients carrying a pathogen with resistance to said antibiotic(s). “Infected” is virtually indistinguishable from “Amoxicillin+” as almost all infected patients develop resistance to Amoxicillin+ immediately as treatment starts due to the parameters of the model. “Meropenem” is virtually indistinguishable from “Isolated” as all patients with resistance to Meropenem are put into isolation when the product is in use, with few patients being put into isolation that are not resistant to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
@@ -677,7 +677,7 @@ Thus, we see that all changes in means are statistically significant, implying t
 
 Digging deeper into how the product impacts the outcome of the model, we can look at how variables interact over time. While the programme does not give us granular data to the extent that we can conditionalise the patients on certain variables, we can see how trends relate to each other.
 
-![NBM average simulation without product in use, focussing on resistances and isolation graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\graph3.png)
+![NBM average simulation without product in use, focussing on resistances and isolation graph](./diagrams/graph3.png)
 
 A graph showing the change of frequency in Meropenem and Colistin resistances as well as isolation over time, having averaged 10 runs without the product in use. As resistance to Colistin naturally yields resistance again Meropenem in the model, the frequency of resistance to Meropenem is always higher than that to Colistin. It is clear that isolation is lagging behind the spread of resistant pathogens, with many people who carry and could spread pathogens resistant to Meropenems not being put into isolation. At peak levels, resistance to Meropenem and Colistin reaches 496.8 and 256.5 respectively, while peak isolation reaches 295.5.
 
@@ -685,7 +685,7 @@ A graph showing the change of frequency in Meropenem and Colistin resistances as
 
 The first notable takeaway when comparing the data is the difference in frequency of resistance to Meropenem. At peak levels, not using the product increases the frequency of resistance to Meropenem by 53%. This is because patients who carry resistant pathogens are quickly put into isolation when using the product, preventing further spread. Notably, peak isolation is only 6% higher, which suggests that it is not merely putting more people into isolation that prevents spread.
 
-![NBM average simulation with product in use, focussing on resistances and isolation graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\graph4.png)
+![NBM average simulation with product in use, focussing on resistances and isolation graph](./diagrams/graph4.png)
 
 Looking at timestep 30, isolation in the averaged run with the product is at 75.1, while isolation in the averaged run without the product is at 49.9, a massive 50.5% increase.
 
@@ -715,19 +715,19 @@ if person.infection.get_tier() == PRODUCT_DETECTION_LEVEL:
 
 Below, we show pairs of graphs of results with large and small population sizes for comparison
 
-![NBM average simulation (population=5000) without product, focussing on Meropenem resistance graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\graph5.png)
+![NBM average simulation (population=5000) without product, focussing on Meropenem resistance graph](./diagrams/graph5.png)
 
 A graph showing the change of several variables over time, having averaged 10 runs without the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
-![NBM average simulation (population=200) without product, focussing on Meropenem resistance graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\graph6.png)
+![NBM average simulation (population=200) without product, focussing on Meropenem resistance graph](./diagrams/graph6.png)
 
 A graph showing the change of several variables over time, when the population size was set to 200 and initially infected at 10, without the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
-![NBM average simulation (population=5000) with product, focussing on Meropenem resistance graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\graph7.png)
+![NBM average simulation (population=5000) with product, focussing on Meropenem resistance graph](./diagrams/graph7.png)
 
 A graph showing the change of several variables over time, having averaged 10 runs with the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
-![NBM average simulation (population=200) with product, focussing on Meropenem resistance graph](C:\Users\egood\Desktop\modelling\writeup\diagrams\graph8.png)
+![NBM average simulation (population=200) with product, focussing on Meropenem resistance graph](./diagrams/graph8.png)
 
 A graph showing the change of several variables over time, when the population size was set to 200 and initially infected at 10, with the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
@@ -851,4 +851,3 @@ Some common questions about the model are answered below:
 [13] Nation, R. and Li, J., 2009. *Colistin in the 21st century*. Current Opinion in Infectious Diseases, 22(6), pp.535-543.
 
 [14] Tesini, B., 2020. *Neonatal Bacterial Meningitis*. [online] MSD Manual Professional Edition. Available at: <https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis> [Accessed 15 October 2021].
-
