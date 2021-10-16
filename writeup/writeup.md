@@ -634,6 +634,7 @@ For the difference-in-means test of the infection rates, we used the following v
 | Mean infection rate with the product               | 0.8585                 |
 | Variance of the infection rate with the product    | 2.96$$\times 10^{-4}$$ |
 
+
 $$
 P \left( t_{18} > \frac{0.9010 - 0.8585}{\sqrt{\frac{2.4 \times 10^{-5} + 2.96 \times 10^{-4}}{10}}} \right) = P(t_{18} > 7.513) < 1\%
 $$
@@ -649,6 +650,7 @@ For the difference-in-means test of the mortality rates, we used the following v
 | Mean infection rate with the product               | 0.3812                 |
 | Variance of the infection rate with the product    | 1.49$$\times 10^{-4}$$ |
 
+
 $$
 P \left( t_{18} > \frac{0.4086 - 0.3812}{\sqrt{\frac{7.8 \times 10^{-5} + 1.49 \times 10^{-4}}{10}}} \right) = P(t_{18} > 5.751) < 1\%
 $$
@@ -663,6 +665,7 @@ For the difference-in-means test of the death rates, we used the following varia
 | Variance of the infection rate without the product | 8.4$$\times 10^{-5}$$  |
 | Mean infection rate with the product               | 0.3273                 |
 | Variance of the infection rate with the product    | 3.09$$\times 10^{-4}$$ |
+
 
 $$
 P \left( t_{18} > \frac{0.3682 - 0.3273}{\sqrt{\frac{8.4 \times 10^{-5} + 3.09 \times 10^{-4}}{10}}} \right) = P(t_{18} > 6.524) < 1\%
