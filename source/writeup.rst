@@ -1,12 +1,7 @@
-Warwick iGEM computational modelling
+Model writeup
 ====================================
 
-Table of contents
------------------
-
 .. contents::
-Custom modelling
-----------------
 
 The most significant component of the modelling we performed as part of
 the project was the design, implementation, and interpretation of a
@@ -186,7 +181,7 @@ epidemic disease, adding more “compartments” for additional states
 people can take, when they are infected with increasingly antibiotic
 resistant pathogens.
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\SIR_graph.png
+.. figure:: ../writeup/diagrams/SIR_graph.png
    :alt: 
 
 A diagram of the SIR model. Image source: [1]
@@ -260,14 +255,14 @@ the population can take (for reasons discussed later in the treatment
 section, pathogenic resistances to antibiotics will occur in a set
 order):
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\general.PNG
+.. figure:: ../writeup/diagrams/general.PNG
    :alt: 
 
 Below shows a state transition diagram of a person centred around the
 state of being infected with a pathogen resistant to antibiotic
 :math:`n` in the precedence of antibiotics:
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\specific_none.png
+.. figure:: ../writeup/diagrams/specific_none.png
    :alt: 
 
 .. _2-treatment-and-mutation:
@@ -296,7 +291,7 @@ dominant when there is a pressure giving them a survival advantage.
 Below shows the same specified diagram used above, with additional
 information about the mutation step to elucidate it:
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\specific_mutation.png
+.. figure:: ../writeup/diagrams/specific_mutation.png
    :alt: 
 
 The pathogen is modelled as being immediately symptomatic, meaning
@@ -413,7 +408,7 @@ strain, they are put into isolation when they exceed a threshold of
 Below shows the same specified diagram used above, with additional
 information about the isolation step to elucidate it:
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\specific_isolation.png
+.. figure:: ../writeup/diagrams/specific_isolation.png
    :alt: 
 
 .. _5-recovery-and-death:
@@ -466,7 +461,7 @@ We used an iterative design process during the development of the model,
 as discussed on page 21 in the book “Testing and Validation of Computer
 Simulation Models: Principles, Methods and Applications” [5].
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\designBlockDiagram.png
+.. figure:: ../writeup/diagrams/designBlockDiagram.png
    :alt: 
 
 Block diagram of steps in model design - taken from “Testing and
@@ -769,7 +764,7 @@ levels gives total number infected. This is shown below with the
 boundary between the pink and the brown items in the graph forming the
 characteristic curve.
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\stackplot.png
+.. figure:: ../writeup/diagrams/stackplot.png
    :alt: 
 
 Additionally, the book notes that “A special issue in verification
@@ -940,7 +935,7 @@ develop resistance to Amoxicillin+ immediately as treatment starts due
 to the parameters of the model. Only the first 100 time-steps are shown
 as the variables change only marginally after that.
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\graph1.png
+.. figure:: ../writeup/diagrams/graph1.png
    :alt: 
 
 Some statistics from the averaged run over a population of 5000 without
@@ -966,7 +961,7 @@ departments of a hospital). Without a spatial element, there is no
 barrier to infection apart from people turning immune, dying or being
 put into isolation.
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\graph2.png
+.. figure:: ../writeup/diagrams/graph2.png
    :alt: 
 
 A graph showing the change of several variables over time, having
@@ -1170,7 +1165,7 @@ not give us granular data to the extent that we can conditionalise the
 patients on certain variables, we can see how trends relate to each
 other.
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\graph3.png
+.. figure:: ../writeup/diagrams/graph3.png
    :alt: 
 
 A graph showing the change of frequency in Meropenem and Colistin
@@ -1206,7 +1201,7 @@ isolation when using the product, preventing further spread. Notably,
 peak isolation is only 6% higher, which suggests that it is not merely
 putting more people into isolation that prevents spread.
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\graph4.png
+.. figure:: ../writeup/diagrams/graph4.png
    :alt: 
 
 Looking at timestep 30, isolation in the averaged run with the product
@@ -1281,7 +1276,7 @@ Using a small population
 Below, we show pairs of graphs of results with large and small
 population sizes for comparison
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\graph5.png
+.. figure:: ../writeup/diagrams/graph5.png
    :alt: 
 
 A graph showing the change of several variables over time, having
@@ -1290,7 +1285,7 @@ number of patients carrying a pathogen with resistance to Meropenem.
 Only the first 100 time-steps are shown as the variables change only
 marginally after that.
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\graph6.png
+.. figure:: ../writeup/diagrams/graph6.png
    :alt: 
 
 A graph showing the change of several variables over time, when the
@@ -1299,7 +1294,7 @@ product in use. “Meropenem” refers to the number of patients carrying a
 pathogen with resistance to Meropenem. Only the first 100 time-steps are
 shown as the variables change only marginally after that.
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\graph7.png
+.. figure:: ../writeup/diagrams/graph7.png
    :alt: 
 
 A graph showing the change of several variables over time, having
@@ -1308,7 +1303,7 @@ number of patients carrying a pathogen with resistance to Meropenem.
 Only the first 100 time-steps are shown as the variables change only
 marginally after that.
 
-.. figure:: C:\Users\egood\Desktop\modelling\writeup\diagrams\graph8.png
+.. figure:: ../writeup/diagrams/graph8.png
    :alt: 
 
 A graph showing the change of several variables over time, when the

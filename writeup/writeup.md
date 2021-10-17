@@ -420,7 +420,7 @@ python3 model.py
 The module can be installed using `pip` on the command line, then just imported directly in a Python file:
 
 ```bash
-pip install tiered_antibiotic_resistance_model
+pip install tiered-antibiotic-resistance-model
 ```
 
 ```python

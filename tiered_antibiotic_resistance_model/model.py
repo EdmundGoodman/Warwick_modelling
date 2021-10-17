@@ -31,7 +31,6 @@ class Params:
     ############################################################
     # Use these if you want to set all drugs to the same thing #
     ############################################################
-
     PROBABILITY_GENERAL_RECOVERY = 0
     PROBABILITY_TREATMENT_RECOVERY = 0.3
     PROBABILITY_MUTATION = 0.25
@@ -43,10 +42,15 @@ class Params:
 
     @staticmethod
     def reset_granular_parameters():
-        ###########################################################################
-        # Set these explicitly for more granular control, or use the above to set #
-        # them all as a group                                                     #
-        ###########################################################################
+        """The model behaviour is based on the variables within this method,
+        so changing the parameters for setting all drugs to be the same won't
+        affect anything, so this function can be called to propogate the changes
+        through the Params class"""
+
+        #######################################################################
+        # Set these explicitly for more granular control, or use the above to #
+        # set them all as a group                                             #
+        #######################################################################
 
         # Lookup table of drug properties by their names
         Params.DRUG_PROPERTIES = {}
@@ -158,6 +162,7 @@ class Infection:
         return Infection(self.resistance, self.time_treated)
 
     def __repr__(self):
+        """Provide a string representation for the infection"""
         if self.resistance == "None":
             return "infected"
         else:
@@ -192,6 +197,7 @@ class Treatment:
         return Treatment(self.drug, self.time_treated)
 
     def __repr__(self):
+        """Provide a string representation for the treatment"""
         return "treated with drug {} for {} timesteps".format(self.drug, self.time_treated)
 
 
@@ -400,6 +406,7 @@ class Model:
             self.data_handler.process_timestep_data()
 
     def __repr__(self):
+        """Provide a string representation for the model"""
         return "Model"
 
 
