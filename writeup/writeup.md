@@ -6,38 +6,46 @@
 
 ## Custom modelling
 
-The most significant component of the modelling we performed as part of the project was the design, implementation, and interpretation of a custom stochastic model we designed to show that our proposed product would be "useful" in the real world.
+To show that our proposed product would positively benefit the environment where it is proposed to be used, we wrote a custom stochastic computational model of the environment, with and without the product in use, and showed that when it is in use, the model scenario result improved.
 
-We understand that computer models can become quite dry, particularly when explaining the details of their implementation, as if this is not done precisely, a small misunderstanding can be quickly amplified to an unexpected result, as the model's high complexity causes it to have a fairly so-called chaotic output.
+We understand that computer models can become quite dry, particularly when explaining the details of their implementation. However, we believe that it is important to do this precisely, even at the cost of conciseness, as a small misunderstanding can be quickly amplified to an unexpected result, since the model's high complexity causes it to have a chaotic output.
 
 As a result of this, we created an in-browser interactive implementation of the model, which plots the output graph of the model based on the user inputting initial parameter states. We intend that this can quickly, intuitively, and interactively show the function and results of the model, which can help inform the goal throughout the implementation explanation, and provide a top-level understanding even if the rest of this page were omitted.
 
-### Introduction
-
-To show that our proposed product would positively benefit the environment where it is proposed to be used, we wrote a computer model of the environment, with and without the product in use, and showed that when it is in use, the model scenario result improved.
+The whole project repository is [available on GitHub](https://github.com/Warwick-iGEM-2021/modelling), and the final production code for the project can be found: [as a standalone Python file](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/tiered_antibiotic_resistance_model/model.py), or [as a package on PyPI](https://pypi.org/project/tiered-antibiotic-resistance-model/2.0.1/)
 
 #### Abstract
 
 We propose a validated computational model of the spread of an antibiotic resistant pathogens in a hospital, with and without our diagnostic tool for quickly identifying it, and show that in a relevant scenario it reduces the presence of antibiotic resistant pathogens in our selected scenario, showing our product is beneficial in the real-world.
 
-#### Motivation
+#### Summary of results
 
-The purpose of the model is two-fold:
+Our results show that our product is beneficial in the real world. We know this as we validated our model to prove that it is an appropriately close approximation to reality, then showed that the use of our product improved many of model metrics, most notably the total number of deaths and the numbers of Carbapenem resistant bacteria across the run of a model.
 
-- Demonstrating that our product is beneficial
+![deaths_violin_plot](C:\Users\egood\Desktop\modelling\writeup\diagrams\deaths_violin_plot.png)
 
-- Understanding the use cases where it is most and least applicable
+Above shows a plot of the total number of deaths over a full run (i.e. till no people are infected) of the model with the validated parameters (discussed below). It is evident that the product causes a statistically significant reduction in the number of deaths resulting from the various strains of the pathogen modelled by the system.
 
-#### Assets
+### Implementation
 
-The whole project repository is [available on GitHub](https://github.com/Warwick-iGEM-2021/modelling)
+The key features of the model can be split up into its overall structure, and five distinct sections of its operation, which are enumerated in the sections below.
 
-The final production code for the project can be found here:
+In each timestep of the model, each of these features are applied to mutate the state of the population. The order in which they are applied, whilst arbitrary, slightly effects the results of the model, in the sense that different application orders would give different results given the same random seed, but any application order can reasonably be considered a adequate model of the system. In our implementation, this order is:
 
-- [As a standalone Python file](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/tiered_antibiotic_resistance_model/model.py)
-- [As a package on PyPI](https://pypi.org/project/tiered-antibiotic-resistance-model/2.0.1/)
-
-#### Model development
+```
+FOR EACH person in the population
+	Record the state of the person
+	Increase treatment
+	Isolate based on treatment level
+	IF product is in use
+		Isolate based on product
+	ENDIF
+	Recovery
+	Mutation
+	Death
+ENDFOR
+Spread through the population
+```
 
 #### Model type
 
@@ -140,27 +148,6 @@ The model is at its core a modification of the standard "susceptible-infected-re
 A diagram of the SIR model. Image source: [1]
 
 There are already examples of models of this class for examining antibiotic resistance in E. coli [2] [3] [4], showing that it is a suitable methodology for this problem. However, we believe that a custom model written from scratch was required to integrate the mechanism of the product being used.
-
-### Implementation
-
-The key features of the model can be split up into five semi-distinct sections, which are enumerated in the sections below.
-
-In each timestep of the model, each of these features are applied to mutate the state of the population. The order in which they are applied, whilst arbitrary, slightly effects the results of the model, in the sense that different application orders would give different results given the same random seed, but any application order can reasonably be considered a adequate model of the system. In our implementation, this order is:
-
-```
-FOR EACH person in the population
-	Record the state of the person
-	Increase treatment
-	Isolate based on treatment level
-	IF product is in use
-		Isolate based on product
-	ENDIF
-	Recovery
-	Mutation
-	Death
-ENDFOR
-Spread through the population
-```
 
 #### 1. Pathogen and people
 
