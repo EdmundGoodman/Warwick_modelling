@@ -5,6 +5,15 @@ from random import seed, random, sample
 import matplotlib.pyplot as plt
 import pandas as pd
 
+import seaborn as sns
+import warnings
+
+plt.style.use('seaborn')
+plt.rcParams['figure.figsize'] = [16, 9]
+plt.rcParams['figure.dpi'] = 200
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+
 ###############################
 ### Change these parameters ###
 ###############################
@@ -587,7 +596,7 @@ class DataRenderer:
     def _graph_settings():
         """Add settings for the graph, e.g. axis labels and legend"""
         plt.title('Resistance simulation')
-        plt.legend(loc='upper right')
+        plt.legend(loc='upper right', prop={'size': 6})
         plt.xlabel("Time / timesteps")
         plt.ylabel("# People")
 
