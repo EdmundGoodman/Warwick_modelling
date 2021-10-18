@@ -12,7 +12,7 @@ from random import random, choice, seed
 ### Change these parameters ###
 ###############################
 
-DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+DRUG_NAMES = ["Amoxicillin+", "Meropenem", "Colistin"]
 
 class Params:
     # General model parameters
@@ -30,7 +30,7 @@ class Params:
 
     PRODUCT_IN_USE = True
     PROBABILIY_PRODUCT_DETECT = 1
-    PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
+    PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Meropenem")
 
     ############################################################
     # Use these if you want to set all drugs to the same thing #
@@ -55,18 +55,18 @@ class Params:
 
         # Lookup table of drug properties by their names
         Params.DRUG_PROPERTIES = {}
-        Params.DRUG_PROPERTIES["Penicillin"] = (
+        Params.DRUG_PROPERTIES["Amoxicillin+"] = (
             Params.PROBABILITY_TREATMENT_RECOVERY,
         )
-        Params.DRUG_PROPERTIES["Carbapenemase"] = (Params.PROBABILITY_TREATMENT_RECOVERY,)
+        Params.DRUG_PROPERTIES["Meropenem"] = (Params.PROBABILITY_TREATMENT_RECOVERY,)
         Params.DRUG_PROPERTIES["Colistin"] = (Params.PROBABILITY_TREATMENT_RECOVERY,)
 
         # Lookup table of resistance properties by their names
         Params.NUM_RESISTANCES = len(Params.DRUG_NAMES)
         Params.RESISTANCE_PROPERTIES = {}
         Params.RESISTANCE_PROPERTIES["None"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
-        Params.RESISTANCE_PROPERTIES["Penicillin"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
-        Params.RESISTANCE_PROPERTIES["Carbapenemase"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+        Params.RESISTANCE_PROPERTIES["Amoxicillin+"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
+        Params.RESISTANCE_PROPERTIES["Meropenem"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
         Params.RESISTANCE_PROPERTIES["Colistin"] = (Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION, Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO, Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,)
 
 # Set the granular parameters from the generic ones

@@ -15,7 +15,7 @@ class Params:
 
     # Ordered list of drugs used, their properties, and the properties of their
     # resistant pathogens
-    DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+    DRUG_NAMES = ["Amoxicillin+", "Meropenem", "Colistin"]
 
     PROBABILITY_MOVE_UP_TREATMENT = 0.2
     TIMESTEPS_MOVE_UP_LAG_TIME = 5
@@ -23,7 +23,7 @@ class Params:
 
     PRODUCT_IN_USE = True
     PROBABILIY_PRODUCT_DETECT = 1
-    PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
+    PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Meropenem")
 
     ############################################################
     # Use these if you want to set all drugs to the same thing #
@@ -53,10 +53,10 @@ class Params:
 
         # Lookup table of drug properties by their names
         Params.DRUG_PROPERTIES = {}
-        Params.DRUG_PROPERTIES["Penicillin"] = (
+        Params.DRUG_PROPERTIES["Amoxicillin+"] = (
             Params.PROBABILITY_TREATMENT_RECOVERY,
         )
-        Params.DRUG_PROPERTIES["Carbapenemase"] = (
+        Params.DRUG_PROPERTIES["Meropenem"] = (
             Params.PROBABILITY_TREATMENT_RECOVERY,
         )
         Params.DRUG_PROPERTIES["Colistin"] = (
@@ -71,12 +71,12 @@ class Params:
             Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO,
             Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,
         )
-        Params.RESISTANCE_PROPERTIES["Penicillin"] = (
+        Params.RESISTANCE_PROPERTIES["Amoxicillin+"] = (
             Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION,
             Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO,
             Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,
         )
-        Params.RESISTANCE_PROPERTIES["Carbapenemase"] = (
+        Params.RESISTANCE_PROPERTIES["Meropenem"] = (
             Params.PROBABILITY_GENERAL_RECOVERY, Params.PROBABILITY_MUTATION,
             Params.PROBABILITY_SPREAD, Params.NUM_SPREAD_TO,
             Params.PROBABILITY_DEATH, Params.DEATH_FUNCTION,
