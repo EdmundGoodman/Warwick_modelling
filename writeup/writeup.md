@@ -34,7 +34,7 @@ The whole project repository is [available on GitHub](https://github.com/Warwick
 
 The final production code for the project can be found here:
 
-- [As a standalone python file](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/tiered_antibiotic_resistance_model/model.py)
+- [As a standalone Python file](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/tiered_antibiotic_resistance_model/model.py)
 - [As a package on PyPI](https://pypi.org/project/tiered-antibiotic-resistance-model/2.0.1/)
 
 #### Model development
@@ -43,7 +43,24 @@ The final production code for the project can be found here:
 
 Our model is discrete time, stochastic, and compartmental:
 
-- Compartmental means that the model is expressed in terms of the transitions between a set of states. The logic for these transitions forms a fundamental part of the model
+- Discrete time means that changes in the model occur at granular timesteps, like turns in a boards game
+
+  Below shows the code for how operations are performed on every person in the population each timestep, and data about them recorded
+
+  ```python
+  # Make a new data handler for each simulation
+  self.data_handler.__init__()
+  
+  # Repeat the simulation for a set number of timesteps
+  for _ in range(NUM_TIMESTEPS):
+  
+      # For each person in the population
+      for person in self.population:
+  
+          # Record the data throughout the model
+          self.data_handler.record_person(person)
+  
+  ```
 
 - Stochastic means that the model is based on random probabilities, as opposed to a deterministic system of equations
 
@@ -52,7 +69,7 @@ Our model is discrete time, stochastic, and compartmental:
 
   These probabilities, and other variable aspects of the model, such as population size or how many drugs are used, are set as constant values at the top of the model.
 
-  Initially, the model just had a parameter for how many different antibiotics are used, and all the associated probabilities (e.g. likelihood of recovery, likelihood of death, etc.) with these antibiotics were the same, but in the final version, the different antibiotics are named to more closely map to the real world, and they are allowed to have their own separate values for these probabilities. However, for convenience's sake, we introduce meta-parameters which can be used to set all the antibiotics to have the same probability in a given category.
+  Initially, the model only had a parameter for how many different antibiotics are used, and all the associated probabilities (e.g. likelihood of recovery, likelihood of death, etc.) with these antibiotics were the same. However, in the final version, the different antibiotics are named to more closely map to the real world, and they are allowed to have their own separate values for these probabilities. However, for convenience's sake, we introduce meta-parameters which can be used to set all the antibiotics to have the same probability in a given category.
   Below shows code for a default setting of these probabilities, the meaning of which will be explained further on:
 
   ```python
@@ -110,36 +127,19 @@ Our model is discrete time, stochastic, and compartmental:
 
   ```
 
-  Additionally, there are internal settings, for example how the model outputs it results.
+  Additionally, there are internal settings, for example how the model outputs its results.
 
-- Discrete time means that changes in the model occur at granular timesteps - like turns in a boards game
+- Compartmental means that the model is expressed in terms of the transitions between a set of states. The logic for these transitions forms a fundamental part of the model
 
-  Below shows the code for how operations are performed on every person in the population each timestep, and data about them recorded
-
-  ```python
-  # Make a new data handler for each simulation
-  self.data_handler.__init__()
   
-  # Repeat the simulation for a set number of timesteps
-  for _ in range(NUM_TIMESTEPS):
-  
-      # For each person in the population
-      for person in self.population:
-  
-          # Record the data throughout the model
-          self.data_handler.record_person(person)
-  
-  ```
 
-
-
-The model essentially is a modification of the standard SIR model for epidemic disease, adding more "compartments" for additional states people can take, when they are infected with increasingly antibiotic resistant pathogens.
+The model is at its core a modification of the standard "susceptible-infected-recovered" (often referred to as SIR) model for epidemic disease. It extends this concept by adding more "compartments" for additional states people can take when they are infected with increasingly antibiotic resistant pathogens.
 
 ![SIR Graph](./diagrams/SIR_graph.png)
 
 A diagram of the SIR model. Image source: [1]
 
-There are already examples of models of this class for examining antibiotic resistance in E. coli [2] [3] [4], showing that it is a suitable methodology for this problem, however, we believe that a custom model written from scratch was required to integrate the mechanism of the product being used.
+There are already examples of models of this class for examining antibiotic resistance in E. coli [2] [3] [4], showing that it is a suitable methodology for this problem. However, we believe that a custom model written from scratch was required to integrate the mechanism of the product being used.
 
 ### Implementation
 
@@ -171,7 +171,7 @@ A pathogen with a probability of death and a probability of recovery spreads thr
 - Different strains of the pathogen exist, which are resistant to different antibiotics
 - Pathogens can mutate to more resistant strains in specific circumstances explained in the mutation section
 
-- When they have recovered, they become immune to the all strains of the pathogen irrespective to their resistances
+- When they have recovered, they become immune to the all strains of the pathogen
 
 - Patients also have a small chance of dying due to the pathogen
 
@@ -191,7 +191,7 @@ Below shows a state transition diagram of a person centred around the state of b
 
 #### 2. Treatment and mutation
 
-Antibiotics are used in a specific order, which are numbered accordingly for clarity (with $$1$$ being the first administered, and $$n$$ being the last for antibiotics $$1..n$$ ). This is to simulate the real-world, where different antibiotics are used in a tiered system, reserving the last for highly dangerous, multi-drug resistant pathogens - and is an important aspect of our model, as our product attempts to identify CRE, which are a type of these resistant pathogens.
+Antibiotics are used in a specific order, which are numbered accordingly for clarity (with $$1$$ being the first administered, and $$n$$ being the last for antibiotics $$1..n$$ ). This is to simulate the real-world, where different antibiotics are used in a tiered system, reserving the last for highly dangerous, multi-drug resistant pathogens - and is an important aspect of our model, as our product attempts to identify *Carbapenem resistant Enterobacteriaceae* (CRE), which are a type of these resistant pathogens.
 
 Pathogens have a small chance of mutating to develop resistance to antibiotics being used to treat them, as such strains will only become dominant when there is a pressure giving them a survival advantage.
 
@@ -207,13 +207,13 @@ Below shows the same specified diagram used above, with additional information a
 
 The pathogen is modelled as being immediately symptomatic, meaning doctors can immediately identify a patient is infected with it, but they cannot quickly identify whether or not they have a resistant strain if our product is not in use.
 
-Once a person becomes infected, treatment with the lowest tier of antibiotics becomes immediately, as they are immediately symptomatic.
+Once a person becomes infected, treatment with the lowest tier of antibiotics begins immediately, as they are immediately symptomatic.
 
-If the pathogen is resistant to the antibiotic, the patient still has the opportunity to make a recovery on their own, but the antibiotic will have no effect, whereas if the pathogen is not, the patient has the opportunity  to recover both on their own, and via the antibiotic - increasing their likelihood of recovery each timestep.
+If the pathogen is resistant to the antibiotic, the patient still has the opportunity to make a recovery on their own, but the antibiotic will have no effect. If the pathogen is not, the patient has the opportunity  to recover both on their own, and via the antibiotic - increasing their likelihood of recovery each timestep.
 
 Since multiple antibiotics are used in a tiered system, there must be a mechanism to move to a higher antibiotic.
 
-There are a number of days which can be set as a parameter for the model, before which the same antibiotic will be used, then after this is exceeded a probability parameter is used each day to decide whether they will me moved up to a higher treatment tier.
+There are a number of days which can be set as a parameter for the model, before which the same antibiotic will be used, then after this is exceeded a probability parameter is used each day to decide whether they will be moved up to a higher treatment tier.
 
 Additionally, when our product if a person is detected to be resistant using the product their treatment level is immediately increased to be above that resistance level, as we know that any other lower treatment will be ineffective.
 
@@ -292,9 +292,9 @@ Below shows the same specified diagram used above, with additional information a
 
 #### 5. Recovery and death
 
-As discussed in section (1), each timestep, patients can recover (either naturally or via treatment), and patients can die.
+As discussed in section (1), each timestep, patients can recover (either naturally or via treatment), or patients can die.
 
-Recovery makes the patients immune, meaning they cannot be infected again, essentially removing them from the system. Death also essentially removes patients from the system, as there cannot be any more state changes after death.
+Recovery makes the patients immune, meaning they cannot be infected again, essentially removing them from the system. Death also removes patients from the system.
 
 ```python
 # Handle Recovery generally or by treatment if currently infected
@@ -331,9 +331,9 @@ We used an iterative design process during the development of the model, as disc
 
 Block diagram of steps in model design - taken from "Testing and Validation of Computer Simulation Models: Principles, Methods and Applications" [5]
 
-We went through 3 iterative design stages of increasing complexity and proximity to real life before settling on our production code:
+We went through three iterative design stages of increasing complexity and proximity to real life before settling on our production code:
 
-1) The first version was a very simple markov model of people who could be infected forming a population. It did not employ the tiered system of antibiotic treatments, so did not map very closely to the real world. The code is [available here](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/development_versions/v1.py)
+1) The first version was a very simple Markov model of people who could be infected forming a population. It did not employ the tiered system of antibiotic treatments, so did not map very closely to the real world. The code is [available here](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/development_versions/v1.py)
 2) The second version was an improvement on the first in terms of mapping closer to reality by employing the tiered system of antibiotic treatments. It did this by adding additional `Infection` and `Treatment` classes as properties of a `Person`, and additional logic to move "upwards" across them in a specific order. The code is [available here](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/development_versions/v2.py)
 3) The third version had a number of additional, but smaller, improvements with respect to closely modelling reality. There was an addition of a lag time before people could move up treatment, and the feature that the change of death increases over time being infected. The code is [available here](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/development_versions/v3.py)
 4) The final production version included a fairly holistic re-write, in order to add finer granularity of control through parameters, allowing different infections to have different properties, and other additional parameters. On top of this, the version was rigorously tested by hand and via automated tests to identify conceptual errors. The code is available as the main production code on GitHub and PyPI
@@ -397,11 +397,11 @@ We chose not to automate publishing the code to PyPI (discussed below), which co
 
 #### Transpilation to Javascript
 
-In order to create the toy model, we needed to use a language which can be run client side in the browser. Since Python cannot do this, we needed to convert the source code into a language which can - with the obvious choice being Javascript.
+In order to create the web-based version of the model, we needed to use a language which can be run client side in the browser. Since Python cannot do this, we needed to convert the source code into a language which can - with the obvious choice being Javascript.
 
 Instead of manually re-writing the entire model into Javascript, we decided to use an automated tool to do it for us. This class of tool is called a transpiler, which converts between two languages in the same tier in the language complexity hierarchy (e.g. two high level languages). We considered a number of tools, with the main decision being between [Brython](https://brython.info/), a runtime transpiler which translates the Python code to Javascript on the fly, and [Transcrypt](https://www.transcrypt.org/), a build-time transpiler which translates the code beforehand. We decided to use Transcrypt, as it offers better performance, having pre-compiled the code, and since it allows an easier integration into the Javascript DOM.
 
-The transpilation process was not totally seamless, as some language properties in python are not supported in Javascript, for example named parameters and adding lists, and not all of the libraries used were supported by Transcrypt, meaning some of the `random` methods had to be implemented by hand, and the output graphs and excel exporter had to be totally removed.
+The transpilation process was not totally seamless, as some language properties in Python are not supported in Javascript, for example named parameters and adding lists, and not all of the libraries used were supported by Transcrypt, meaning some of the `random` methods had to be implemented by hand, and the output graphs and excel exporter had to be totally removed.
 
 In order to display the output in a visual manner, we used the [Chart.js](https://www.chartjs.org/) package, which is commonly used for client side data plotting.
 
@@ -452,7 +452,7 @@ The paper defines the grounding technique in the following ways:
   - Initialization: "On the initialization front, grounding requires setting the various parameters and procedures so that they match real data"  [8], for example comparing model outputs, and trends
   - Performance evaluation: "Simple performance evaluation is the process of determining whether the computational model generates the stylized results or behavior expected of the underlying processes"  [8]
 
-For "story-telling", the above explanation of the implementation explains the mapping of the model to the real world, and the variables within the model are named clearly to make the "story" of the model able to be inferred directly from the source code. Both initialization and performance evaluation are encompassed by the following sections on calibrating and verification.
+For "story-telling", the above explanation of the implementation explains the mapping of the model to the real world. The variables within the model are named clearly so the "story" of the model can be inferred directly from the source code. Both initialization and performance evaluation are encompassed by the following sections on calibrating and verification.
 
 ##### 2. Calibrating
 
@@ -480,7 +480,7 @@ Since our model can be considered to be multi-agent, as it is composed of multip
 
 Harmonization is the final, and most complicated, stage of validation proposed in the book. It involves taking multiple sets of data for verification, then forming a linear model from them, and comparing the computational model the the linear one.
 
-We did not attempt harmonization on our model as we thought it was out of scope, because we did not have multiple data sets for the niche case we apply our product too, and the process was excessively complex for the time period of the competition.
+We did not attempt harmonization on our model as we thought it was out of scope. We did not have multiple data sets for the niche case we apply our product too, and the process was excessively complex for the time period of the competition.
 
 ### Contextualisation
 
@@ -494,7 +494,11 @@ Due to the flexibility of the model, its parameters can be adjusted to simulate 
 
 ##### Neonatal bacterial meningitis
 
-Here we have chosen to use neonatal bacterial meningitis (NBM) as an example. The disease, and the nature of its spread and treatment have numerous properties that can be simulated using the model. NBM can easily be spread within hospitals by medical staff and often has a deadly outcome [10], all of which can be simulated in the model. Furthermore, treatment involves a line of antibiotics, the last of which generally is treatment with meropenem, a carbapenem [11]. However, since the model does not allow for the product to identify resistance to the last line of defence, requiring a later line of defence, we included colistin as the last treatment. Colistin has been used to treat multi-resistant NBM [12], however it is infrequently used due to its harmful side-effects [13]. 
+Here we have chosen to use neonatal bacterial meningitis (NBM) as an example. The disease, and the nature of its spread and treatment have numerous properties that can be simulated using the model. NBM can easily be spread within hospitals by medical staff and often has a deadly outcome [10], all of which can be simulated in the model. Furthermore, treatment involves a line of antibiotics, the last of which generally is treatment with meropenem, a carbapenem [11].
+
+![A diagram of the structure of meropenenm from https://commons.wikimedia.org/wiki/File:Meropenem-from-xtal-1992-3D-balls.png](C:\Users\egood\Desktop\modelling\writeup\diagrams\meropenem.png)
+
+However, since the model does not allow for the product to identify resistance to the last line of defence, requiring a later line of defence, we included colistin as the last treatment. Colistin has been used to treat multi-resistant NBM [12], however it is infrequently used due to its harmful side-effects [13]. 
 
 The parameters of the model have hence been adjusted as such:
 
@@ -544,14 +548,14 @@ To further minimise the fluctuations, we then combined all the runs with and wit
 
 After each run we also calculated the Death rate (deaths as % of the population), the Mortality rate (deaths as % of the population that was infected), and the Infection rate (the population that was infected as % of the total population). We then calculated the mean value and variance of the Death, Mortality and Infection rates of the runs with and without the product in use respectively. To confirm that there were statistically significant improvements in outcomes when using the product compared to not using the product, we conducted three one-sided hypothesis tests at the 1% level.
 
-Since we used an unrealistically large population size in our initial runs, we also ran the programme again but with:
+Since we used an unrealistically large population size in our initial runs, we also ran the programme again but with the parameters:
 
 ```python
 POPULATION_SIZE = 200
 INITIALLY_INFECTED = 10
 ```
 
-The graphic results of the runs with and without the product in use respectively were then compared to the averaged runs with populations of 5000. This was to confirm that the population size does not adversely affect the outcome of the model.
+The graphic results of the runs with and without the product in use respectively were then compared to the averaged runs with populations of 5000. This confirmed that the population size does not adversely affect the results of the model, instead merely "smoothing the curve", as Markov models with small sample sets tend to give very noisy data, given the law of large numbers.
 
 Finally, we also did some further analysis into how the product affects the outcome of the model by looking a bit closer at the data. This involved looking at the change over time of cases of resistant pathogens and patients put into isolation.
 
@@ -575,7 +579,7 @@ Some statistics from the averaged run over a population of 5000 without the prod
 | Mortality rate            | 40.86%     | 0.0078%  |
 | Death rate                | 36.81%     | 0.0084%  |
 
-The mortality rate of the averaged run without the product at 40.86% is very close to the actual mortality rate of NBM in developed countries. This means we have anchored the outcome correctly, which should give us more interesting takeaways when we compare with the outcome when the product is in use. The infection rate is very high, however, this is largely due to the model not simulating space (for example between departments of a hospital). Without a spatial element, there is no barrier to infection apart from people turning immune, dying or being put into isolation.
+The mortality rate of the averaged run without the product at 40.86% is very close to the actual mortality rate of NBM in developed countries. This means we have anchored the outcome correctly, which should give us more interesting takeaways when we compare with the outcome when the product is in use. The infection rate is very high, which is largely due to the model not simulating space (for example between departments of a hospital). Without a spatial element, there is no barrier to infection apart from people turning immune, dying or being put into isolation.
 
 ![NBM average simulation with product in use graph](./diagrams/graph2.png)
 
@@ -607,7 +611,7 @@ The null hypothesis is the initial presumption that the two mean values we are c
 
 The probability of a type I error is the likelihood that you reject the null hypothesis when the null hypothesis is in fact correct. We chose a significance level of 1%, which means that if we are able to reject the null hypothesis, it is because there is a less than 1% chance that we are wrong. 
 
-We assumed the product cannot worsen the outcome, hence we conducted one-sided hypothesis tests. This means that our alternative hypothesis (as opposed to the null hypothesis) was that the mean values for infection, mortality and death rates were lower when using the product than when not using it.
+We assumed the product cannot worsen the outcome. Hence we conducted one-sided hypothesis tests. This means that our alternative hypothesis (as opposed to the null hypothesis) was that the mean values for infection, mortality and death rates were lower when using the product than when not using it.
 
 We can assume that the outcomes of the model follow a normal distribution. However, we do not know the standard deviation of outcomes. Therefore we were left with two options: to approximate a normal distribution or to use a student’s t-distribution. Since we ran the simulations 10 times using and 10 times not using the product respectively, we have a sample size of 10 to calculate the mean values. This is a very low sample size, which suggested the most appropriate distribution was a student’s t-distribution.
 
@@ -691,15 +695,15 @@ Looking at timestep 30, isolation in the averaged run with the product is at 75.
 
 At timestep 60, isolation in the averaged run with the product is at 274.7, while isolation in the averaged run without the product is at 267.4, a mere 2.7% increase.
 
-This rather anecdotal look at the data suggests that the reason why the product prevents spread is not because it puts more people into isolation, but because it puts them into isolation *earlier*. This is important because it implies hospitals in the real world would not have to acquire higher capacity to accommodate patients with resistant pathogens, but can improve outcomes by using existing capacity more proactively.
+This rather qualitative look at the data suggests that the reason why the product prevents spread is not because it puts more people into isolation, but because it puts them into isolation *earlier*. This is important because it implies hospitals in the real world would not have to acquire higher capacity to accommodate patients with resistant pathogens, but can improve outcomes by using existing capacity more proactively.
 
 Furthermore, the insights into isolation also explain why the product causes overall infection rates to decrease. While putting more people into isolation will inevitably decrease infection rates, putting them earlier into isolation will have the same effect.
 
-Something else to note is the higher frequency of resistance to Colistin when using the product. Peak resistance when using the product reaches 271.7 compared to 256.5 when not using the product, a 5.9% increase. While this may not seem high, it has important implications as resistance again Colistin prevents the effective use of *any antibiotic*. Once a patient contracts a Colistin-resistant pathogen in this scenario, with no chance of a natural recovery, you are effectively dead.
+Something else to note is the higher frequency of resistance to Colistin when using the product. Peak resistance when using the product reaches 271.7 compared to 256.5 when not using the product, a 5.9% increase. While this may not seem high, it has important implications as resistance again Colistin prevents the effective use of *any antibiotic*. Once a patient contracts a Colistin-resistant pathogen in this scenario, with no chance of a natural recovery, the patient is guaranteed to die.
 
 Why does this happen? When the product detects resistance to Meropenem, treatment immediately changes to Colistin. This means that overall when using the product, more people are treated with Colistin than otherwise. Hence, while the frequency of Meropenem-resistance might be lower, the likelihood a pathogen develops resistance against Colistin if it is already resistant against Meropenem is much higher since resistance can only develop if it is treated with Colistin.
 
-Is this a problem? Not necessarily, due to two reasons. First of all, Colistin is only used when all other options are exhausted. In the case of a patient resistant to Meropenem, Colistin is the only effective treatment available to them. Since the chance of recovering without effective treatment is zero, not treating them is effectively letting them die. Furthermore, despite Colistin-resistance increasing in frequency, it is much less likely to spread. Without the product, we cannot know who carries Colistin-resistant pathogens, hence they are not guaranteed to be in isolation. Using the product, however, we always detect any patient resistant to Meropenem *or any higher-tier antibiotic*. This means all patients with resistance to Colistin are also put in isolation. Hence Colistin-resistance will not spread when the product is used. This is not totally true to the real world, and the change to fix this is discussed in the future work section, as we did not have time to propagate all the new data a fix to this would generate. However, we performed an informal test on the proposed fix (shown below), and found that the change appeared to be negligible.
+Is this a problem? Not necessarily, for two reasons. First of all, Colistin is only used when all other options are exhausted. In the case of a patient resistant to Meropenem, Colistin is the only effective treatment available to them. Since the chance of recovering without effective treatment is zero, not treating them is effectively letting them die. Furthermore, despite Colistin-resistance increasing in frequency, it is much less likely to spread. Without the product, we cannot know who carries Colistin-resistant pathogens, hence they are not guaranteed to be in isolation. Using the product, however, we always detect any patient resistant to Meropenem *or any higher-tier antibiotic*. This means all patients with resistance to Colistin are also put in isolation. Hence Colistin-resistance will not spread when the product is used. This is not totally true to the real world, and the change to fix this is discussed in the future work section, as we did not have time to propagate all the new data a fix to this would generate. However, we performed an informal test on the proposed fix (shown below), and found that the change appeared to be negligible.
 
 ```python
 if person.infection.get_tier() >= PRODUCT_DETECTION_LEVEL:
@@ -759,21 +763,15 @@ While these statistics paint a promising picture, one needs to keep in mind that
 
 More generally, the contextualisation shows that the model can be useful to simulate real-world scenarios, and both qualify and quantify the impact of using the product. Generally, the more parameters that can be anchored, the more realistic the simulation and the more takeaways can be made. The simulation of our product being used to combat neonatal bacterial meningitis could just as well be applied to scenarios with other diseases, helping us understand how our product could make a difference there as well.
 
-#### Summary
-
-TODO: Insert box plot comparing with and without product on metrics above
-
-TODO: Single sentence conclusion of contextualisation results
-
 ### Development and future work
 
-Throughout the development process, we presented the modelling work to other members of our team and our principal investigators, along with an external expert in the field, [Alex Darlington](https://warwick.ac.uk/fac/sci/eng/people/alexander_darlington/). Presenting our work was incredibly helpful not only for ensuring that we could explain everything fully and understandably, but also as we received useful suggestions about ways we could improve the model.
+Throughout the development process, we presented the modelling work to other members of our team and our principal investigators, along with an external expert in the field, [Alex Darlington](https://warwick.ac.uk/fac/sci/eng/people/alexander_darlington/). Presenting our work was helpful not only for ensuring that we could explain everything fully and understandably, but also as we received useful suggestions about ways we could improve the model.
 
 A table of suggested improvements we received during development is:
 
 | Proposer               | Summary                                                      | Done? |
 | ---------------------- | ------------------------------------------------------------ | ----- |
-| Alex Darlington        | Real hospitals only contain a fairly small number of people susceptible within the model, maximum 250, so the population size should be limited by that. This has the effect of increasing variance in the markov model, as the law of large numbers does not apply, however, it is important for realistic simulation | Yes   |
+| Alex Darlington        | Real hospitals only contain a fairly small number of people susceptible within the model, maximum 250, so the population size should be limited by that. This has the effect of increasing variance in the Markov model, as the law of large numbers does not apply, however, it is important for realistic simulation | Yes   |
 | Alex Darlington        | Add the use of a "last resort" drug, such as Colistin, to resolve the issue of the product detection being too late to make any meaningful action. For example, if Carbapenemase is the final drug in the hierarchy, detection of resistance is not useful, as the highest possible isolation threshold is being treated with it, which is a pre-requisite for developing resistance, so people will never be isolated as a result, and there is no higher tier treatment to use, so better treatment cannot be given either. | Yes   |
 | Alex Darlington        | Add an increasing risk of death if a person has been infected for a long time, as in the real world, people become frail after having been sick for some time. | Yes   |
 | Axel Schoerner Emillon | Change the detection method to only detect whether someone is currently resistant to Carbapenemase, rather than if they have any higher tier resistance, as it is not a pre-requisite in the real world given that mutations might not occur in the Carbapenemase treatment stage. This was not implemented as it was identified very late in the process after most of the analysis was completed and we would not have had time to redo it, but we performed an informal test, and found it caused a negligible difference in the model results. | No    |
@@ -790,7 +788,7 @@ A table of suggested future work we received during development is:
 
 Given the fact that we have tested and validated our model to be sufficiently representative of the real world, and the model output indicates that the use of the product reduces the presence of antibiotic resistant pathogenic strains in our selected scenario, we conclude that our product is beneficial.
 
-There are a number of aspects in which we could expand our model into if we did not have the time constraints of the iGEM competition, but we believe that the model in it's current state both achieves it's goal of showing our product is beneficial, along with being a useful tool for understanding the issue of antibiotic resistance in its own right.
+There are a number of aspects in which we could expand our model into if we did not have the time constraints of the iGEM competition, but we believe that the model in its current state both achieves its goal of showing our product is beneficial, along with being a useful tool for understanding the issue of antibiotic resistance in its own right.
 
 ### Discussion
 

@@ -16,13 +16,16 @@ quickly identifying it, and show that in a relevant scenario it reduces the
 presence of antibiotic resistant pathogens in our selected scenario, showing our
 product is beneficial in the real-world.
 
-## Writeup and production code
+## Writeup, documentation and production code
 
 The writeup for the entire project can be found here:
 
 - [As a markdown document](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/writeup/writeup.md)
 - [As a PDF file](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/writeup/writeup.pdf)
 - [As part of the Warwick iGEM 2021 wiki](https://2021.igem.org/Team:Warwick/Model)
+
+The documentation for the production code can be found here:
+- [On readthedocs.io](https://tiered-antibiotic-resistance-model.readthedocs.io/en/latest/)
 
 The final production code for the project can be found here:
 
