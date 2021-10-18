@@ -26,6 +26,10 @@ Our results show that our product is beneficial in the real world. We know this 
 
 Above shows a plot of the total number of deaths over a full run (i.e. till no people are infected) of the model with the validated parameters (discussed below). It is evident that the product causes a statistically significant reduction in the number of deaths resulting from the various strains of the pathogen modelled by the system.
 
+![meropenem_with_without](C:\Users\egood\Desktop\modelling\writeup\diagrams\meropenem_with_without.png)
+
+Above also a plot of the total number of deaths over a full run (i.e. till no people are infected) of the model with the validated parameters (discussed below). It is again evident that the product causes a statistically significant reduction in the number of people infected with a strain of the pathogen resistant to meropenem - the drug resistance detect by our product.
+
 ### Implementation
 
 The key features of the model can be split up into its overall structure, and five distinct sections of its operation, which are enumerated in the sections below.
@@ -457,7 +461,7 @@ The paper defines the verification technique in the following way: "Verification
 
 We graphically compared the data outputs with the expected characteristic "S-curve" shape which is prevalent in SIR type stochastic models similar to ours. Whilst the individual lines for different resistance levels do not form such a curve, if their total is taken, it does - which is the expected behaviour, as the sum of the resistance levels gives total number infected. This is shown below with the boundary between the pink and the brown items in the graph forming the characteristic curve.
 
-![A stack plot showing the S-curve shape](./diagrams/stackplot.png)
+![A stack plot showing the S-curve shape](C:\Users\egood\Desktop\modelling\writeup\diagrams\stackplot_SIR.png)
 
 Additionally, the book notes that "A special issue in verification occurs with respect to multi-agent models.  Multi-agent models can potentially undergo dual level verification; i.e., verification at both the individual and group level.  To wit, does the model accurately predict group level behavior, individual level behavior, or both?" [8]
 
