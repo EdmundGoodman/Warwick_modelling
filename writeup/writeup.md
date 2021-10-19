@@ -491,15 +491,15 @@ Here we have chosen to use neonatal bacterial meningitis (NBM) as an example. Th
 
 ![A diagram of the structure of meropenenm from https://commons.wikimedia.org/wiki/File:Meropenem-from-xtal-1992-3D-balls.png](C:\Users\egood\Desktop\modelling\writeup\diagrams\meropenem.png)
 
-However, since the model does not allow for the product to identify resistance to the last line of defence, requiring a later line of defence, we included colistin as the last treatment. Colistin has been used to treat multi-resistant NBM [12], however it is infrequently used due to its harmful side-effects [13].
+However, since the model does not allow for the product to identify resistance to the last line of defence, requiring a later line of defence, we included colistin as the last treatment. Colistin has been used to treat multi-resistant NBM [13], however it is infrequently used due to its harmful side-effects [14].
 
 The parameters of the model have hence been adjusted as such:
 
 1. NBM has three lines of treatment: amoxicillin + cefotaxime/ceftriaxone, meropenem, and finally colistin. Therefore the model has three levels of treatment and corresponding resistance levels. The first level of treatment will henceforth be referred to as “Amoxicillin+” for the sake of conciseness.
 
-2. There is a 100% mortality rate of untreated NBM [14]. Hence, we have set the chance of recovery if the pathogen is resistant to the current antibiotic in use to zero.
+2. There is a 100% mortality rate of untreated NBM [15]. Hence, we have set the chance of recovery if the pathogen is resistant to the current antibiotic in use to zero.
 
-3. There is a 40% overall mortality rate in developed countries [14]. Therefore the parameters have been adjusted such that the expected outcome when our product is not in use averages to a 40% mortality rate.
+3. There is a 40% overall mortality rate in developed countries [15]. Therefore the parameters have been adjusted such that the expected outcome when our product is not in use averages to a 40% mortality rate.
 
 #### Method
 
@@ -834,8 +834,10 @@ Some common questions about the model are answered below:
 
 [11] 2017. _Management of Bacterial Meningitis in infants <3 months_. [pdf] Meningitis Research Foundation. Available at: <https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017> [Accessed 15 October 2021].
 
-[12] Mahabeer, P., Mzimela, B., Lawler, M., Singh-Moodley, A., Singh, R. and Mlisana, K., 2018. _Colistin-resistant Acinetobacter baumanniias a cause of neonatal ventriculitis_. Southern African Journal of Infectious Diseases, pp.1-3.
+[12] Mills, B. 2009. *Ball-and-stick model of the meropenem molecule*. Wikimedia Commons. Available at: https://commons.wikimedia.org/wiki/File:Meropenem-from-xtal-1992-3D-balls.png [Accessed 19 October 2021]
 
-[13] Nation, R. and Li, J., 2009. _Colistin in the 21st century_. Current Opinion in Infectious Diseases, 22(6), pp.535-543.
+[13] Mahabeer, P., Mzimela, B., Lawler, M., Singh-Moodley, A., Singh, R. and Mlisana, K., 2018. _Colistin-resistant Acinetobacter baumanniias a cause of neonatal ventriculitis_. Southern African Journal of Infectious Diseases, pp.1-3.
 
-[14] Tesini, B., 2020. _Neonatal Bacterial Meningitis_. [online] MSD Manual Professional Edition. Available at: <https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis> [Accessed 15 October 2021].
+[14] Nation, R. and Li, J., 2009. _Colistin in the 21st century_. Current Opinion in Infectious Diseases, 22(6), pp.535-543.
+
+[15] Tesini, B., 2020. _Neonatal Bacterial Meningitis_. [online] MSD Manual Professional Edition. Available at: <https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis> [Accessed 15 October 2021].
