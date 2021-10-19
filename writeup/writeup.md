@@ -20,15 +20,15 @@ We propose a validated computational model of the spread of an antibiotic resist
 
 #### Summary of results
 
-Our results show that our product is beneficial in the real world. We know this as we validated our model to prove that it is an appropriately close approximation to reality, then showed that the use of our product improved many of model metrics, most notably the total number of deaths and the numbers of Carbapenem resistant bacteria across the run of a model.
+Our results show that our product will be beneficial in the real world. We know this as we validated our model to prove that it is a sufficiently close approximation to reality, then showed that the use of our product improved the model metrics, most notably the total number of deaths and the numbers of Carbapenem resistant bacteria across the run of a model.
 
 ![deaths_violin_plot](C:\Users\egood\Desktop\modelling\writeup\diagrams\deaths_violin_plot.png)
 
-Above shows a plot of the total number of deaths over a full run (i.e. till no people are infected) of the model with the validated parameters (discussed below). It is evident that the product causes a statistically significant reduction in the number of deaths resulting from the various strains of the pathogen modelled by the system.
+Above shows a violin plot of the total number of deaths over a full run (i.e. till no people are infected) of the model with the validated parameters (discussed below). It is evident that the product causes a statistically significant reduction in the number of deaths resulting from the various strains of the pathogen modelled by the system.
 
 ![meropenem_with_without](C:\Users\egood\Desktop\modelling\writeup\diagrams\meropenem_with_without.png)
 
-Above also a plot of the total number of deaths over a full run (i.e. till no people are infected) of the model with the validated parameters (discussed below). It is again evident that the product causes a statistically significant reduction in the number of people infected with a strain of the pathogen resistant to meropenem - the drug resistance detect by our product.
+Above also shows a line plot of the total number of deaths over a full run (i.e. till no people are infected) of the model with the validated parameters (discussed below). It is again evident that the product causes a statistically significant reduction in the number of people infected with a strain of the pathogen resistant to meropenem - the drug resistance detect by our product.
 
 ### Implementation
 
@@ -91,8 +91,8 @@ Our model is discrete time, stochastic, and compartmental:
   INITIALLY_INFECTED = 10
 
   # Ordered list of drugs used, their properties, and the properties of their
-  # resistant pathogens
-  DRUG_NAMES = ["Penicillin", "Carbapenemase", "Colistin"]
+  # resistant pathogens. Meropenem is a specific drug in the class of Carbapenems
+  DRUG_NAMES = ["Amoxycillin+", "Meropenem", "Colistin"]
 
   PROBABILITY_MOVE_UP_TREATMENT = 0.2
   TIMESTEPS_MOVE_UP_LAG_TIME = 5
@@ -100,7 +100,7 @@ Our model is discrete time, stochastic, and compartmental:
 
   PRODUCT_IN_USE = True
   PROBABILIY_PRODUCT_DETECT = 1
-  PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Carbapenemase")
+  PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Meropenem")
 
   ############################################################
   # Use these if you want to set all drugs to the same thing #
@@ -123,18 +123,18 @@ Our model is discrete time, stochastic, and compartmental:
 
   # Lookup table of drug properties by their names
   DRUG_PROPERTIES = {}
-  DRUG_PROPERTIES["Penicillin"] = (
+  DRUG_PROPERTIES["Amoxycillin+"] = (
       PROBABILITY_TREATMENT_RECOVERY,
   )
-  DRUG_PROPERTIES["Carbapenemase"] = (PROBABILITY_TREATMENT_RECOVERY,)
+  DRUG_PROPERTIES["Meropenem"] = (PROBABILITY_TREATMENT_RECOVERY,)
   DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
 
   # Lookup table of resistance properties by their names
   NUM_RESISTANCES = len(DRUG_NAMES)
   RESISTANCE_PROPERTIES = {}
   RESISTANCE_PROPERTIES["None"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-  RESISTANCE_PROPERTIES["Penicillin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-  RESISTANCE_PROPERTIES["Carbapenemase"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+  RESISTANCE_PROPERTIES["Amoxycillin+"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
+  RESISTANCE_PROPERTIES["Meropenem"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
   RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
 
   ```
@@ -763,9 +763,9 @@ A table of suggested improvements we received during development is:
 | Proposer               | Summary                                                      | Done? |
 | ---------------------- | ------------------------------------------------------------ | ----- |
 | Alex Darlington        | Real hospitals only contain a fairly small number of people susceptible within the model, maximum 250, so the population size should be limited by that. This has the effect of increasing variance in the Markov model, as the law of large numbers does not apply, however, it is important for realistic simulation | Yes   |
-| Alex Darlington        | Add the use of a "last resort" drug, such as Colistin, to resolve the issue of the product detection being too late to make any meaningful action. For example, if Carbapenemase is the final drug in the hierarchy, detection of resistance is not useful, as the highest possible isolation threshold is being treated with it, which is a pre-requisite for developing resistance, so people will never be isolated as a result, and there is no higher tier treatment to use, so better treatment cannot be given either. | Yes   |
+| Alex Darlington        | Add the use of a "last resort" drug, such as Colistin, to resolve the issue of the product detection being too late to make any meaningful action. For example, if a Carbapen is the final drug in the hierarchy, detection of resistance is not useful, as the highest possible isolation threshold is being treated with it, which is a pre-requisite for developing resistance, so people will never be isolated as a result, and there is no higher tier treatment to use, so better treatment cannot be given either. | Yes   |
 | Alex Darlington        | Add an increasing risk of death if a person has been infected for a long time, as in the real world, people become frail after having been sick for some time. | Yes   |
-| Axel Schoerner Emillon | Change the detection method to only detect whether someone is currently resistant to Carbapenemase, rather than if they have any higher tier resistance, as it is not a pre-requisite in the real world given that mutations might not occur in the Carbapenemase treatment stage. This was not implemented as it was identified very late in the process after most of the analysis was completed and we would not have had time to redo it, but we performed an informal test, and found it caused a negligible difference in the model results. | No    |
+| Axel Schoerner Emillon | Change the detection method to only detect whether someone is currently resistant to Carbapenems, rather than if they have any higher tier resistance, as it is not a pre-requisite in the real world given that mutations might not occur in the Carbapenem treatment stage. This was not implemented as it was identified very late in the process after most of the analysis was completed and we would not have had time to redo it, but we performed an informal test, and found it caused a negligible difference in the model results. | No    |
 
 A table of suggested future work we received during development is:
 
@@ -787,7 +787,7 @@ Some common questions about the model are answered below:
 
 - Q. Is the model realistic
 
-  A. No, very little about it is realistic. It is an abstraction of the real world which discards many unnecessary complexities, in order to simply and efficiently model how resistance spreads and is combatted. It is not viable to make a wholly realistic model, as this inevitable turns into a "hospital simulator", and would be too complex to design, and take too long to run on current computers.
+  A. No, very little about it is realistic. It is an abstraction of the real world which discards many unnecessary complexities, in order to simply and efficiently simulate how resistance spreads and is combatted. It is not viable to make a wholly realistic model, as this inevitable turns into a "hospital simulator", and would be too complex to design, and take too long to run on current computers.
 
 - Q. Is the model useful
 
@@ -809,7 +809,7 @@ Some common questions about the model are answered below:
 
 - Q. Can the model be applied to current issues, i.e. the COVID pandemic
 
-  A. Since the model is a very generic abstraction of the real world, by adjusting it's parameters, a vast amount of different scenarios can be modelled. The key issue in adapting it to different scenarios is if they fit the inherent logic and states hard-coded into it. Since COVID is a viral infection, as opposed to a bacterial infection, antibiotics cannot be used to treat it, so the tiered system of antibiotic uses fits less cleanly to it, however, they could instead be considered as increasingly aggressive treatment options, to which it also grows resistant. However, the logic around our product would not apply, as viral infections are not affected by carbapenem, which is the antibiotic we focus on.
+  A. Since the model is a very generic abstraction of the real world, by adjusting it's parameters a vast amount of different scenarios can be modelled. The key issue in adapting it to different scenarios is if they fit the inherent logic and states hard-coded into it. Since COVID is a viral infection, as opposed to a bacterial infection, antibiotics cannot be used to treat it, so the tiered system of antibiotic uses fits less cleanly to it, however, they could instead be considered as increasingly aggressive treatment options, to which it also grows resistant. However, the logic around our product would not apply, as viral infections are not affected by carbapenem, which is the antibiotic we focus on.
 
 ### References
 
