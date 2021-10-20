@@ -35,7 +35,6 @@ class Params:
     PROBABILITY_DEATH = 0.015
     # Add time infected into consideration for death chance
     DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
-    # TODO: Make this more robust
     PROBABILITY_SPREAD = 0.25
     NUM_SPREAD_TO = 1
 

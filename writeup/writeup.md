@@ -6,17 +6,17 @@
 
 ## Summary of project
 
-TODO: Move into main section for wiki?
-
  The overuse of antibiotics has led to an artificial increase of selection pressure on bacteria. This has led to the rapid development of antibiotic resistant bacteria. Over the recent years, the number of antibiotic resistant strains has increased.
 
 Wanting to aide in the arms race against such bacteria, we decided to pick a specific group of antibiotic resistant bacteria, and develop a technique to help reduce their threat.
 
 Carbapenem resistant Enterobacteriaceae (CRE) also known as Carbapenem-producing Enterobacteriaceae (CPE) is a family of Gram-negative bacteria that are resistant to a class of antibiotics known as carbapenems which are only used to treat severe or high-risk infections. The current detection methods for it are: swabbing, which has a long turnover (sometimes up to four days); and Carba NP tests, which are faster but have a high false positive rates.
 
-A novel detection method based on riboswitch-guided CRISPR activation, which leads to the transcription of a fluorescent reporter. The system has been proven to work in vivo and was furthered by converting to an in vitro cell-free system.
+Our system was designed around CRISPR-mediated activation of the transcription of a fluorescent reporter. All the components were designed with in vitro usage in mind – which is why the operation of the system in a cell-free context should be possible without much work. The product would take the form of a tube with this cell-free solution which a sample, such as a swab, can be submerged into. A result would be visible under UV light in up to 30 minutes.
 
-TODO: Add section discussing implementation.
+![A photo of our finished detection kit](./diagrams/v4.jpg)
+
+A photo of our finished detection kit
 
 ## Custom modelling
 
@@ -36,11 +36,11 @@ We designed and validated computational model of the spread of an antibiotic res
 
 Our results show that our product will be beneficial in the real world. We know this as we validated our model to prove that it is a sufficiently close approximation to reality, then showed that the use of our product improved the model metrics, most notably the total number of deaths and the numbers of Carbapenem resistant bacteria across the run of a model.
 
-![deaths_violin_plot](C:\Users\egood\Desktop\modelling\writeup\diagrams\deaths_violin_plot.png)
+![deaths_violin_plot](./diagrams/deaths_violin_plot.png)
 
 Above shows a violin plot of the total number of deaths over a full run (i.e. till no people are infected) of the model with the validated parameters (discussed below). It is evident that the product causes a statistically significant reduction in the number of deaths resulting from the various strains of the pathogen modelled by the system.
 
-![meropenem_with_without](C:\Users\egood\Desktop\modelling\writeup\diagrams\meropenem_with_without.png)
+![meropenem_with_without](./diagrams/meropenem_with_without.png)
 
 Above also shows a line plot of the total number of deaths over a full run (i.e. till no people are infected) of the model with the validated parameters (discussed below). It is again evident that the product causes a statistically significant reduction in the number of people infected with a strain of the pathogen resistant to meropenem - the drug resistance detect by our product.
 
@@ -88,38 +88,37 @@ Our model is discrete time, stochastic, and compartmental:
   NUM_TIMESTEPS = 100
   POPULATION_SIZE = 500
   INITIALLY_INFECTED = 10
-
+  
   # Ordered list of drugs used, their properties, and the properties of their
   # resistant pathogens. Meropenem is a specific drug in the class of Carbapenems
   DRUG_NAMES = ["Amoxycillin+", "Meropenem", "Colistin"]
-
+  
   PROBABILITY_MOVE_UP_TREATMENT = 0.2
   TIMESTEPS_MOVE_UP_LAG_TIME = 5
   ISOLATION_THRESHOLD = DRUG_NAMES.index("Colistin")
-
+  
   PRODUCT_IN_USE = True
   PROBABILIY_PRODUCT_DETECT = 1
   PRODUCT_DETECTION_LEVEL = DRUG_NAMES.index("Meropenem")
-
+  
   ############################################################
   # Use these if you want to set all drugs to the same thing #
   ############################################################
-
+  
   PROBABILITY_GENERAL_RECOVERY = 0
   PROBABILITY_TREATMENT_RECOVERY = 0.3
   PROBABILITY_MUTATION = 0.25
   PROBABILITY_DEATH = 0.015
   # Add time infected into consideration for death chance
   DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
-  # TODO: Make this more robust
   PROBABILITY_SPREAD = 0.25
   NUM_SPREAD_TO = 1
-
+  
   ###########################################################################
   # Set these explicitly for more granular control, or use the above to set #
   # them all as a group                                                     #
   ###########################################################################
-
+  
   # Lookup table of drug properties by their names
   DRUG_PROPERTIES = {}
   DRUG_PROPERTIES["Amoxycillin+"] = (
@@ -127,7 +126,7 @@ Our model is discrete time, stochastic, and compartmental:
   )
   DRUG_PROPERTIES["Meropenem"] = (PROBABILITY_TREATMENT_RECOVERY,)
   DRUG_PROPERTIES["Colistin"] = (PROBABILITY_TREATMENT_RECOVERY,)
-
+  
   # Lookup table of resistance properties by their names
   NUM_RESISTANCES = len(DRUG_NAMES)
   RESISTANCE_PROPERTIES = {}
@@ -135,25 +134,25 @@ Our model is discrete time, stochastic, and compartmental:
   RESISTANCE_PROPERTIES["Amoxycillin+"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
   RESISTANCE_PROPERTIES["Meropenem"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
   RESISTANCE_PROPERTIES["Colistin"] = (PROBABILITY_GENERAL_RECOVERY, PROBABILITY_MUTATION, PROBABILITY_SPREAD, NUM_SPREAD_TO, PROBABILITY_DEATH, DEATH_FUNCTION,)
-
+  
   ```
-
+  
   Additionally, there are internal settings, for example how the model outputs its results.
-
+  
 - Compartmental means that the model is expressed in terms of the transitions between a set of states. The logic for these transitions forms a fundamental part of the model
 
 #### Extensions from the SIR model
 
-The model is at its core a modification of the standard "susceptible-infected-recovered" (often referred to as SIR) model for epidemic disease, which was first formulated in 1927 by Kermack and McKendrick (https://royalsocietypublishing.org/doi/abs/10.1098/rspa.1927.0118) [-1].
+The model is at its core a modification of the standard "susceptible-infected-recovered" (often referred to as SIR) model for epidemic disease, which was first formulated in 1927 by Kermack and McKendrick (https://royalsocietypublishing.org/doi/abs/10.1098/rspa.1927.0118) [1].
 
 This model can be described as three "compartments", one for people susceptible to a pathogen, one for people infected with the pathogen, and one for those who have recovered from the pathogen.
 
 - People who are in the susceptible compartment can move into the infected when with a probability ($$\beta[S][I]$$) each time increment dependent on both the number of susceptible and number of infected people in the population.
 - People who are in the infected compartment can move into the recovered compartment each time increment with another probability $$\gamma[I]$$.
 
-![SIR transitions](C:\Users\egood\Desktop\modelling\writeup\diagrams\SIR_transitions.png)
+![SIR transitions](./diagrams/SIR_transitions.png)
 
-A diagram of the SIR model transitions. Image source: [0]
+Above shows a diagram of the SIR model transitions. Image source: [2]
 
 From this, we can derive a set of differential equations which express the system, which is self-evident based on the above state transitions. Note that this is expressed as occurring of continuous time, however, this is just the limit of the time increments size going to zero.
 $$
@@ -172,11 +171,11 @@ We can then define a further metric $$\mathfrak{R}_0 = \frac{\beta}{\gamma}$$, w
 
 ![SIR Graph](./diagrams/SIR_graph.png)
 
-A diagram of the SIR model. Image source: [1]
+Above shows a graph of the SIR model over time. Image source: [2]
 
 Our custom model extends this concept by adding more "compartments" for additional states people can take when they are infected with increasingly antibiotic resistant pathogens.
 
-There are already examples of models of this extended class for examining antibiotic resistance in E. coli [2] [3] [4], showing that it is a suitable methodology for this problem. However, we believe that a custom model written from scratch was required to integrate the mechanism of the product being used.
+There are already examples of models of this extended class for examining antibiotic resistance in E. coli [3] [4] [5], showing that it is a suitable methodology for this problem. However, we believe that a custom model written from scratch was required to integrate the mechanism of the product being used.
 
 ### Implementation
 
@@ -184,7 +183,7 @@ The key features of the model can be split up into its overall structure, and fi
 
 In each timestep of the model, each of these features are applied to change the state of the population. The order in which they are applied, whilst arbitrary, slightly affects the results of the model, in the sense that different application orders would give different results given the same random seed. We chose this order as we found during the validation section that it resulted in the closest fit to "reality", by giving average results closest to real life data, but any application order can reasonably be considered an adequate model of the system. In our implementation, this order is:
 
-```
+```basic
 FOR EACH person in the population
 	Record the state of the person
 	Increase treatment
@@ -357,11 +356,11 @@ The goal is to create a situation where in the limit of time, the number of unin
 
 #### Model design process
 
-We used an iterative design process during the development of the model, as discussed on page 21 in the book "Testing and Validation of Computer Simulation Models: Principles, Methods and Applications" [5].
+We used an iterative design process during the development of the model, as discussed on page 21 in the book "Testing and Validation of Computer Simulation Models: Principles, Methods and Applications" [6].
 
 ![Block diagram of model design](./diagrams/designBlockDiagram.png)
 
-Block diagram of steps in model design - taken from "Testing and Validation of Computer Simulation Models: Principles, Methods and Applications" [5]
+Above shows a block diagram of steps in model design - taken from "Testing and Validation of Computer Simulation Models: Principles, Methods and Applications" [6]
 
 We went through three iterative design stages of increasing complexity and proximity to real life before settling on our production code:
 
@@ -413,7 +412,7 @@ class TestModel(unittest.TestCase):
         reset_params()
 ```
 
-If the tests are run many times, with many different resulting random number inputs, these unit tests can now be thought of as property based tests. This refers to checking that a function fulfils a property by randomly providing it with values from its input domain, and checking that the resultant outputs fulfil the property. This is a strategy which was pioneered in the functional programming language Haskell [6], and is often considered preferable to unit based tests [7].
+If the tests are run many times, with many different resulting random number inputs, these unit tests can now be thought of as property based tests. This refers to checking that a function fulfils a property by randomly providing it with values from its input domain, and checking that the resultant outputs fulfil the property. This is a strategy which was pioneered in the functional programming language Haskell [7], and is often considered preferable to unit based tests [8].
 
 #### Version control and CI/CD
 
@@ -470,17 +469,17 @@ To ensure that models are sufficiently accurate to the real-world scenario they 
 
 #### Levels of validation
 
-In the paper "Validating Computational Models" by Kathleen Carley [8], there are four levels of validation described for computational models:
+In the paper "Validating Computational Models" by Kathleen Carley [9], there are four levels of validation described for computational models:
 
 ##### 1. Grounding
 
 The paper defines the grounding technique in the following ways:
 
-- "Grounding involves establishing the reasonableness of a computational model" [8]
-- "Grounding involved the use of story-telling, initialization, and evaluation techniques" [8]
-  - Story-telling: "The basic goal of grounding is to establish that the simplifications made in designing the model do not seriously detract from its credibility and the likelihood that it will provide important insights" [8]
-  - Initialization: "On the initialization front, grounding requires setting the various parameters and procedures so that they match real data" [8], for example comparing model outputs, and trends
-  - Performance evaluation: "Simple performance evaluation is the process of determining whether the computational model generates the stylized results or behavior expected of the underlying processes" [8]
+- "Grounding involves establishing the reasonableness of a computational model" [9]
+- "Grounding involved the use of story-telling, initialization, and evaluation techniques" [9]
+  - Story-telling: "The basic goal of grounding is to establish that the simplifications made in designing the model do not seriously detract from its credibility and the likelihood that it will provide important insights" [9]
+  - Initialization: "On the initialization front, grounding requires setting the various parameters and procedures so that they match real data" [9], for example comparing model outputs, and trends
+  - Performance evaluation: "Simple performance evaluation is the process of determining whether the computational model generates the stylized results or behavior expected of the underlying processes" [9]
 
 For "story-telling", the above explanation of the implementation explains the mapping of the model to the real world. The variables within the model are named clearly so the "story" of the model can be inferred directly from the source code. Both initialization and performance evaluation are encompassed by the following sections on calibrating and verification.
 
@@ -490,19 +489,21 @@ The paper defines the calibrating technique in the following way:
 
 "Calibrating is the process of tuning a model to fit detailed real data. This is a multi-step, often iterative, process in which the model’s processes are altered so that the model’s predictions come to fit, with reasonable tolerance, a set of detailed real data. This approach is generally used for establishing the feasibility of the computational model; i.e., for showing that it is possible for the model to generate results that match the real data. [...]
 
-Calibrating a model may require the researcher to both set and reset parameters and to alter the fundamental programming, procedures, algorithms, or rules in the computational model. Calibrating establishes, to an extent the validity of the internal workings of the model and its results (at least in a single case)." [8]
+Calibrating a model may require the researcher to both set and reset parameters and to alter the fundamental programming, procedures, algorithms, or rules in the computational model. Calibrating establishes, to an extent the validity of the internal workings of the model and its results (at least in a single case)." [9]
 
 We inherently used calibration throughout the development phase of the project (see diagram in software engineering above), as the design process involved iteratively designing models, testing them on the scenario data we selected, and adding features and fixes to improve the resemblance of the model to "real life".
 
 ##### 3. Verification
 
-The paper defines the verification technique in the following way: "Verification is a set of techniques for determining the validity of a computational model’s predictions relative to a set of real data. To verify a model, the model’s predictions are compared graphically or statistically with the real data" [9]
+The paper defines the verification technique in the following way: "Verification is a set of techniques for determining the validity of a computational model’s predictions relative to a set of real data. To verify a model, the model’s predictions are compared graphically or statistically with the real data" [10]
 
-We graphically compared the data outputs with the expected characteristic "S-curve" shape which is prevalent in SIR type stochastic models similar to ours. Whilst the individual lines for different resistance levels do not form such a curve, if their total is taken, it does - which is the expected behaviour, as the sum of the resistance levels gives total number infected. This is shown below with the boundary between the pink and the brown items in the graph forming the characteristic curve.
+We graphically compared the data outputs with the expected characteristic "S-curve" shape which is prevalent in SIR type stochastic models similar to ours. Whilst the individual lines for different resistance levels do not form such a curve, if their total is taken, it does - which is the expected behaviour, as the sum of the resistance levels gives total number infected.
 
-![A stack plot showing the S-curve shape](C:\Users\egood\Desktop\modelling\writeup\diagrams\stackplot_SIR.png)
+This is shown below with the boundary between the pink and the brown items in the graph forming the characteristic curve.
 
-Additionally, the book notes that "A special issue in verification occurs with respect to multi-agent models. Multi-agent models can potentially undergo dual level verification; i.e., verification at both the individual and group level. To wit, does the model accurately predict group level behavior, individual level behavior, or both?" [8]
+![A stack plot showing the S-curve shape](./diagrams/stackplot_SIR.png)
+
+Additionally, the book notes that "A special issue in verification occurs with respect to multi-agent models. Multi-agent models can potentially undergo dual level verification; i.e., verification at both the individual and group level. To wit, does the model accurately predict group level behavior, individual level behavior, or both?" [9]
 
 Since our model can be considered to be multi-agent, as it is composed of multiple `Person` classes forming a population, we needed to take account of this special issue.
 
@@ -524,19 +525,21 @@ Due to the flexibility of the model, its parameters can be adjusted to simulate 
 
 ##### Neonatal bacterial meningitis
 
-Here we have chosen to use neonatal bacterial meningitis (NBM) as an example. The disease, and the nature of its spread and treatment have numerous properties that can be simulated using the model. NBM can easily be spread within hospitals by medical staff and often has a deadly outcome [10], all of which can be simulated in the model. Furthermore, treatment involves a line of antibiotics, the last of which generally is treatment with meropenem, a carbapenem - a diagram of the molecular structure of which is shown below [11].
+Here we have chosen to use neonatal bacterial meningitis (NBM) as an example. The disease, and the nature of its spread and treatment have numerous properties that can be simulated using the model. NBM can easily be spread within hospitals by medical staff and often has a deadly outcome [11], all of which can be simulated in the model. Furthermore, treatment involves a line of antibiotics, the last of which generally is treatment with meropenem, a carbapenem - a diagram of the molecular structure of which is shown below [12].
 
-![A diagram of the structure of meropenenm from https://commons.wikimedia.org/wiki/File:Meropenem-from-xtal-1992-3D-balls.png](C:\Users\egood\Desktop\modelling\writeup\diagrams\meropenem.png)
+![A diagram of the structure of meropenenm from https://commons.wikimedia.org/wiki/File:Meropenem-from-xtal-1992-3D-balls.png](./diagrams/meropenem.png)
 
-However, since the model does not allow for the product to identify resistance to the last line of defence, requiring a later line of defence, we included colistin as the last treatment. Colistin has been used to treat multi-resistant NBM [13], however it is infrequently used due to its harmful side-effects [14].
+Above shows a diagram of the molecular structure of Meropenem [12]
+
+However, since the model does not allow for the product to identify resistance to the last line of defence, requiring a later line of defence, we included colistin as the last treatment. Colistin has been used to treat multi-resistant NBM [14], however it is infrequently used due to its harmful side-effects [15].
 
 The parameters of the model have hence been adjusted as such:
 
 1. NBM has three lines of treatment: amoxicillin + cefotaxime/ceftriaxone, meropenem, and finally colistin. Therefore the model has three levels of treatment and corresponding resistance levels. The first level of treatment will henceforth be referred to as “Amoxicillin+” for the sake of conciseness.
 
-2. There is a 100% mortality rate of untreated NBM [15]. Hence, we have set the chance of recovery if the pathogen is resistant to the current antibiotic in use to zero.
+2. There is a 100% mortality rate of untreated NBM [16]. Hence, we have set the chance of recovery if the pathogen is resistant to the current antibiotic in use to zero.
 
-3. There is a 40% overall mortality rate in developed countries [15]. Therefore the parameters have been adjusted such that the expected outcome when our product is not in use averages to a 40% mortality rate.
+3. There is a 40% overall mortality rate in developed countries [16]. Therefore the parameters have been adjusted such that the expected outcome when our product is not in use averages to a 40% mortality rate.
 
 #### Method
 
@@ -563,7 +566,6 @@ PROBABILITY_MUTATION = 0.25
 PROBABILITY_DEATH = 0.02
 # Add time infected into consideration for death chance
 DEATH_FUNCTION = lambda p, t: round(min(0.001*t + p, 1), 4)
-# TODO: Make this more robust
 PROBABILITY_SPREAD = 0.25
 NUM_SPREAD_TO = 1
 ```
@@ -589,11 +591,13 @@ Finally, we also did some further analysis into how the product affects the outc
 
 ##### Outputs
 
-A graph showing the change of several variables over time, having averaged 10 runs without the product in use. “Amoxicillin+”, “Meropenem”, and “Colistin” refer to the number of patients carrying a pathogen with resistance to said antibiotic(s). “Infected” is virtually indistinguishable from “Amoxicillin+” as almost all infected patients develop resistance to Amoxicillin+ immediately as treatment starts due to the parameters of the model. Only the first 100 time-steps are shown as the variables change only marginally after that.
+In order to get a stronger understanding of the model, and prove that our product is helpful, we analysed the results of the model running in various scenarios.
 
 ![NBM average simulation without product in use graph](./diagrams/graph1.png)
 
-Some statistics from the averaged run over a population of 5000 without the product in use:
+Above is a graph showing the change of several variables over time, having averaged 10 runs without the product in use. “Amoxicillin+”, “Meropenem”, and “Colistin” refer to the number of patients carrying a pathogen with resistance to said antibiotic(s). “Infected” is virtually indistinguishable from “Amoxicillin+” as almost all infected patients develop resistance to Amoxicillin+ immediately as treatment starts due to the parameters of the model. Only the first 100 time-steps are shown as the variables change only marginally after that.
+
+Below are some statistics from the averaged run over a population of 5000 without the product in use:
 
 | Category                  | Mean value | Variance |
 | ------------------------- | ---------- | -------- |
@@ -607,9 +611,9 @@ The mortality rate of the averaged run without the product at 40.86% is very clo
 
 ![NBM average simulation with product in use graph](./diagrams/graph2.png)
 
-A graph showing the change of several variables over time, having averaged 10 runs with the product in use. “Amoxicillin+”, “Meropenem”, and “Colistin” refer to the number of patients carrying a pathogen with resistance to said antibiotic(s). “Infected” is virtually indistinguishable from “Amoxicillin+” as almost all infected patients develop resistance to Amoxicillin+ immediately as treatment starts due to the parameters of the model. “Meropenem” is virtually indistinguishable from “Isolated” as all patients with resistance to Meropenem are put into isolation when the product is in use, with few patients being put into isolation that are not resistant to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+Above is a graph showing the change of several variables over time, having averaged 10 runs with the product in use. “Amoxicillin+”, “Meropenem”, and “Colistin” refer to the number of patients carrying a pathogen with resistance to said antibiotic(s). “Infected” is virtually indistinguishable from “Amoxicillin+” as almost all infected patients develop resistance to Amoxicillin+ immediately as treatment starts due to the parameters of the model. “Meropenem” is virtually indistinguishable from “Isolated” as all patients with resistance to Meropenem are put into isolation when the product is in use, with few patients being put into isolation that are not resistant to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
-Some statistics from the averaged run over a population of 5000 without the product in use:
+Below are some statistics from the averaged run over a population of 5000 without the product in use:
 
 | Category                  | Mean value | Variance |
 | ------------------------- | ---------- | -------- |
@@ -638,12 +642,6 @@ The probability of a type I error is the likelihood that you reject the null hyp
 While the purpose of our product was to decrease the overall number of deaths, we cannot know it has the intended effect on infection, mortality and death rates until we have tested it. Hence, we conducted two-sided hypothesis tests. This means that our alternative hypothesis (as opposed to the null hypothesis) was that the mean values for infection, mortality and death rates were *either higher or lower* when using the product than when not using it.
 
 We can assume that the outcomes of the model follow a normal distribution. However, we do not know the standard deviation of outcomes. Therefore, we were left with two options: to approximate a normal distribution or to calculate the test based on a student’s t-distribution. Since we ran the simulations 10 times using and 10 times not using the product respectively, we have a sample size of 10 to calculate the mean values. This is a very low sample size, which suggested the most appropriate distribution was a student’s t-distribution. To know the degrees of freedom (DoF) of the t-test, we had to conduct F-tests of equality of variances test. The null hypothesis of these F-tests was that the variances were equal, while the two-sided alternative hypothesis was that they were not equal. For these tests we used a significance level of 10%.
-
-
-
-
-
-
 
 To test equality of variances, we use this formula if $$S_1^2 > S_2^2$$ :
 $$
@@ -685,7 +683,7 @@ For the equality of variances test of the infection rates, we used the following
 | Variance of the infection rate with the product    | 3.3$$\times 10^{-5}$$ |
 
 $$
-P \left( F_{9,9} > \frac{3.3}{2.6} \right) = P(F_{9,9} > 1.27) > 10%
+P \left( F_{9,9} > \frac{3.3}{2.6} \right) = P(F_{9,9} > 1.27) > 10\%
 $$
 
 Hence, we do not reject the null hypothesis that the variances are equal. Therefore, the difference-in-means test of the infection rates was conducted using the following variables and calculation:
@@ -713,7 +711,7 @@ For the equality of variances test of the mortality rates, we used the following
 | Variance of the mortality rate with the product    | 1.3$$\times 10^{-5}$$ |
 
 $$
-P \left( F_{9,9} > \frac{8.7}{1.3} \right) = P(F_{9,9} > 6.69) < 10%
+P \left( F_{9,9} > \frac{8.7}{1.3} \right) = P(F_{9,9} > 6.69) < 10\%
 $$
 
 Hence, we reject the null hypothesis that the variances are equal. Therefore, the difference-in-means test of the mortality rates was conducted using the following variables and calculation:
@@ -741,7 +739,7 @@ For the equality of variances test of the mortality rates, we used the following
 | Variance of the mortality rate with the product    | 1.1$$\times 10^{-5}$$ |
 
 $$
-P \left( F_{9,9} > \frac{9.3}{1.1} \right) = P(F_{9,9} > 8.45) < 10%
+P \left( F_{9,9} > \frac{9.3}{1.1} \right) = P(F_{9,9} > 8.45) < 10\%
 $$
 
 Hence, we reject the null hypothesis that the variances are equal. Therefore, the difference-in-means test of the mortality rates was conducted using the following variables and calculation:
@@ -767,13 +765,13 @@ Digging deeper into how the product impacts the outcome of the model, we can loo
 
 ![NBM average simulation without product in use, focussing on resistances and isolation graph](./diagrams/graph3.png)
 
-A graph showing the change of frequency in Meropenem and Colistin resistances as well as isolation over time, having averaged 10 runs without the product in use. As resistance to Colistin naturally yields resistance again Meropenem in the model, the frequency of resistance to Meropenem is always higher than that to Colistin. It is clear that isolation is lagging behind the spread of resistant pathogens, with many people who carry and could spread pathogens resistant to Meropenems not being put into isolation. At peak levels, resistance to Meropenem and Colistin reaches 496.8 and 256.5 respectively, while peak isolation reaches 295.5.
-
-A graph showing the change of frequency in Meropenem and Colistin resistances as well as isolation over time, having averaged 10 runs with the product in use. As resistance to Colistin naturally yields resistance again Meropenem in the model, the frequency of resistance to Meropenem is always higher than that to Colistin, however only by a slight amount. The frequency of resistance to Meropenem and that of being put into isolation is almost indistinguishable, as everyone who is resistant to Meropenem is put into isolation. The frequency of resistance to Meropenem is slightly higher than isolation levels while the disease is still spreading since patients only enter isolation the timestep after they develop Meropenem-resistance. At peak levels, resistance to Meropenem and Colistin reaches 323.6 and 271.7 respectively, while peak isolation reaches 313.5.
-
-The first notable takeaway when comparing the data is the difference in frequency of resistance to Meropenem. At peak levels, not using the product increases the frequency of resistance to Meropenem by 53%. This is because patients who carry resistant pathogens are quickly put into isolation when using the product, preventing further spread. Notably, peak isolation is only 6% higher, which suggests that it is not merely putting more people into isolation that prevents spread.
+Above is a graph showing the change of frequency in Meropenem and Colistin resistances as well as isolation over time, having averaged 10 runs without the product in use. As resistance to Colistin naturally yields resistance again Meropenem in the model, the frequency of resistance to Meropenem is always higher than that to Colistin. It is clear that isolation is lagging behind the spread of resistant pathogens, with many people who carry and could spread pathogens resistant to Meropenems not being put into isolation. At peak levels, resistance to Meropenem and Colistin reaches 496.8 and 256.5 respectively, while peak isolation reaches 295.5.
 
 ![NBM average simulation with product in use, focussing on resistances and isolation graph](./diagrams/graph4.png)
+
+Above is a graph showing the change of frequency in Meropenem and Colistin resistances as well as isolation over time, having averaged 10 runs with the product in use. As resistance to Colistin naturally yields resistance again Meropenem in the model, the frequency of resistance to Meropenem is always higher than that to Colistin, however only by a slight amount. The frequency of resistance to Meropenem and that of being put into isolation is almost indistinguishable, as everyone who is resistant to Meropenem is put into isolation. The frequency of resistance to Meropenem is slightly higher than isolation levels while the disease is still spreading since patients only enter isolation the timestep after they develop Meropenem-resistance. At peak levels, resistance to Meropenem and Colistin reaches 323.6 and 271.7 respectively, while peak isolation reaches 313.5.
+
+The first notable takeaway when comparing the data is the difference in frequency of resistance to Meropenem. At peak levels, not using the product increases the frequency of resistance to Meropenem by 53%. This is because patients who carry resistant pathogens are quickly put into isolation when using the product, preventing further spread. Notably, peak isolation is only 6% higher, which suggests that it is not merely putting more people into isolation that prevents spread.
 
 Looking at timestep 30, isolation in the averaged run with the product is at 75.1, while isolation in the averaged run without the product is at 49.9, a massive 50.5% increase.
 
@@ -805,19 +803,19 @@ Below, we show pairs of graphs of results with large and small population sizes 
 
 ![NBM average simulation (population=5000) without product, focussing on Meropenem resistance graph](./diagrams/graph5.png)
 
-A graph showing the change of several variables over time, taking the average of 10 runs without the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+Above is a graph showing the change of several variables over time, taking the average of 10 runs without the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
 ![NBM average simulation (population=200) without product, focussing on Meropenem resistance graph](./diagrams/graph6.png)
 
-A graph showing the change of several variables over time, when the population size was set to 200 and initially infected at 10, taking the average of 10 runs without the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+Above is a graph showing the change of several variables over time, when the population size was set to 200 and initially infected at 10, taking the average of 10 runs without the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
 ![NBM average simulation (population=5000) with product, focussing on Meropenem resistance graph](./diagrams/graph7.png)
 
-A graph showing the change of several variables over time, taking the average of 10 runs with the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+Above is a graph showing the change of several variables over time, taking the average of 10 runs with the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
 ![NBM average simulation (population=200) with product, focussing on Meropenem resistance graph](./diagrams/graph8.png)
 
-A graph showing the change of several variables over time, when the population size was set to 200 and initially infected at 10, taking the average of with the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
+Above is a graph showing the change of several variables over time, when the population size was set to 200 and initially infected at 10, taking the average of with the product in use. “Meropenem” refers to the number of patients carrying a pathogen with resistance to Meropenem. Only the first 100 time-steps are shown as the variables change only marginally after that.
 
 As you can see, the runs with lower populations sizes and fewer infected at the start provide similar results to the averaged runs with much higher populations. They largely have the same outcomes, with the simulation not using the product ending up with 88%, 37% and 32% infection, mortality and death rates respectively, and the simulation using the product ending up with 90%, 35% and 32% infection, mortality and death rates respectively.
 
@@ -910,32 +908,34 @@ Some common questions about the model are answered below:
 
 ### References
 
-[1] Simon, C., 2020. _The SIR dynamic model of infectious disease transmission and its analogy with chemical kinetics_. PeerJ Physical Chemistry, 2, p.e14.
+[1] Kermack, W O. McKendrick, A G. 1927. *A contribution to the mathematical theory of epidemics*. Proc. R. Soc. Lond. A 115: 700–721 http://doi.org/10.1098/rspa.1927.0118
 
-[2] Niewiadomska, A. Jayabalasingham, B. Seidman, J. Willem, L. Grenfell, B. Spiro, D. Viboud, C. 2019. _Population-level mathematical modeling of antimicrobial resistance: a systematic review_. BMC Medicine. Available at: https://bmcmedicine.biomedcentral.com/articles/10.1186/s12916-019-1314-9 [Accessed 16 October 2021]
+[2] Simon, C., 2020. _The SIR dynamic model of infectious disease transmission and its analogy with chemical kinetics_. PeerJ Physical Chemistry, 2, p.e14.
 
-[3] Lakin, S. Kuhnle, A. Alipanahi, B. Noyes, N. Dean, C. Muggli, M. Raymond, R. Abdo, Z. Prosperi, M. Belk, K. Morley, P. Boucher, C. 2019. _Hierarchical Hidden Markov models enable accurate and diverse detection of antimicrobial resistance sequences_. Nature. Available at: https://www.nature.com/articles/s42003-019-0545-9 [Accessed 16 October 2021]
+[3] Niewiadomska, A. Jayabalasingham, B. Seidman, J. Willem, L. Grenfell, B. Spiro, D. Viboud, C. 2019. _Population-level mathematical modeling of antimicrobial resistance: a systematic review_. BMC Medicine. Available at: https://bmcmedicine.biomedcentral.com/articles/10.1186/s12916-019-1314-9 [Accessed 16 October 2021]
 
-[4] Love, W. Zawack, K. Booth, J. Grӧhn, Y. Lanzas, C. 2016. _Markov Networks of Collateral Resistance: National Antimicrobial Resistance Monitoring System Surveillance Results from Escherichia coli Isolates, 2004-2012_. PLOS Computational Biology. Available at: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005160 [Accessed 16 October 2021]
+[4] Lakin, S. Kuhnle, A. Alipanahi, B. Noyes, N. Dean, C. Muggli, M. Raymond, R. Abdo, Z. Prosperi, M. Belk, K. Morley, P. Boucher, C. 2019. _Hierarchical Hidden Markov models enable accurate and diverse detection of antimicrobial resistance sequences_. Nature. Available at: https://www.nature.com/articles/s42003-019-0545-9 [Accessed 16 October 2021]
 
-[5] Murray-Smith, D. 2015. _Testing and Validation of Computer Simulation Models: Principles, Methods and Applications_ (1st. ed.). Springer Publishing Company, Incorporated.
+[5] Love, W. Zawack, K. Booth, J. Grӧhn, Y. Lanzas, C. 2016. _Markov Networks of Collateral Resistance: National Antimicrobial Resistance Monitoring System Surveillance Results from Escherichia coli Isolates, 2004-2012_. PLOS Computational Biology. Available at: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005160 [Accessed 16 October 2021]
 
-[6] Dubien, N. 2018, _Introduction to Property Based Testing - Another test philosophy introduced by QuickCheck_. Available at: https://medium.com/criteo-engineering/introduction-to-property-based-testing-f5236229d237 [Accessed 16 October 2021]
+[6] Murray-Smith, D. 2015. _Testing and Validation of Computer Simulation Models: Principles, Methods and Applications_ (1st. ed.). Springer Publishing Company, Incorporated.
 
-[7] Nygard, M. 2013. _Better Than Unit Tests_. Cognitect blog. Available at: https://www.cognitect.com/blog/2013/11/26/better-than-unit-tests [Accessed 16 October 2021]
+[7] Dubien, N. 2018, _Introduction to Property Based Testing - Another test philosophy introduced by QuickCheck_. Available at: https://medium.com/criteo-engineering/introduction-to-property-based-testing-f5236229d237 [Accessed 16 October 2021]
 
-[8] Kathleen, C. 1996. _Validating Computational Models_. [pdf] Available at: casos.cs.cmu.edu/publications/papers/howtoanalyze.pdf [Accessed 16 October 2021]
+[8] Nygard, M. 2013. _Better Than Unit Tests_. Cognitect blog. Available at: https://www.cognitect.com/blog/2013/11/26/better-than-unit-tests [Accessed 16 October 2021]
 
-[9] Kleijnen, J. 1995. _Statistical Validation of Simulation Models_. European Journal of Operational Research, 82(1): 145-162
+[9] Kathleen, C. 1996. _Validating Computational Models_. [pdf] Available at: casos.cs.cmu.edu/publications/papers/howtoanalyze.pdf [Accessed 16 October 2021]
 
-[10] Şah İpek, M., 2019. _Neonatal Bacterial Meningitis_. Neonatal Medicine.
+[10] Kleijnen, J. 1995. _Statistical Validation of Simulation Models_. European Journal of Operational Research, 82(1): 145-162
 
-[11] 2017. _Management of Bacterial Meningitis in infants <3 months_. [pdf] Meningitis Research Foundation. Available at: <https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017> [Accessed 15 October 2021].
+[11] Şah İpek, M., 2019. _Neonatal Bacterial Meningitis_. Neonatal Medicine.
 
-[12] Mills, B. 2009. *Ball-and-stick model of the meropenem molecule*. Wikimedia Commons. Available at: https://commons.wikimedia.org/wiki/File:Meropenem-from-xtal-1992-3D-balls.png [Accessed 19 October 2021]
+[12] 2017. _Management of Bacterial Meningitis in infants <3 months_. [pdf] Meningitis Research Foundation. Available at: <https://www.meningitis.org/getmedia/75ce0638-a815-4154-b504-b18c462320c8/Neo-Natal-Algorithm-Nov-2017> [Accessed 15 October 2021].
 
-[13] Mahabeer, P., Mzimela, B., Lawler, M., Singh-Moodley, A., Singh, R. and Mlisana, K., 2018. _Colistin-resistant Acinetobacter baumanniias a cause of neonatal ventriculitis_. Southern African Journal of Infectious Diseases, pp.1-3.
+[13] Mills, B. 2009. *Ball-and-stick model of the meropenem molecule*. Wikimedia Commons. Available at: https://commons.wikimedia.org/wiki/File:Meropenem-from-xtal-1992-3D-balls.png [Accessed 19 October 2021]
 
-[14] Nation, R. and Li, J., 2009. _Colistin in the 21st century_. Current Opinion in Infectious Diseases, 22(6), pp.535-543.
+[14] Mahabeer, P., Mzimela, B., Lawler, M., Singh-Moodley, A., Singh, R. and Mlisana, K., 2018. _Colistin-resistant Acinetobacter baumanniias a cause of neonatal ventriculitis_. Southern African Journal of Infectious Diseases, pp.1-3.
 
-[15] Tesini, B., 2020. _Neonatal Bacterial Meningitis_. [online] MSD Manual Professional Edition. Available at: <https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis> [Accessed 15 October 2021].
+[15] Nation, R. and Li, J., 2009. _Colistin in the 21st century_. Current Opinion in Infectious Diseases, 22(6), pp.535-543.
+
+[16] Tesini, B., 2020. _Neonatal Bacterial Meningitis_. [online] MSD Manual Professional Edition. Available at: <https://www.msdmanuals.com/en-gb/professional/pediatrics/infections-in-neonates/neonatal-bacterial-meningitis> [Accessed 15 October 2021].
