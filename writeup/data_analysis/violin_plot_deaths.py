@@ -63,6 +63,7 @@ if __name__ == "__main__":
 
 def deaths_comparison(with_product, without_product):
     fig, ax = plt.subplots(2, 1, sharex=True)
+    fig.suptitle("Violin plot comparing the number of deaths with and without the product in use")
     plt.xlabel('Number of deaths')
 
     sns.violinplot(with_product, ax=ax[0])

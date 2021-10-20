@@ -143,7 +143,7 @@ Our model is discrete time, stochastic, and compartmental:
 
 #### Extensions from the SIR model
 
-The model is at its core a modification of the standard "susceptible-infected-recovered" (often referred to as SIR) model for epidemic disease, which was first formulated in 1927 by Kermack and McKendrick (https://royalsocietypublishing.org/doi/abs/10.1098/rspa.1927.0118) [1].
+The model is at its core a modification of the standard "susceptible-infected-recovered" (often referred to as SIR) model for epidemic disease, which was first formulated in 1927 by Kermack and McKendrick [1].
 
 This model can be described as three "compartments", one for people susceptible to a pathogen, one for people infected with the pathogen, and one for those who have recovered from the pathogen.
 
