@@ -64,12 +64,12 @@ explanation, and provide a top-level understanding even if the rest of
 this page were omitted.
 
 The whole project repository is `available on
-GitHub <https://github.com/Warwick-iGEM-2021/modelling>`__, and the
+GitHub <https://github.com/EdmundGoodman/Warwick_modelling>`__, and the
 final production code for the project can be found: `as a standalone
 Python
-file <https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/tiered_antibiotic_resistance_model/model.py>`__,
+file <https://raw.githubusercontent.com/EdmundGoodman/Warwick_modelling/main/tiered_antibiotic_resistance_model/model.py>`__,
 or `as a package on
-PyPI <https://pypi.org/project/tiered-antibiotic-resistance-model/2.0.1/>`__
+PyPI <https://pypi.org/project/tiered-antibiotic-resistance-model/>`__
 
 Abstract
 ~~~~~~~~
@@ -578,7 +578,7 @@ and proximity to real life before settling on our production code:
    be infected forming a population. It did not employ the tiered system
    of antibiotic treatments, so did not map very closely to the real
    world. The code is `available
-   here <https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/development_versions/v1.py>`__
+   here <https://raw.githubusercontent.com/EdmundGoodman/Warwick_modelling/main/development_versions/v1.py>`__
 
 2. The second version was an improvement on the first in terms of
    mapping closer to reality by employing the tiered system of
@@ -586,14 +586,14 @@ and proximity to real life before settling on our production code:
    and ``Treatment`` classes as properties of a ``Person``, and
    additional logic to move “upwards” across them in a specific order.
    The code is `available
-   here <https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/development_versions/v2.py>`__
+   here <https://raw.githubusercontent.com/EdmundGoodman/Warwick_modelling/main/development_versions/v2.py>`__
 
 3. The third version had a number of additional, but smaller,
    improvements with respect to closely modelling reality. There was an
    addition of a lag time before people could move up treatment, and the
    feature that the change of death increases over time being infected.
    The code is `available
-   here <https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/development_versions/v3.py>`__
+   here <https://raw.githubusercontent.com/EdmundGoodman/Warwick_modelling/main/development_versions/v3.py>`__
 
 4. The final production version included a fairly holistic re-write, in
    order to add finer granularity of control through parameters,
@@ -748,7 +748,7 @@ and running the code directly through that:
 
 .. code:: shell
 
-   git clone https://github.com/Warwick-iGEM-2021/modelling
+   git clone https://github.com/EdmundGoodman/Warwick_modelling
    cd modelling/tiered-antibiotic-resistance-model
    python3 model.py
 
