@@ -414,6 +414,10 @@ class TestModel(unittest.TestCase):
 
 If the tests are run many times, with many different resulting random number inputs, these unit tests can now be thought of as property based tests. This refers to checking that a function fulfils a property by randomly providing it with values from its input domain, and checking that the resultant outputs fulfil the property. This is a strategy which was pioneered in the functional programming language Haskell [7], and is often considered preferable to unit based tests [8].
 
+The whole set of property based tests we wrote can then be run using the `pytest` command:
+
+![A screenshot of the output of running the `pytest` command](./diagrams/pytest.png)
+
 #### Version control and CI/CD
 
 Having implemented a robust testing strategy, we now had all the building blocks for a continuous integration/continuous development workflow, as shown below:
@@ -422,9 +426,9 @@ Having implemented a robust testing strategy, we now had all the building blocks
 
 The build phase is relatively simple - writing the code in an editor of your choice, and running it with the Python interpreter, and the testing phase is discussed above.
 
-Throughout the entire project, we used `git` as version control. From this, we linked the project to a remote repository on GitHub, which forms the main way to access the most up to data code - forming the merge and continuous delivery steps.
+Throughout the entire project, we used `git` as version control. From this, we linked the project to a remote repository on GitHub, which is the main way to access the most up to data code, so forms both the merge and continuous delivery steps. When code is pushed to the remote repository, actions are automatically run to ensure that the code is both syntactically and conceptually correct, using the static analysis tool [flake8](https://flake8.pycqa.org/en/latest/) for the former, and by running `pytest` on all the code as discussed above for the latter.
 
-We chose not to automate publishing the code to PyPI (discussed below), which could be considered the production aspect of the modelling, as the project was under active development, and minor changes to the repository should not necessarily be pushed, as their general stability and usefulness is not fully known.
+We chose not to automate publishing the code to PyPI (discussed below), which could be considered the production aspect of the modelling, as the project was under active development, and minor changes to the repository should not necessarily be pushed - as their general stability and usefulness is not fully known.
 
 #### Transpilation to Javascript
 
