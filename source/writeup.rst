@@ -873,11 +873,20 @@ resistance levels do not form such a curve, if their total is taken, it
 does - which is the expected behaviour, as the sum of the resistance
 levels gives total number infected.
 
-This is shown below with the boundary between the pink and the brown
-items in the graph forming the characteristic curve.
+ This is shown below with the boundary between the light and dark blue items in
+ the graph forming the characteristic curve, which matches the shape of the
+ light blue line in the SIR explanation graph.
 
 .. figure:: ../writeup/diagrams/stackplot_SIR.png
    :alt:
+
+Above shows a stack plot of our model output showing the characteristic 'S-curve' shape
+
+.. figure:: ../writeup/diagrams/stackplot_SIR.png
+   :alt:
+
+Above shows a graph of the SIR model over time - with the blue line being the same shape as
+seen in the above stackplot output of our model. Image source: [2]
 
 Additionally, the book notes that “A special issue in verification
 occurs with respect to multi-agent models. Multi-agent models can
