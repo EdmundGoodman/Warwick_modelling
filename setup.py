@@ -6,15 +6,15 @@ with open("README.md", "r") as fh:
 setup(
     name = 'tiered_antibiotic_resistance_model',
     packages=find_packages(),
-    version = '2.0.3',
+    version = '2.0.4',
     license='MIT',
     description = 'A validated computational model of the spread of an antibiotic resistant pathogens in a hospital, with and without our diagnostic tool for quickly identifying it',
     long_description=long_description,
     long_description_content_type="text/markdown",
     author = 'Edmund Goodman',
     author_email = 'egoodman3141@gmail.com',
-    url = 'https://github.com/Warwick-iGEM-2021/modelling',
-    download_url = 'https://github.com/Warwick-iGEM-2021/modelling/archive/refs/tags/v2.0.3.tar.gz',
+    url = 'https://github.com/EdmundGoodman/Warwick_modelling',
+    download_url = 'https://github.com/EdmundGoodman/Warwick_modelling/archive/refs/tags/v2.0.4.tar.gz',
     keywords = ['iGEM', 'synthetic biology', 'model'],
     install_requires = [
         'matplotlib',

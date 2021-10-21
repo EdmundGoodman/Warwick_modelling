@@ -1,4 +1,4 @@
-![Build status](https://github.com/Warwick-iGEM-2021/modelling/actions/workflows/python-app.yml/badge.svg)
+![Build status](https://github.com/EdmundGoodman/Warwick_modelling/actions/workflows/python-app.yml/badge.svg)
 
 # Warwick iGEM computational modelling
 
@@ -20,8 +20,8 @@ product is beneficial in the real-world.
 
 The writeup for the entire project can be found here:
 
-- [As a markdown document](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/writeup/writeup.md)
-- [As a PDF file](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/writeup/writeup.pdf)
+- [As a markdown document](https://raw.githubusercontent.com/EdmundGoodman/Warwick_modelling/main/writeup/writeup.md)
+- [As a PDF file](https://raw.githubusercontent.com/EdmundGoodman/Warwick_modelling/main/writeup/writeup.pdf)
 - [As part of the Warwick iGEM 2021 wiki](https://2021.igem.org/Team:Warwick/Model)
 
 The documentation for the production code can be found here:
@@ -29,8 +29,8 @@ The documentation for the production code can be found here:
 
 The final production code for the project can be found here:
 
-- [As a standalone python file](https://raw.githubusercontent.com/Warwick-iGEM-2021/modelling/main/tiered_antibiotic_resistance_model/model.py)
-- [As a package on PyPI](https://pypi.org/project/tiered-antibiotic-resistance-model/2.0.1/)
+- [As a standalone python file](https://raw.githubusercontent.com/EdmundGoodman/Warwick_modelling/main/tiered_antibiotic_resistance_model/model.py)
+- [As a package on PyPI](https://pypi.org/project/tiered-antibiotic-resistance-model/)
 
 ## Team
 
